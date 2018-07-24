@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Dserver.port=$PORT -jar target/discordbot-0.0.1-SNAPSHOT.jar
+worker: java $JAVA_OPTS -Dserver.port=$PORT -jar target/discordbot-0.0.1-SNAPSHOT.jar
