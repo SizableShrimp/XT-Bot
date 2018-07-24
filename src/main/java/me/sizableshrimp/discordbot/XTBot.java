@@ -13,7 +13,7 @@ public class XTBot {
 
 	public static void main(String[] args) {
 		SpringApplication.run(XTBot.class, args);
-		client = BotClient.createClient(args[0]/*System.getenv("TOKEN")*/, true);
+		client = BotClient.createClient(System.getenv("TOKEN"), true);
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 	}
