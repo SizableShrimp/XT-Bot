@@ -1,5 +1,8 @@
 package me.sizableshrimp.discordbot;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.Permissions;
@@ -14,8 +17,24 @@ public class EventListener {
 	public void onMessageEvent(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
-		if (message.startsWith(XTBot.client.getOurUser().mention())) {
-			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. My author is SizableShrimp. You can do two commands right now:\n"+XTBot.prefix+"hey\n"+XTBot.prefix+"stuff\nMore commands will be coming in the future!", event);
+		if (message.startsWith(XTBot.prefix+"mention")) {
+			sendMessage(XTBot.client.getOurUser().mention(), event);
+			return;
+		}
+//		if (message.startsWith(XTBot.client.getOurUser().mention() || message.startsWith(XTBot.prefix+"help")) {
+//			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. You can do two commands right now:\n"+XTBot.prefix+"hey\n"+XTBot.prefix+"stuff\nMore commands will be coming in the future!", event);
+//			return;
+//		}
+		if (message.startsWith(XTBot.prefix+"info")) {
+			EmbedBuilder embed = new EmbedBuilder();
+			embed.withAuthorName("Information");
+			embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com)");
+			embed.appendField("Author", "SizableShrimp", true);
+			embed.appendField("4J Version", "2.10.1", true);
+			embed.appendField("Prefix", XTBot.prefix, false);
+			DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+			embed.appendField("Uptime", formatter.format(System.currentTimeMillis()-XTBot.firstOnline), false);
+			sendMessage("To find out my commands, just do `"+XTBot.prefix+"help"+embed.build(), event);
 		}
 		if (message.startsWith(XTBot.prefix+"hey")) {
 			sendMessage("Hello! :smile:", event);
@@ -59,6 +78,7 @@ public class EventListener {
 		}
 		if (message.startsWith(XTBot.prefix+"stuff")) {
 			sendMessage("Good stuff, bro", event);
+			return;
 		}
 	}
 

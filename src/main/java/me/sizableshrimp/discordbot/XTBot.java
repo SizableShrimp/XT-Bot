@@ -9,12 +9,14 @@ import sx.blah.discord.api.events.EventDispatcher;
 @SpringBootApplication
 public class XTBot {
 	public static IDiscordClient client;
-	public static String prefix = ".";
+	public static String prefix = "^";
+	public static long firstOnline;
 
 	public static void main(String[] args) {
 		SpringApplication.run(XTBot.class, args);
 		client = BotClient.createClient(System.getenv("TOKEN"), true);
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
+		firstOnline = System.currentTimeMillis();
 	}
 }
