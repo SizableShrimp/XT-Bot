@@ -20,6 +20,9 @@ public class EventListener {
 			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\nMore commands will be coming in the future!", event);
 			return;
 		}
+		if (message.startsWith(",leave")) {
+			event.getGuild().leave();
+		}
 		if (message.startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Information");
@@ -76,7 +79,7 @@ public class EventListener {
 	public void sendMessage(String message, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
 		new MessageBuilder(XTBot.client).appendContent("\u200B"+message).withChannel(event.getChannel()).build();
 	}
-	
+
 	public void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
 		new MessageBuilder(XTBot.client).withEmbed(embed.build()).withChannel(event.getChannel()).build();
 	}

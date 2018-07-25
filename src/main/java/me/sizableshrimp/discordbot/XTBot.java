@@ -29,9 +29,6 @@ public class XTBot {
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 		firstOnline = System.currentTimeMillis();
-		try {
-			client.getGuildByID(208023865127862272L).leave();
-		} catch (Exception e) {}
 		Timer timer = new Timer();
 		timer.schedule(new TimerTask() {
 			public void run() {
@@ -48,7 +45,7 @@ public class XTBot {
 		timer2.schedule(new TimerTask() {
 			public void run() {
 				try {
-					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1Ylw&type=video&eventType=live&key=AIzaSyC8U7REEClIjyfKVuWzRhctyPcDKJN6r3Q").openConnection();
+					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1Ylw&type=video&eventType=live&key="+System.getenv("API_KEY")).openConnection();
 					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
 						String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
 						if (reply.contains("\"totalResults\": 1")) {
