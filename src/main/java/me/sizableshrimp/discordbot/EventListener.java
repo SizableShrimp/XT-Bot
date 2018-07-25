@@ -22,7 +22,7 @@ public class EventListener {
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"help") || event.getMessage().getMentions().contains(XTBot.client.getOurUser())) {
-			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. You can do two commands right now:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"stuff`\nMore commands will be coming in the future!", event);
+			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. You can do two commands right now:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"stuff`\n`"+XTBot.prefix+"info`\nMore commands will be coming in the future!", event);
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"info")) {
@@ -32,7 +32,7 @@ public class EventListener {
 			embed.appendField("Author", "SizableShrimp", true);
 			embed.appendField("4J Version", "2.10.1", true);
 			embed.appendField("Prefix", XTBot.prefix, false);
-			DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+			DateFormat formatter = new SimpleDateFormat("dd:HH:mm:ss");
 			embed.appendField("Uptime", formatter.format(System.currentTimeMillis()-XTBot.firstOnline), false);
 			new MessageBuilder(XTBot.client).appendContent("To find out my commands, just do `"+XTBot.prefix+"help`").withEmbed(embed.build()).withChannel(event.getChannel()).build();
 		}
