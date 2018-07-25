@@ -39,6 +39,7 @@ public class EventListener {
 			} catch (IOException | UnsupportedAudioFileException e) {
 				e.printStackTrace();
 				sendMessage("There was an error adding this song to the queue. Please try again later.", event);
+				sendMessage(e.getStackTrace().toString(), event);
 				return;
 			}
 			sendMessage("Joined "+channel.getName()+" and playing All Star", event);
@@ -105,10 +106,11 @@ public class EventListener {
 	}
 
 	private String getUptime() {
-		Long days = TimeUnit.MILLISECONDS.toDays(XTBot.firstOnline);
-		Long hours = TimeUnit.MILLISECONDS.toHours(XTBot.firstOnline) - TimeUnit.DAYS.toHours(days);
-		Long minutes = TimeUnit.MILLISECONDS.toMinutes(XTBot.firstOnline) - TimeUnit.HOURS.toMinutes(hours) - TimeUnit.DAYS.toMinutes(days);
-		Long seconds = TimeUnit.MILLISECONDS.toSeconds(XTBot.firstOnline) - TimeUnit.MINUTES.toSeconds(minutes) - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.DAYS.toSeconds(days);
+		Long uptime = System.currentTimeMillis()-XTBot.firstOnline;
+		Long days = TimeUnit.MILLISECONDS.toDays(uptime);
+		Long hours = TimeUnit.MILLISECONDS.toHours(uptime) - TimeUnit.DAYS.toHours(days);
+		Long minutes = TimeUnit.MILLISECONDS.toMinutes(uptime) - TimeUnit.HOURS.toMinutes(hours) - TimeUnit.DAYS.toMinutes(days);
+		Long seconds = TimeUnit.MILLISECONDS.toSeconds(uptime) - TimeUnit.MINUTES.toSeconds(minutes) - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.DAYS.toSeconds(days);
 		List<String> formats = new ArrayList<String>();
 		if (days > 0) {
 			String string;
