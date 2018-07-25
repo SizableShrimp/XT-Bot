@@ -39,7 +39,7 @@ public class EventListener {
 			} catch (IOException | UnsupportedAudioFileException e) {
 				e.printStackTrace();
 				sendMessage("There was an error adding this song to the queue. Please try again later.", event);
-				sendMessage(e.getStackTrace().toString(), event);
+				sendMessage(e.getMessage(), event);
 				return;
 			}
 			sendMessage("Joined "+channel.getName()+" and playing All Star", event);
