@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.EmbedBuilder;
@@ -19,12 +20,13 @@ public class EventListener {
 		String message = event.getMessage().getContent();
 		if (message.startsWith(XTBot.prefix+"mention")) {
 			sendMessage(XTBot.client.getOurUser().mention(), event);
+			sendMessage(message, event);
 			return;
 		}
-//		if (message.startsWith(XTBot.client.getOurUser().mention() || message.startsWith(XTBot.prefix+"help")) {
-//			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. You can do two commands right now:\n"+XTBot.prefix+"hey\n"+XTBot.prefix+"stuff\nMore commands will be coming in the future!", event);
-//			return;
-//		}
+		if (message.startsWith(XTBot.prefix+"help") || message.startsWith(getMention(XTBot.client.getOurUser()))) {
+			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. You can do two commands right now:\n"+XTBot.prefix+"hey\n"+XTBot.prefix+"stuff\nMore commands will be coming in the future!", event);
+			return;
+		}
 		if (message.startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Information");
@@ -88,5 +90,9 @@ public class EventListener {
 	
 	public void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
 		RequestBuffer.request(() -> event.getChannel().sendMessage(embed.build()));
+	}
+	
+	public String getMention(IUser user) {
+		return "@"+user.getName()+"#"+user.getDiscriminator();
 	}
 }
