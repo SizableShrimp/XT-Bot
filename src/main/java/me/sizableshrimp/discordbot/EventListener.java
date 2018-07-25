@@ -5,13 +5,11 @@ import java.text.SimpleDateFormat;
 
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.RequestBuffer;
 
 public class EventListener {
 	@EventSubscriber
@@ -36,7 +34,7 @@ public class EventListener {
 			embed.appendField("Prefix", XTBot.prefix, false);
 			DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 			embed.appendField("Uptime", formatter.format(System.currentTimeMillis()-XTBot.firstOnline), false);
-			sendMessage("To find out my commands, just do `"+XTBot.prefix+"help`"+embed.build(), event);
+			new MessageBuilder(XTBot.client).appendContent("To find out my commands, just do `"+XTBot.prefix+"help`").withEmbed(embed.build()).withChannel(event.getChannel()).build();
 		}
 		if (message.startsWith(XTBot.prefix+"hey")) {
 			sendMessage("Hello! :smile:", event);
@@ -89,10 +87,6 @@ public class EventListener {
 	}
 	
 	public void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
-		RequestBuffer.request(() -> event.getChannel().sendMessage(embed.build()));
-	}
-	
-	public String getMention(IUser user) {
-		return "@"+user.getName()+"#"+user.getDiscriminator();
+		new MessageBuilder(XTBot.client).withEmbed(embed.build()).withChannel(event.getChannel()).build();
 	}
 }
