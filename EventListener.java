@@ -22,7 +22,7 @@ public class EventListener {
 			sendMessage(XTBot.client.getOurUser().mention(), event);
 			return;
 		}
-		if (message.startsWith(getMention(XTBot.client.getOurUser())) || message.startsWith(XTBot.prefix+"help")) {
+		if ((message.startsWith(getMention(XTBot.client.getOurUser()))) || (message.startsWith(XTBot.prefix+"help"))) {
 			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. You can do two commands right now:\n"+XTBot.prefix+"hey\n"+XTBot.prefix+"stuff\nMore commands will be coming in the future!", event);
 			return;
 		}
