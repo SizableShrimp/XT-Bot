@@ -70,7 +70,7 @@ public class XTBot {
 	private static void dailyMeme() {
 		ZonedDateTime time = ZonedDateTime.now(ZoneId.of("US/Eastern"));
 		ZonedDateTime tomorrow;
-		tomorrow = time.withHour(15).withMinute(36).withSecond(0);
+		tomorrow = time.withHour(15).withMinute(40).withSecond(0);
 		if (time.compareTo(tomorrow) > 0) tomorrow = tomorrow.plusDays(1);
 		Duration duration = Duration.between(time, tomorrow);
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
