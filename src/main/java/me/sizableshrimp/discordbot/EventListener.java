@@ -12,7 +12,11 @@ import sx.blah.discord.util.RequestBuffer;
 public class EventListener {
 	@EventSubscriber
 	public void onMessageEvent(MessageReceivedEvent event) {
+		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
+		if (message.startsWith(XTBot.client.getOurUser().mention())) {
+			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. My author is SizableShrimp. You can do two commands right now:\n"+XTBot.prefix+"hey\n"+XTBot.prefix+"stuff\nMore commands will be coming in the future!", event);
+		}
 		if (message.startsWith(XTBot.prefix+"hey")) {
 			sendMessage("Hello! :smile:", event);
 			return;
