@@ -1,5 +1,9 @@
 package me.sizableshrimp.discordbot;
 
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -18,5 +22,17 @@ public class XTBot {
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 		firstOnline = System.currentTimeMillis();
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+			public void run() {
+				try {
+					Runtime runtime = Runtime.getRuntime();
+					runtime.exec("ping xt-bot42.herokuapp.com");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+		}, 0, (15 * 60 * 1000));
 	}
 }
