@@ -53,10 +53,13 @@ public class EventListener {
 				return;
 			}
 		}
+		if (message.startsWith(XTBot.prefix+"stuff")) {
+			sendMessage("Good stuff, bro", event);
+		}
 	}
 
 	public void sendMessage(String message, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
-		new MessageBuilder(XTBot.client).appendContent(/*add whitespace here*/message).withChannel(event.getChannel()).build();
+		new MessageBuilder(XTBot.client).appendContent("\u200B"+message).withChannel(event.getChannel()).build();
 	}
 	
 	public void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
