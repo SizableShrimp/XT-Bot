@@ -23,7 +23,7 @@ public class EventListener {
 		if (message.startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Information");
-			embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com). It is coded in Java using the Discord4J library.");
+			embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
 			embed.appendField("Author", "SizableShrimp", true);
 			embed.appendField("Discord4J Version", "2.10.1", true);
 			embed.appendField("Prefix", XTBot.prefix, false);
