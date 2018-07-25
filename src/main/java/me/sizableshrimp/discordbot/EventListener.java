@@ -20,9 +20,6 @@ public class EventListener {
 			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\nMore commands will be coming in the future!", event);
 			return;
 		}
-		if (message.startsWith(",leave")) {
-			event.getGuild().leave();
-		}
 		if (message.startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Information");
