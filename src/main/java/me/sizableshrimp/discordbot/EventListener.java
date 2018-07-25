@@ -36,7 +36,7 @@ public class EventListener {
 			embed.appendField("Prefix", XTBot.prefix, false);
 			DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 			embed.appendField("Uptime", formatter.format(System.currentTimeMillis()-XTBot.firstOnline), false);
-			sendMessage("To find out my commands, just do `"+XTBot.prefix+"help"+embed.build(), event);
+			sendMessage("To find out my commands, just do `"+XTBot.prefix+"help`"+embed.build(), event);
 		}
 		if (message.startsWith(XTBot.prefix+"hey")) {
 			sendMessage("Hello! :smile:", event);
