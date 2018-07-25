@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.concurrent.Executors;
@@ -34,6 +33,7 @@ public class XTBot {
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 		firstOnline = System.currentTimeMillis();
+		dailyMeme();
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
@@ -67,10 +67,10 @@ public class XTBot {
 		}, 0, 60, TimeUnit.SECONDS);
 	}
 	
-	public void dailyMeme() {
-		ZonedDateTime time = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("US/Eastern"));
+	private static void dailyMeme() {
+		ZonedDateTime time = ZonedDateTime.now(ZoneId.of("US/Eastern"));
 		ZonedDateTime tomorrow;
-		tomorrow = time.withHour(15).withMinute(30).withSecond(0);
+		tomorrow = time.withHour(15).withMinute(36).withSecond(0);
 		if (time.compareTo(tomorrow) > 0) tomorrow = tomorrow.plusDays(1);
 		Duration duration = Duration.between(time, tomorrow);
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
