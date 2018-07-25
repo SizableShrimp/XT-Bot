@@ -5,8 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -29,8 +34,8 @@ public class XTBot {
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 		firstOnline = System.currentTimeMillis();
-		Timer timer = new Timer();
-		timer.schedule(new TimerTask() {
+		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
 					URL siteURL = new URL("https://xt-bot42.herokuapp.com");
@@ -40,9 +45,9 @@ public class XTBot {
 					System.out.println("Heroku dyno idling refreshed. Response code: "+Integer.toString(connection.getResponseCode()));
 				} catch (IOException e) {e.printStackTrace();}
 			}
-		}, 0, (5 * 60 * 1000));
-		Timer timer2 = new Timer();
-		timer2.schedule(new TimerTask() {
+		}, 0, 5*60, TimeUnit.SECONDS);
+		ScheduledExecutorService scheduler2 = Executors.newScheduledThreadPool(1);
+		scheduler2.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
 					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1Ylw&type=video&eventType=live&key="+System.getenv("API_KEY")).openConnection();
@@ -59,6 +64,33 @@ public class XTBot {
 					e.printStackTrace();
 				}
 			}
-		}, 0, (60 * 1000));
+		}, 0, 60, TimeUnit.SECONDS);
 	}
+	
+	public void dailyMeme() {
+		ZonedDateTime time = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("US/Eastern"));
+		ZonedDateTime tomorrow;
+		tomorrow = time.withHour(15).withMinute(30).withSecond(0);
+		if (time.compareTo(tomorrow) > 0) tomorrow = tomorrow.plusDays(1);
+		Duration duration = Duration.between(time, tomorrow);
+		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+		scheduler.scheduleAtFixedRate(new Runnable() {
+			public void run() {
+				new MessageBuilder(XTBot.client).appendContent("\u200B"+"Testing!").withChannel(client.getChannelByID(332985255151665152L)).build();
+			}
+		}, duration.getSeconds(), 24*60*60, TimeUnit.SECONDS);
+	}
+//	public void dailyMeme() {
+//		ZonedDateTime time = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("US/Eastern"));
+//		ZonedDateTime tomorrow;
+//		tomorrow = time.withHour(16).withMinute(20).withSecond(0);
+//		if (time.compareTo(tomorrow) > 0) tomorrow = tomorrow.plusDays(1);
+//		Duration duration = Duration.between(time, tomorrow);
+//		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+//		scheduler.scheduleAtFixedRate(new Runnable() {
+//			public void run() {
+//				new MessageBuilder(XTBot.client).appendContent("\u200B"+"Happy 420!").withChannel(client.getChannelByID(332985255151665152L)).build();
+//			}
+//		}, duration.getSeconds(), 24*60*60, TimeUnit.SECONDS);
+//	}
 }
