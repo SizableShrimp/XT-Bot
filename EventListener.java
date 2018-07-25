@@ -20,9 +20,10 @@ public class EventListener {
 		String message = event.getMessage().getContent();
 		if (message.startsWith(XTBot.prefix+"mention")) {
 			sendMessage(XTBot.client.getOurUser().mention(), event);
+			sendMessage(message, event);
 			return;
 		}
-		if ((message.startsWith(getMention(XTBot.client.getOurUser()))) || (message.startsWith(XTBot.prefix+"help"))) {
+		if (message.startsWith(XTBot.prefix+"help") || message.startsWith(getMention(XTBot.client.getOurUser()))) {
 			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. You can do two commands right now:\n"+XTBot.prefix+"hey\n"+XTBot.prefix+"stuff\nMore commands will be coming in the future!", event);
 			return;
 		}
