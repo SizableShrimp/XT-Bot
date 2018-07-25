@@ -17,15 +17,15 @@ public class EventListener {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
 		if (message.startsWith(XTBot.prefix+"help") || event.getMessage().getMentions().contains(XTBot.client.getOurUser())) {
-			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\nMore commands will be coming in the future!", event);
+			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`More commands will be coming in the future!", event);
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Information");
-			embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com)");
+			embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com). It is coded in Java using the Discord4J library.");
 			embed.appendField("Author", "SizableShrimp", true);
-			embed.appendField("4J Version", "2.10.1", true);
+			embed.appendField("Discord4J Version", "2.10.1", true);
 			embed.appendField("Prefix", XTBot.prefix, false);
 			DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 			embed.appendField("Uptime", formatter.format(System.currentTimeMillis()-XTBot.firstOnline), false);
