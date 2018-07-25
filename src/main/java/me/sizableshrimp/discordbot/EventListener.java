@@ -17,7 +17,7 @@ public class EventListener {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
 		if (message.startsWith(XTBot.prefix+"help") || event.getMessage().getMentions().contains(XTBot.client.getOurUser())) {
-			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`More commands will be coming in the future!", event);
+			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\nMore commands will be coming in the future!", event);
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"info")) {
