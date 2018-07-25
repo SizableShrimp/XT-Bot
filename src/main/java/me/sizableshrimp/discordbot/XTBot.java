@@ -70,13 +70,13 @@ public class XTBot {
 	private static void dailyMeme() {
 		ZonedDateTime time = ZonedDateTime.now(ZoneId.of("US/Eastern"));
 		ZonedDateTime tomorrow;
-		tomorrow = time.withHour(15).withMinute(40).withSecond(0);
+		tomorrow = time.withHour(16).withMinute(20).withSecond(0);
 		if (time.compareTo(tomorrow) > 0) tomorrow = tomorrow.plusDays(1);
 		Duration duration = Duration.between(time, tomorrow);
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
-				new MessageBuilder(XTBot.client).appendContent("\u200B"+"Testing!").withChannel(client.getChannelByID(332985255151665152L)).build();
+				new MessageBuilder(XTBot.client).appendContent("\u200B"+"Happy 420!").withChannel(client.getChannelByID(332985255151665152L)).build();
 			}
 		}, duration.getSeconds(), 24*60*60, TimeUnit.SECONDS);
 	}
