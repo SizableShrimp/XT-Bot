@@ -1,6 +1,8 @@
 package me.sizableshrimp.discordbot;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -26,12 +28,11 @@ public class XTBot {
 		timer.schedule(new TimerTask() {
 			public void run() {
 				try {
-					Runtime runtime = Runtime.getRuntime();
-					runtime.exec("ping xt-bot42.herokuapp.com");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-
+					URL siteURL = new URL("https://xt-bot42.herokuapp.com");
+					HttpURLConnection connection = (HttpURLConnection) siteURL.openConnection();
+					connection.setRequestMethod("GET");
+					connection.connect();
+				} catch (IOException e) {e.printStackTrace();}
 			}
 		}, 0, (15 * 60 * 1000));
 	}
