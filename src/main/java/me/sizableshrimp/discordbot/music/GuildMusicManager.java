@@ -1,4 +1,4 @@
-package com.sedmelluq.discord.lavaplayer.demo.d4j;
+package me.sizableshrimp.discordbot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
