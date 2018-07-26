@@ -93,11 +93,11 @@ public class EventListener {
 		}
 	}
 
-	public static void sendMessage(String message, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
+	private void sendMessage(String message, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
 		new MessageBuilder(XTBot.client).appendContent("\u200B"+message).withChannel(event.getChannel()).build();
 	}
 
-	public static void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
+	private void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
 		new MessageBuilder(XTBot.client).withEmbed(embed.build()).withChannel(event.getChannel()).build();
 	}
 
@@ -161,6 +161,8 @@ public class EventListener {
 		AudioPlayerManager manager = new DefaultAudioPlayerManager();
 		AudioSourceManagers.registerRemoteSources(manager);
 		AudioPlayer audio = manager.createPlayer();
+		TaskScheduler scheduler = new TaskScheduler();
+		audio.addListener(scheduler);
 		manager.loadItem("L_jWHffIx5E", new AudioLoadResultHandler() {
 			@Override
 			public void loadFailed(FriendlyException exception) {
@@ -170,13 +172,11 @@ public class EventListener {
 			@Override
 			public void noMatches() {
 				//no matches found
-
 			}
 
 			@Override
 			public void playlistLoaded(AudioPlaylist playlist) {
 				//playlist was loaded
-
 			}
 
 			@Override
