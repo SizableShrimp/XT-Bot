@@ -1,13 +1,9 @@
 package me.sizableshrimp.discordbot;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 import me.sizableshrimp.discordbot.music.Music;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -20,8 +16,6 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.audio.AudioPlayer;
-import sx.blah.discord.util.audio.events.TrackFinishEvent;
 
 public class EventListener {
 	public static HashMap<IGuild, IChannel> startedChannel = new HashMap<IGuild, IChannel>();
@@ -35,7 +29,7 @@ public class EventListener {
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"allstar")) {
-			if (AudioPlayer.getAudioPlayerForGuild(event.getGuild()).getCurrentTrack() != null) {
+			if (event.getGuild().getConnectedVoiceChannel() != null) {
 				sendMessage("I am already playing All Star in "+event.getGuild().getConnectedVoiceChannel().getName(), event.getChannel());
 				return;
 			}
@@ -100,19 +94,12 @@ public class EventListener {
 			}
 		}
 	}
-	
-	@EventSubscriber
-	public void onTrackFinish(TrackFinishEvent event) {
-		IVoiceChannel channel = event.getPlayer().getGuild().getConnectedVoiceChannel();
-		sendMessage("All Star has ended, leaving "+channel.getName(), startedChannel.get(event.getPlayer().getGuild()));
-		channel.leave();
-	}
 
-	private void sendMessage(String message, IChannel channel) throws DiscordException, MissingPermissionsException {
+	public static void sendMessage(String message, IChannel channel) throws DiscordException, MissingPermissionsException {
 		new MessageBuilder(XTBot.client).appendContent("\u200B"+message).withChannel(channel).build();
 	}
 
-	private void sendEmbed(EmbedBuilder embed, IChannel channel) throws DiscordException, MissingPermissionsException {
+	public static void sendEmbed(EmbedBuilder embed, IChannel channel) throws DiscordException, MissingPermissionsException {
 		new MessageBuilder(XTBot.client).withEmbed(embed.build()).withChannel(channel).build();
 	}
 
