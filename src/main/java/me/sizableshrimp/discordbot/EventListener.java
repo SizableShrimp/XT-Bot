@@ -171,7 +171,7 @@ public class EventListener {
 
 			@Override
 			public void noMatches() {
-				//no matches found
+				sendMessage("No match found", event);
 			}
 
 			@Override
@@ -182,6 +182,7 @@ public class EventListener {
 			@Override
 			public void trackLoaded(AudioTrack track) {
 				audio.playTrack(track);
+				sendMessage("Track loaded", event);
 			}
 		});
 	}
