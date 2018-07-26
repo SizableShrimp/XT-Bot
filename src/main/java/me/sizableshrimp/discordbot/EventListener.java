@@ -1,45 +1,52 @@
 package me.sizableshrimp.discordbot;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
+import sx.blah.discord.util.audio.AudioPlayer;
+import sx.blah.discord.util.audio.events.TrackFinishEvent;
 
 public class EventListener {
+	private HashMap<IGuild, IChannel> startedChannel = new HashMap<IGuild, IChannel>();
+	
 	@EventSubscriber
 	public void onMessageEvent(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
 		if (message.startsWith(XTBot.prefix+"help") || event.getMessage().getMentions().contains(XTBot.client.getOurUser())) {
-			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\nMore commands will be coming in the future!", event);
+			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\nMore commands will be coming in the future!", event.getChannel());
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"allstar")) {
+			if (AudioPlayer.getAudioPlayerForGuild(event.getGuild()).getCurrentTrack() != null) {
+				sendMessage("I am already playing All Star in "+event.getGuild().getConnectedVoiceChannel().getName(), event.getChannel());
+				return;
+			}
 			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
 			if (channel == null) {
-				sendMessage("Join a voice channel if you want me to play All Star!", event);
+				sendMessage("Join a voice channel if you want me to play All Star!", event.getChannel());
 				return;
 			}
 			channel.join();
 			playAllStar(event);
-			sendMessage("Joined "+channel.getName()+" and playing All Star", event);
+			sendMessage("Joined "+channel.getName()+" and playing All Star", event.getChannel());
+			startedChannel.put(event.getGuild(), event.getChannel());
 		}
 		if (message.startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
@@ -52,30 +59,30 @@ public class EventListener {
 			new MessageBuilder(XTBot.client).appendContent("To find out my commands, use `"+XTBot.prefix+"help`").withEmbed(embed.build()).withChannel(event.getChannel()).build();
 		}
 		if (message.startsWith(XTBot.prefix+"hey")) {
-			sendMessage("Hello! :smile:", event);
+			sendMessage("Hello! :smile:", event.getChannel());
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"settings prefix")) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 				if (message.split(" ").length != 3) {
-					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"settings prefix [new prefix]```", event);
+					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"settings prefix [new prefix]```", event.getChannel());
 					return;
 				} else {
 					String newPrefix = message.split(" ")[2];
 					if (newPrefix.length() != 1) {
-						sendMessage(":x: A prefix can only be 1 character long.", event);
+						sendMessage(":x: A prefix can only be 1 character long.", event.getChannel());
 						return;
 					}
 					if (newPrefix.toUpperCase() != newPrefix) {
-						sendMessage(":x: A prefix cannot be a letter.", event);
+						sendMessage(":x: A prefix cannot be a letter.", event.getChannel());
 						return;
 					}
 					XTBot.prefix = newPrefix;
-					sendMessage(":white_check_mark: Prefix successfully changed to `"+XTBot.prefix+"`", event);
+					sendMessage(":white_check_mark: Prefix successfully changed to `"+XTBot.prefix+"`", event.getChannel());
 					return;
 				}
 			} else {
-				sendMessage(":x: Insufficient permission.", event);
+				sendMessage(":x: Insufficient permission.", event.getChannel());
 				return;
 			}
 		}
@@ -84,21 +91,28 @@ public class EventListener {
 				EmbedBuilder embed = new EmbedBuilder();
 				embed.withAuthorName("XT Bot Settings");
 				embed.appendField(":exclamation: **Prefix**", "`"+XTBot.prefix+"settings prefix [new prefix]`", true);
-				sendEmbed(embed, event);
+				sendEmbed(embed, event.getChannel());
 				return;
 			} else {
-				sendMessage(":x: Insufficient permission.", event);
+				sendMessage(":x: Insufficient permission.", event.getChannel());
 				return;
 			}
 		}
 	}
-
-	private void sendMessage(String message, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
-		new MessageBuilder(XTBot.client).appendContent("\u200B"+message).withChannel(event.getChannel()).build();
+	
+	@EventSubscriber
+	public void onTrackFinish(TrackFinishEvent event) {
+		IVoiceChannel channel = event.getPlayer().getGuild().getConnectedVoiceChannel();
+		sendMessage("All Star has ended, leaving "+channel.getName(), startedChannel.get(event.getPlayer().getGuild()));
+		channel.leave();
 	}
 
-	private void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
-		new MessageBuilder(XTBot.client).withEmbed(embed.build()).withChannel(event.getChannel()).build();
+	private void sendMessage(String message, IChannel channel) throws DiscordException, MissingPermissionsException {
+		new MessageBuilder(XTBot.client).appendContent("\u200B"+message).withChannel(channel).build();
+	}
+
+	private void sendEmbed(EmbedBuilder embed, IChannel channel) throws DiscordException, MissingPermissionsException {
+		new MessageBuilder(XTBot.client).withEmbed(embed.build()).withChannel(channel).build();
 	}
 
 	private String getUptime() {
@@ -158,32 +172,40 @@ public class EventListener {
 	}
 
 	public void playAllStar(MessageReceivedEvent event) {
-		AudioPlayerManager manager = new DefaultAudioPlayerManager();
-		AudioSourceManagers.registerRemoteSources(manager);
-		AudioPlayer audio = manager.createPlayer();
-		TaskScheduler scheduler = new TaskScheduler();
-		audio.addListener(scheduler);
-		manager.loadItem("L_jWHffIx5E", new AudioLoadResultHandler() {
-			@Override
-			public void loadFailed(FriendlyException exception) {
-				sendMessage("There was an error playing this song. Please try again later.", event);
-			}
-
-			@Override
-			public void noMatches() {
-				sendMessage("No match found", event);
-			}
-
-			@Override
-			public void playlistLoaded(AudioPlaylist playlist) {
-				//playlist was loaded
-			}
-
-			@Override
-			public void trackLoaded(AudioTrack track) {
-				audio.playTrack(track);
-				sendMessage("Track loaded", event);
-			}
-		});
+		AudioPlayer audio = AudioPlayer.getAudioPlayerForGuild(event.getGuild());
+		try {
+			audio.queue(new URL("https://archive.org/download/AllStar/SmashMouth-AllStar_64kb.mp3"));
+			return;
+		} catch (IOException | UnsupportedAudioFileException e) {
+			e.printStackTrace();
+			sendMessage("An error occured while trying to play All Star. Please try again later.", event.getChannel());
+		}
+//		AudioPlayerManager manager = new DefaultAudioPlayerManager();
+//		AudioSourceManagers.registerRemoteSources(manager);
+//		AudioPlayer audio = manager.createPlayer();
+//		TaskScheduler scheduler = new TaskScheduler();
+//		audio.addListener(scheduler);
+//		manager.loadItem("L_jWHffIx5E", new AudioLoadResultHandler() {
+//			@Override
+//			public void loadFailed(FriendlyException exception) {
+//				sendMessage("There was an error playing this song. Please try again later.", event);
+//			}
+//
+//			@Override
+//			public void noMatches() {
+//				sendMessage("No match found", event);
+//			}
+//
+//			@Override
+//			public void playlistLoaded(AudioPlaylist playlist) {
+//				//playlist was loaded
+//			}
+//
+//			@Override
+//			public void trackLoaded(AudioTrack track) {
+//				audio.playTrack(track);
+//				sendMessage("Track loaded", event);
+//			}
+//		});
 	}
 }
