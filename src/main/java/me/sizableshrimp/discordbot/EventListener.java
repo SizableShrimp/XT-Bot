@@ -8,6 +8,15 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -16,7 +25,6 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
-import sx.blah.discord.util.audio.AudioPlayer;
 
 public class EventListener {
 	@EventSubscriber
@@ -33,17 +41,8 @@ public class EventListener {
 				sendMessage("Join a voice channel if you want me to play All Star!", event);
 				return;
 			}
-			try {
-				AudioPlayer audio = AudioPlayer.getAudioPlayerForGuild(event.getGuild());
-				audio.queue(new URL("https://youtu.be/L_jWHffIx5E"));
-			} catch (IOException | UnsupportedAudioFileException e) {
-				e.printStackTrace();
-				sendMessage("There was an error adding this song to the queue. Please try again later.", event);
-				sendMessage(e.getMessage(), event);
-				return;
-			}
+			playAllStar(event);
 			sendMessage("Joined "+channel.getName()+" and playing All Star", event);
-			channel.join();
 		}
 		if (message.startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
@@ -97,11 +96,11 @@ public class EventListener {
 		}
 	}
 
-	public void sendMessage(String message, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
+	public static void sendMessage(String message, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
 		new MessageBuilder(XTBot.client).appendContent("\u200B"+message).withChannel(event.getChannel()).build();
 	}
 
-	public void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
+	public static void sendEmbed(EmbedBuilder embed, MessageReceivedEvent event) throws DiscordException, MissingPermissionsException {
 		new MessageBuilder(XTBot.client).withEmbed(embed.build()).withChannel(event.getChannel()).build();
 	}
 
@@ -159,5 +158,34 @@ public class EventListener {
 			result = formats.get(0);
 		}
 		return result;
+	}
+
+	public void playAllStar(MessageReceivedEvent event) {
+		AudioPlayerManager manager = new DefaultAudioPlayerManager();
+		AudioSourceManagers.registerRemoteSources(manager);
+		AudioPlayer audio = manager.createPlayer();
+		manager.loadItem("L_jWHffIx5E", new AudioLoadResultHandler() {
+			@Override
+			public void loadFailed(FriendlyException exception) {
+				sendMessage("There was an error playing this song. Please try again later.", event);
+			}
+
+			@Override
+			public void noMatches() {
+				//no matches found
+
+			}
+
+			@Override
+			public void playlistLoaded(AudioPlaylist playlist) {
+				//playlist was loaded
+
+			}
+
+			@Override
+			public void trackLoaded(AudioTrack track) {
+				audio.playTrack(track);
+			}
+		});
 	}
 }
