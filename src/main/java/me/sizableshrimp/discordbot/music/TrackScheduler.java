@@ -1,21 +1,22 @@
 package me.sizableshrimp.discordbot.music;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
 import me.sizableshrimp.discordbot.EventListener;
+import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IVoiceChannel;
-
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
-	private final AudioPlayer player;
+	protected final AudioPlayer player;
 	private final BlockingQueue<AudioTrack> queue;
 
 	/**
@@ -51,8 +52,13 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	@Override
 	public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-		IVoiceChannel channel = player.getGuild().getConnectedVoiceChannel();
-		sendMessage("All Star has ended, leaving "+channel.getName(), EventListener.startedChannel.get(player.getGuild()));
-		channel.leave();
+		if (Music.runningPlayers.get(player) != null) {
+			IGuild guild = Music.runningPlayers.get(player);
+			IVoiceChannel channel = guild.getConnectedVoiceChannel();
+			EventListener.sendMessage("All Star has ended, leaving "+channel.getName(), EventListener.startedChannel.get(guild));
+			channel.leave();
+			Music.runningPlayers.remove(player);
+			EventListener.startedChannel.remove(guild);
+		}
 	}
 }

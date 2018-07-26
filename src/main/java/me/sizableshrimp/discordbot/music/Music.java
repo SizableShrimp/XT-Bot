@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
@@ -22,6 +23,7 @@ import sx.blah.discord.util.MissingPermissionsException;
 
 public class Music {
   private static final Logger log = LoggerFactory.getLogger(Music.class);
+  protected static HashMap<AudioPlayer, IGuild> runningPlayers = new HashMap<AudioPlayer, IGuild>();
   private final AudioPlayerManager playerManager;
   private final Map<Long, GuildMusicManager> musicManagers;
 
@@ -80,6 +82,7 @@ public class Music {
 
   private void play(IGuild guild, GuildMusicManager musicManager, AudioTrack track) {
 //    connectToFirstVoiceChannel(guild.getAudioManager());
+	runningPlayers.put(musicManager.scheduler.player, guild);
     musicManager.scheduler.queue(track);
   }
 
