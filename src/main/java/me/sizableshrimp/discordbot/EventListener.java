@@ -1,12 +1,8 @@
 package me.sizableshrimp.discordbot;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -41,6 +37,7 @@ public class EventListener {
 				sendMessage("Join a voice channel if you want me to play All Star!", event);
 				return;
 			}
+			channel.join();
 			playAllStar(event);
 			sendMessage("Joined "+channel.getName()+" and playing All Star", event);
 		}
