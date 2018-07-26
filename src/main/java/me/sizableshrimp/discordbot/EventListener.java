@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import me.sizableshrimp.discordbot.music.Music;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
@@ -23,14 +24,14 @@ import sx.blah.discord.util.audio.AudioPlayer;
 import sx.blah.discord.util.audio.events.TrackFinishEvent;
 
 public class EventListener {
-	private HashMap<IGuild, IChannel> startedChannel = new HashMap<IGuild, IChannel>();
+	public static HashMap<IGuild, IChannel> startedChannel = new HashMap<IGuild, IChannel>();
 	
 	@EventSubscriber
 	public void onMessageEvent(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
 		if (message.startsWith(XTBot.prefix+"help") || event.getMessage().getMentions().contains(XTBot.client.getOurUser())) {
-			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\nMore commands will be coming in the future!", event.getChannel());
+			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\n`"+XTBot.prefix+"allstar`\nMore commands will be coming in the future!", event.getChannel());
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"allstar")) {
@@ -44,7 +45,7 @@ public class EventListener {
 				return;
 			}
 			channel.join();
-			playAllStar(event);
+			playAllStar(event, channel);
 			sendMessage("Joined "+channel.getName()+" and playing All Star", event.getChannel());
 			startedChannel.put(event.getGuild(), event.getChannel());
 		}
@@ -171,41 +172,8 @@ public class EventListener {
 		return result;
 	}
 
-	public void playAllStar(MessageReceivedEvent event) {
-		AudioPlayer audio = AudioPlayer.getAudioPlayerForGuild(event.getGuild());
-		try {
-			audio.queue(new URL("https://archive.org/download/AllStar/SmashMouth-AllStar_64kb.mp3"));
-			return;
-		} catch (IOException | UnsupportedAudioFileException e) {
-			e.printStackTrace();
-			sendMessage("An error occured while trying to play All Star. Please try again later.", event.getChannel());
-		}
-//		AudioPlayerManager manager = new DefaultAudioPlayerManager();
-//		AudioSourceManagers.registerRemoteSources(manager);
-//		AudioPlayer audio = manager.createPlayer();
-//		TaskScheduler scheduler = new TaskScheduler();
-//		audio.addListener(scheduler);
-//		manager.loadItem("L_jWHffIx5E", new AudioLoadResultHandler() {
-//			@Override
-//			public void loadFailed(FriendlyException exception) {
-//				sendMessage("There was an error playing this song. Please try again later.", event);
-//			}
-//
-//			@Override
-//			public void noMatches() {
-//				sendMessage("No match found", event);
-//			}
-//
-//			@Override
-//			public void playlistLoaded(AudioPlaylist playlist) {
-//				//playlist was loaded
-//			}
-//
-//			@Override
-//			public void trackLoaded(AudioTrack track) {
-//				audio.playTrack(track);
-//				sendMessage("Track loaded", event);
-//			}
-//		});
+	public void playAllStar(MessageReceivedEvent event, IVoiceChannel channel) {
+		Music music = new Music();
+		music.loadAndPlay(event.getChannel(), "https://archive.org/download/AllStar/SmashMouth-AllStar_64kb.mp3");
 	}
 }
