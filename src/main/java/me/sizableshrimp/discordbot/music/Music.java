@@ -82,6 +82,7 @@ public class Music {
       @Override
       public void loadFailed(FriendlyException exception) {
         EventListener.sendMessage("An error occured while trying to play the song. Please try again later.", channel);
+        exception.printStackTrace();
       }
     });
   }
