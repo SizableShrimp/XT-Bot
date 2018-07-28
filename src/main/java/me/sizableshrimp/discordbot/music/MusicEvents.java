@@ -78,7 +78,7 @@ public class MusicEvents {
 					}
 					volume = Math.max(0, Math.min(100, volume));
 					Music music = new Music();					
-					GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+					GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 					if (manager.player != null) {
 						manager.player.setVolume(volume);
 						EventListener.sendMessage("Volume set to **"+volume.toString()+"%**", event.getChannel());
@@ -109,7 +109,7 @@ public class MusicEvents {
 			}
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
-				GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 				if (manager.player.isPaused()) {
 					manager.player.setPaused(false);
 					EventListener.sendMessage("Music resumed.", event.getChannel());
@@ -137,7 +137,7 @@ public class MusicEvents {
 			}
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
-				GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 				if (manager.player.isPaused()) {
 					manager.player.setPaused(false);
 					EventListener.sendMessage("Music resumed.", event.getChannel());
@@ -164,7 +164,7 @@ public class MusicEvents {
 			}
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
-				GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 				manager.scheduler.queue.clear();
 				EventListener.sendMessage("Queue cleared.", event.getChannel());
 				return;
@@ -175,7 +175,7 @@ public class MusicEvents {
 		}
 		if (message.startsWith(XTBot.prefix+"skip")) {
 			Music music = new Music();
-			GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+			GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 			Integer wants = music.wantsToSkip.get(manager);
 			Integer needed = music.neededToSkip.get(manager);
 			if (wants+1 == needed) {
@@ -192,7 +192,7 @@ public class MusicEvents {
 		if (message.startsWith(XTBot.prefix+"forceskip")) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS)) {
 				Music music = new Music();
-				GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 				music.skipTrack(event.getChannel());
 				music.wantsToSkip.remove(manager);
 				music.neededToSkip.remove(manager);
@@ -205,7 +205,7 @@ public class MusicEvents {
 		}
 		if (message.startsWith(XTBot.prefix+"queue") || message.startsWith(XTBot.prefix+"q")) {
 			Music music = new Music();
-			GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+			GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 			AudioTrack playing = manager.player.getPlayingTrack();
 			BlockingQueue<AudioTrack> queue = manager.scheduler.queue;
 			EmbedBuilder embed = new EmbedBuilder();
@@ -231,7 +231,7 @@ public class MusicEvents {
 		}
 		if (message.startsWith(XTBot.prefix+"nowplaying") || message.startsWith(XTBot.prefix+"np")) {
 			Music music = new Music();
-			GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+			GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 			AudioTrack playing = manager.player.getPlayingTrack();
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Now Playing");
@@ -257,7 +257,7 @@ public class MusicEvents {
 			}
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
-				GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 				if (manager.scheduler.isRepeating()) {
 					manager.scheduler.setRepeating(false);
 					EventListener.sendMessage("Loop stopped.", event.getChannel());
@@ -285,7 +285,7 @@ public class MusicEvents {
 			}
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
-				GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
+				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 				Collections.shuffle((List<?>) manager.scheduler.queue);
 				EventListener.sendMessage("Queue shuffled.", event.getChannel());
 				return;

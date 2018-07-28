@@ -7,7 +7,13 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
+import com.sedmelluq.discord.lavaplayer.source.bandcamp.BandcampAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.twitch.TwitchStreamAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -17,9 +23,10 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 
 public class Music {
-  protected static HashMap<AudioPlayer, IGuild> runningPlayers = new HashMap<AudioPlayer, IGuild>();
   private final AudioPlayerManager playerManager;
   protected final Map<Long, GuildMusicManager> musicManagers;
+  public static final int DEFAULT_VOLUME = 35;
+  protected static HashMap<AudioPlayer, IGuild> runningPlayers = new HashMap<AudioPlayer, IGuild>();
   public final HashMap<GuildMusicManager, Integer> wantsToSkip = new HashMap<GuildMusicManager, Integer>();
   public final HashMap<GuildMusicManager, Integer> neededToSkip = new HashMap<GuildMusicManager, Integer>();
 
@@ -27,21 +34,24 @@ public class Music {
     this.musicManagers = new HashMap<>();
 
     this.playerManager = new DefaultAudioPlayerManager();
-    AudioSourceManagers.registerRemoteSources(playerManager);
-    AudioSourceManagers.registerLocalSource(playerManager);
+    playerManager.registerSourceManager(new YoutubeAudioSourceManager());
+    playerManager.registerSourceManager(new SoundCloudAudioSourceManager());
+    playerManager.registerSourceManager(new BandcampAudioSourceManager());
+    playerManager.registerSourceManager(new VimeoAudioSourceManager());
+    playerManager.registerSourceManager(new TwitchStreamAudioSourceManager());
+    playerManager.registerSourceManager(new HttpAudioSourceManager());
+    playerManager.registerSourceManager(new LocalAudioSourceManager());
   }
 
-  private synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
+  synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
     long guildId = guild.getLongID();
     GuildMusicManager musicManager = musicManagers.get(guildId);
-
     if (musicManager == null) {
       musicManager = new GuildMusicManager(playerManager, guild);
+      musicManager.player.setVolume(DEFAULT_VOLUME);
       musicManagers.put(guildId, musicManager);
     }
-
     guild.getAudioManager().setAudioProvider(musicManager.getAudioProvider());
-
     return musicManager;
   }
 
