@@ -53,16 +53,7 @@ public class MusicEvents {
 			}
 		}
 		if (message.startsWith(XTBot.prefix+"volume") || message.startsWith(XTBot.prefix+"vol")) {
-			boolean isOne = false;
-			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
-				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
-					List<IUser> users = state.getChannel().getConnectedUsers();
-					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-						isOne = true;
-					}
-				}
-			}
+			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				if (message.split(" ").length == 2) { 
 					try {
@@ -97,16 +88,7 @@ public class MusicEvents {
 			}
 		}
 		if (message.startsWith(XTBot.prefix+"pause")) {
-			boolean isOne = false;
-			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
-				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
-					List<IUser> users = state.getChannel().getConnectedUsers();
-					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-						isOne = true;
-					}
-				}
-			}
+			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
 				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
@@ -125,16 +107,7 @@ public class MusicEvents {
 			}
 		}
 		if (message.startsWith(XTBot.prefix+"resume")) {
-			boolean isOne = false;
-			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
-				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
-					List<IUser> users = state.getChannel().getConnectedUsers();
-					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-						isOne = true;
-					}
-				}
-			}
+			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
 				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
@@ -152,16 +125,7 @@ public class MusicEvents {
 			}
 		}
 		if (message.startsWith(XTBot.prefix+"clear")) {
-			boolean isOne = false;
-			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
-				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
-					List<IUser> users = state.getChannel().getConnectedUsers();
-					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-						isOne = true;
-					}
-				}
-			}
+			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
 				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
@@ -245,16 +209,7 @@ public class MusicEvents {
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"loop")) {
-			boolean isOne = false;
-			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
-				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
-					List<IUser> users = state.getChannel().getConnectedUsers();
-					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-						isOne = true;
-					}
-				}
-			}
+			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
 				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
@@ -273,16 +228,7 @@ public class MusicEvents {
 			}
 		}
 		if (message.startsWith(XTBot.prefix+"shuffle")) {
-			boolean isOne = false;
-			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
-				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
-					List<IUser> users = state.getChannel().getConnectedUsers();
-					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-						isOne = true;
-					}
-				}
-			}
+			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Music music = new Music();					
 				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
@@ -295,4 +241,16 @@ public class MusicEvents {
 			}
 		}
 	}
+	
+	boolean isOne(MessageReceivedEvent event) {
+		if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
+			IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
+			if (state.getChannel() != null && state.getChannel().getConnectedUsers().size() == 2) {
+				List<IUser> users = state.getChannel().getConnectedUsers();
+				if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) return true;
+			}
+		}
+		return false;
+	}
+	
 }
