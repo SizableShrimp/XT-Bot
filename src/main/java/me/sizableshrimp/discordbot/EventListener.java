@@ -30,7 +30,8 @@ public class EventListener {
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"allstar")) {
-			if (event.getGuild().getConnectedVoiceChannel() != null) {
+			Music music = new Music();
+			if (music.isPlaying(event.getGuild())) {
 				sendMessage("I am already playing All Star in "+event.getGuild().getConnectedVoiceChannel().getName(), event.getChannel());
 				return;
 			}
@@ -170,6 +171,6 @@ public class EventListener {
 
 	public void playAllStar(MessageReceivedEvent event, IVoiceChannel channel) {
 		Music music = new Music();
-		music.loadAndPlay(event.getChannel(), "https://archive.org/download/AllStar/SmashMouth-AllStar_64kb.mp3");
+		music.loadAndPlay(event.getChannel(), channel, "https://archive.org/download/AllStar/SmashMouth-AllStar_64kb.mp3");
 	}
 }
