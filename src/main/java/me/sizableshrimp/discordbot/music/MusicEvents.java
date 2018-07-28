@@ -37,7 +37,7 @@ public class MusicEvents {
 			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
 			if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
 				Music music = new Music();
-				music.loadAndPlay(event.getChannel(), message.substring(6, message.length()));
+				music.loadAndPlay(event.getChannel(), message.split(" ")[1]);
 				return;
 			} else if (event.getGuild().getConnectedVoiceChannel() == null && channel == null) {
 				EventListener.sendMessage("Join a voice channel if you want me to play a song!", event.getChannel());
@@ -56,12 +56,10 @@ public class MusicEvents {
 			boolean isOne = false;
 			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null) {
-					if (state.getChannel().getConnectedUsers().size() == 2) {
-						List<IUser> users = state.getChannel().getConnectedUsers();
-						if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-							isOne = true;
-						}
+				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
+					List<IUser> users = state.getChannel().getConnectedUsers();
+					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
+						isOne = true;
 					}
 				}
 			}
@@ -70,19 +68,25 @@ public class MusicEvents {
 					try {
 						Integer.valueOf(message.split(" ")[1]);
 					} catch (NumberFormatException exception) {
-						EventListener.sendMessage("Please enter a number between 0 and 150.", event.getChannel());
+						EventListener.sendMessage("Please enter a number between 0 and 100.", event.getChannel());
 						return;
 					}
 					Integer volume = Integer.valueOf(message.split(" ")[1]);
-					if (volume < 0 || volume > 150) {
-						EventListener.sendMessage("Please enter a number between 0 and 150.", event.getChannel());
+					if (volume < 0 || volume > 100) {
+						EventListener.sendMessage("Please enter a number between 0 and 100.", event.getChannel());
 						return;
 					}
+					volume = Math.max(0, Math.min(100, volume));
 					Music music = new Music();					
 					GuildMusicManager manager = music.musicManagers.get(event.getGuild().getLongID());
-					manager.player.setVolume(volume);
-					EventListener.sendMessage("Volume set to "+volume.toString()+"%", event.getChannel());
-					return;
+					if (manager.player != null) {
+						manager.player.setVolume(volume);
+						EventListener.sendMessage("Volume set to **"+volume.toString()+"%**", event.getChannel());
+						return;
+					} else {
+						EventListener.sendMessage("Start playing music to change the volume.", event.getChannel());
+						return;
+					}
 				} else {
 					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"volume [new volume]```", event.getChannel());
 					return;
@@ -96,12 +100,10 @@ public class MusicEvents {
 			boolean isOne = false;
 			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null) {
-					if (state.getChannel().getConnectedUsers().size() == 2) {
-						List<IUser> users = state.getChannel().getConnectedUsers();
-						if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-							isOne = true;
-						}
+				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
+					List<IUser> users = state.getChannel().getConnectedUsers();
+					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
+						isOne = true;
 					}
 				}
 			}
@@ -126,12 +128,10 @@ public class MusicEvents {
 			boolean isOne = false;
 			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null) {
-					if (state.getChannel().getConnectedUsers().size() == 2) {
-						List<IUser> users = state.getChannel().getConnectedUsers();
-						if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-							isOne = true;
-						}
+				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
+					List<IUser> users = state.getChannel().getConnectedUsers();
+					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
+						isOne = true;
 					}
 				}
 			}
@@ -155,12 +155,10 @@ public class MusicEvents {
 			boolean isOne = false;
 			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null) {
-					if (state.getChannel().getConnectedUsers().size() == 2) {
-						List<IUser> users = state.getChannel().getConnectedUsers();
-						if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-							isOne = true;
-						}
+				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
+					List<IUser> users = state.getChannel().getConnectedUsers();
+					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
+						isOne = true;
 					}
 				}
 			}
@@ -250,12 +248,10 @@ public class MusicEvents {
 			boolean isOne = false;
 			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null) {
-					if (state.getChannel().getConnectedUsers().size() == 2) {
-						List<IUser> users = state.getChannel().getConnectedUsers();
-						if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-							isOne = true;
-						}
+				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
+					List<IUser> users = state.getChannel().getConnectedUsers();
+					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
+						isOne = true;
 					}
 				}
 			}
@@ -280,12 +276,10 @@ public class MusicEvents {
 			boolean isOne = false;
 			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
-				if (state != null) {
-					if (state.getChannel().getConnectedUsers().size() == 2) {
-						List<IUser> users = state.getChannel().getConnectedUsers();
-						if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
-							isOne = true;
-						}
+				if (state != null && state.getChannel().getConnectedUsers().size() == 2) {
+					List<IUser> users = state.getChannel().getConnectedUsers();
+					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) {
+						isOne = true;
 					}
 				}
 			}
