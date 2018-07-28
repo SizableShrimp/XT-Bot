@@ -17,6 +17,7 @@ import javax.net.ssl.HttpsURLConnection;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import me.sizableshrimp.discordbot.music.MusicEvents;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
 import sx.blah.discord.util.MessageBuilder;
@@ -32,6 +33,7 @@ public class XTBot {
 		client = BotClient.createClient(System.getenv("TOKEN"), true);
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
+		dispatcher.registerListener(new MusicEvents());
 		firstOnline = System.currentTimeMillis();
 		dailyMeme();
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
