@@ -8,22 +8,24 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 
-import me.sizableshrimp.discordbot.EventListener;
 import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IVoiceChannel;
 
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
+	private AudioTrack lastTrack;
+	private boolean repeating = false;
 	protected final AudioPlayer player;
-	private final BlockingQueue<AudioTrack> queue;
+	protected final BlockingQueue<AudioTrack> queue;
+	private final IGuild guild;
 
 	/**
 	 * @param player The audio player this scheduler uses
 	 */
-	public TrackScheduler(AudioPlayer player) {
+	public TrackScheduler(AudioPlayer player, IGuild guild) {
 		this.player = player;
+		this.guild = guild;
 		this.queue = new LinkedBlockingQueue<>();
 	}
 
@@ -52,13 +54,45 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	@Override
 	public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-		if (Music.runningPlayers.get(player) != null) {
-			IGuild guild = Music.runningPlayers.get(player);
-			IVoiceChannel channel = guild.getConnectedVoiceChannel();
-			EventListener.sendMessage("All Star has ended, leaving "+channel.getName(), EventListener.startedChannel.get(guild));
-			channel.leave();
-			Music.runningPlayers.remove(player);
-			EventListener.startedChannel.remove(guild);
+		lastTrack = track;
+		if (endReason.mayStartNext) {
+			if (repeating) {
+				player.startTrack(lastTrack.makeClone(), false);
+			} else {
+				nextTrack();
+			}
 		}
+	}
+
+	@Override
+	public void onTrackStart(AudioPlayer player, AudioTrack track) {
+		Music music = new Music();
+		music.wantsToSkip.put(music.musicManagers.get(guild.getLongID()), 0);
+		Long number = (guild.getConnectedVoiceChannel().getConnectedUsers().size()/2L);
+
+		music.neededToSkip.put(music.musicManagers.get(guild.getLongID()), number.intValue());
+	}
+
+	@Override
+	public void onPlayerPause(AudioPlayer player) {
+
+	}
+
+	@Override
+	public void onPlayerResume(AudioPlayer player) {
+
+	}
+
+	@Override
+	public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
+
+	}
+	
+	public void setRepeating(boolean isRepeating) {
+		repeating = isRepeating;
+	}
+	
+	public boolean isRepeating() {
+		return repeating;
 	}
 }

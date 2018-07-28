@@ -3,9 +3,6 @@ package me.sizableshrimp.discordbot.music;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -15,17 +12,16 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
-import sx.blah.discord.handle.audio.IAudioManager;
+import me.sizableshrimp.discordbot.EventListener;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IVoiceChannel;
-import sx.blah.discord.util.MissingPermissionsException;
 
 public class Music {
-  private static final Logger log = LoggerFactory.getLogger(Music.class);
   protected static HashMap<AudioPlayer, IGuild> runningPlayers = new HashMap<AudioPlayer, IGuild>();
   private final AudioPlayerManager playerManager;
-  private final Map<Long, GuildMusicManager> musicManagers;
+  protected final Map<Long, GuildMusicManager> musicManagers;
+  public final HashMap<GuildMusicManager, Integer> wantsToSkip = new HashMap<GuildMusicManager, Integer>();
+  public final HashMap<GuildMusicManager, Integer> neededToSkip = new HashMap<GuildMusicManager, Integer>();
 
   public Music() {
     this.musicManagers = new HashMap<>();
@@ -40,7 +36,7 @@ public class Music {
     GuildMusicManager musicManager = musicManagers.get(guildId);
 
     if (musicManager == null) {
-      musicManager = new GuildMusicManager(playerManager);
+      musicManager = new GuildMusicManager(playerManager, guild);
       musicManagers.put(guildId, musicManager);
     }
 
@@ -70,12 +66,12 @@ public class Music {
 
       @Override
       public void noMatches() {
-        sendMessageToChannel(channel, "Nothing found by " + trackUrl);
+        EventListener.sendMessage("I could not find a song that contained \"" + trackUrl + "\"", channel);
       }
 
       @Override
       public void loadFailed(FriendlyException exception) {
-        sendMessageToChannel(channel, "Could not play: " + exception.getMessage());
+        EventListener.sendMessage("An error occured while trying to play the song. Please try again later.", channel);
       }
     });
   }
@@ -86,34 +82,8 @@ public class Music {
     musicManager.scheduler.queue(track);
   }
 
-  private void skipTrack(IChannel channel) {
+  protected void skipTrack(IChannel channel) {
     GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
     musicManager.scheduler.nextTrack();
-
-    sendMessageToChannel(channel, "Skipped to next track.");
-  }
-
-  private void sendMessageToChannel(IChannel channel, String message) {
-    try {
-      channel.sendMessage(message);
-    } catch (Exception e) {
-      log.warn("Failed to send message {} to {}", message, channel.getName(), e);
-    }
-  }
-
-  private static void connectToFirstVoiceChannel(IAudioManager audioManager) {
-    for (IVoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
-      if (voiceChannel.isConnected()) {
-        return;
-      }
-    }
-
-    for (IVoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
-      try {
-        voiceChannel.join();
-      } catch (MissingPermissionsException e) {
-        log.warn("Cannot enter voice channel {}", voiceChannel.getName(), e);
-      }
-    }
   }
 }
