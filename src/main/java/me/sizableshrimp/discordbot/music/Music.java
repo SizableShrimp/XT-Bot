@@ -76,7 +76,7 @@ public class Music {
 
       @Override
       public void noMatches() {
-        EventListener.sendMessage("I could not find a song that contained \"" + trackUrl + "\"", channel);
+        EventListener.sendMessage("I could not find a song that contained: " + trackUrl, channel);
       }
 
       @Override

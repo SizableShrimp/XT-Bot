@@ -48,7 +48,7 @@ public class MusicEvents {
 			} else if (event.getGuild().getConnectedVoiceChannel() == null & channel != null) {
 				channel.join();
 				Music music = new Music();
-				music.loadAndPlay(event.getChannel(), message.substring(5, message.length()));
+				music.loadAndPlay(event.getChannel(), message.split(" ")[1]);
 				return;
 			}
 		}
@@ -70,14 +70,9 @@ public class MusicEvents {
 					volume = Math.max(0, Math.min(100, volume));
 					Music music = new Music();					
 					GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-					if (manager.player != null) {
-						manager.player.setVolume(volume);
-						EventListener.sendMessage("Volume set to **"+volume.toString()+"%**", event.getChannel());
-						return;
-					} else {
-						EventListener.sendMessage("Start playing music to change the volume.", event.getChannel());
-						return;
-					}
+					manager.player.setVolume(volume);
+					EventListener.sendMessage("Volume set to **"+volume.toString()+"%**", event.getChannel());
+					return;
 				} else {
 					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"volume [new volume]```", event.getChannel());
 					return;
@@ -241,7 +236,7 @@ public class MusicEvents {
 			}
 		}
 	}
-	
+
 	boolean isOne(MessageReceivedEvent event) {
 		if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 			IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
@@ -252,5 +247,5 @@ public class MusicEvents {
 		}
 		return false;
 	}
-	
+
 }
