@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 import me.sizableshrimp.discordbot.EventListener;
@@ -17,27 +18,24 @@ import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class MusicEvents {
-	protected boolean songLooped = false;
-	protected boolean queueLooped = false;
-	//TODO add volume command (for admins or 1 person in channel) DONE
-	//TODO add pause command (for admins or 1 person in channel) DONE
-	//TODO add clear queue command (for admins or 1 person in channel) DONE
-	//TODO add resume command (for admins or 1 person in channel) DONE
-	//TODO add loop command (for admins or 1 person in channel) DONE
-	//TODO add shuffle command (for admins or 1 person in channel) DONE
 	@EventSubscriber
 	public void onMessageReceived(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
+		Music music = new Music();
+		GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
+		AudioPlayer player = manager.player;
+		TrackScheduler scheduler = manager.scheduler;
 		if (message.startsWith(XTBot.prefix+"play")) {
-			if (message.split(" ").length < 2) {
+			if (message.split(" ").length != 2) {
 				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"play [song]```", event.getChannel());
 				return;
 			}
 			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
+			String query = message.split(" ")[1];
+			if (!query.startsWith("http")) query = "ytsearch:"+query;
 			if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
-				Music music = new Music();
-				music.loadAndPlay(event.getChannel(), channel, message.split(" ")[1]);
+				music.loadAndPlay(event.getChannel(), channel, query);
 				return;
 			} else if (event.getGuild().getConnectedVoiceChannel() == null && channel == null) {
 				EventListener.sendMessage("Join a voice channel if you want me to play a song!", event.getChannel());
@@ -46,8 +44,7 @@ public class MusicEvents {
 				EventListener.sendMessage("Join "+event.getGuild().getConnectedVoiceChannel()+" to add a song to the queue.", event.getChannel());
 				return;
 			} else if (event.getGuild().getConnectedVoiceChannel() == null & channel != null) {
-				Music music = new Music();
-				music.loadAndPlay(event.getChannel(), channel, message.split(" ")[1]);
+				music.loadAndPlay(event.getChannel(), channel, query);
 				return;
 			}
 		}
@@ -67,10 +64,7 @@ public class MusicEvents {
 						return;
 					}
 					volume = Math.max(0, Math.min(100, volume));
-					Music music = new Music();					
-					GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-					manager.player.setVolume(volume);
-					manager.player.setPaused(false);
+					player.setVolume(volume);
 					EventListener.sendMessage("Volume set to **"+volume.toString()+"%**", event.getChannel());
 					return;
 				} else {
@@ -85,14 +79,12 @@ public class MusicEvents {
 		if (message.startsWith(XTBot.prefix+"pause")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
-				Music music = new Music();					
-				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-				if (manager.player.isPaused()) {
-					manager.player.setPaused(false);
+				if (player.isPaused()) {
+					player.setPaused(false);
 					EventListener.sendMessage("Music resumed.", event.getChannel());
 					return;
 				} else {
-					manager.player.setPaused(true);
+					player.setPaused(true);
 					EventListener.sendMessage("Music paused.", event.getChannel());
 					return;
 				}
@@ -104,10 +96,8 @@ public class MusicEvents {
 		if (message.startsWith(XTBot.prefix+"resume")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
-				Music music = new Music();					
-				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-				if (manager.player.isPaused()) {
-					manager.player.setPaused(false);
+				if (player.isPaused()) {
+					player.setPaused(false);
 					EventListener.sendMessage("Music resumed.", event.getChannel());
 					return;
 				} else {
@@ -122,9 +112,7 @@ public class MusicEvents {
 		if (message.startsWith(XTBot.prefix+"clear")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
-				Music music = new Music();					
-				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-				manager.scheduler.queue.clear();
+				scheduler.queue.clear();
 				EventListener.sendMessage("Queue cleared.", event.getChannel());
 				return;
 			} else {
@@ -133,8 +121,6 @@ public class MusicEvents {
 			}
 		}
 		if (message.startsWith(XTBot.prefix+"skip")) {
-			Music music = new Music();
-			GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 			Integer wants = music.wantsToSkip.get(manager);
 			Integer needed = music.neededToSkip.get(manager);
 			if (wants+1 == needed) {
@@ -150,8 +136,6 @@ public class MusicEvents {
 		}
 		if (message.startsWith(XTBot.prefix+"forceskip")) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS)) {
-				Music music = new Music();
-				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 				music.skipTrack(event.getChannel());
 				music.wantsToSkip.remove(manager);
 				music.neededToSkip.remove(manager);
@@ -163,10 +147,8 @@ public class MusicEvents {
 			}
 		}
 		if (message.startsWith(XTBot.prefix+"queue") || message.startsWith(XTBot.prefix+"q")) {
-			Music music = new Music();
-			GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-			AudioTrack playing = manager.player.getPlayingTrack();
-			BlockingQueue<AudioTrack> queue = manager.scheduler.queue;
+			AudioTrack playing = player.getPlayingTrack();
+			BlockingQueue<AudioTrack> queue = scheduler.queue;
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Queue");
 			if (playing == null) {
@@ -189,9 +171,7 @@ public class MusicEvents {
 			return;
 		}
 		if (message.startsWith(XTBot.prefix+"nowplaying") || message.startsWith(XTBot.prefix+"np")) {
-			Music music = new Music();
-			GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-			AudioTrack playing = manager.player.getPlayingTrack();
+			AudioTrack playing = player.getPlayingTrack();
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Now Playing");
 			if (playing == null) {
@@ -206,14 +186,12 @@ public class MusicEvents {
 		if (message.startsWith(XTBot.prefix+"loop")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
-				Music music = new Music();					
-				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-				if (manager.scheduler.isRepeating()) {
-					manager.scheduler.setRepeating(false);
+				if (scheduler.isRepeating()) {
+					scheduler.setRepeating(false);
 					EventListener.sendMessage("Loop stopped.", event.getChannel());
 					return;
 				} else {
-					manager.scheduler.setRepeating(true);
+					scheduler.setRepeating(true);
 					EventListener.sendMessage("Song looped.", event.getChannel());
 					return;
 				}
@@ -225,9 +203,7 @@ public class MusicEvents {
 		if (message.startsWith(XTBot.prefix+"shuffle")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
-				Music music = new Music();					
-				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-				Collections.shuffle((List<?>) manager.scheduler.queue);
+				Collections.shuffle((List<?>) scheduler.queue);
 				EventListener.sendMessage("Queue shuffled.", event.getChannel());
 				return;
 			} else {

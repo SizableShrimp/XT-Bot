@@ -7,12 +7,9 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.bandcamp.BandcampAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.twitch.TwitchStreamAudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
@@ -36,12 +33,10 @@ public class Music {
 
 		this.playerManager = new DefaultAudioPlayerManager();
 		playerManager.registerSourceManager(new YoutubeAudioSourceManager());
-		playerManager.registerSourceManager(new SoundCloudAudioSourceManager());
-		playerManager.registerSourceManager(new BandcampAudioSourceManager());
-		playerManager.registerSourceManager(new VimeoAudioSourceManager());
-		playerManager.registerSourceManager(new TwitchStreamAudioSourceManager());
 		playerManager.registerSourceManager(new HttpAudioSourceManager());
 		playerManager.registerSourceManager(new LocalAudioSourceManager());
+	    AudioSourceManagers.registerRemoteSources(playerManager);
+	    AudioSourceManagers.registerLocalSource(playerManager);
 	}
 
 	synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
@@ -63,7 +58,7 @@ public class Music {
 			@Override
 			public void trackLoaded(AudioTrack track) {
 				voiceChannel.join();
-				play(channel.getGuild(), musicManager, track);
+				play(channel, musicManager, track);
 			}
 
 			@Override
@@ -71,7 +66,7 @@ public class Music {
 				AudioTrack firstTrack = playlist.getSelectedTrack();
 				if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
 				voiceChannel.join();
-				play(channel.getGuild(), musicManager, firstTrack);
+				play(channel, musicManager, firstTrack);
 			}
 
 			@Override
@@ -87,10 +82,10 @@ public class Music {
 		});
 	}
 
-	private void play(IGuild guild, GuildMusicManager musicManager, AudioTrack track) {
+	private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track) {
 		//    connectToFirstVoiceChannel(guild.getAudioManager());
-		runningPlayers.put(musicManager.scheduler.player, guild);
-		musicManager.scheduler.queue(track);
+		runningPlayers.put(musicManager.scheduler.player, channel.getGuild());
+		musicManager.scheduler.queue(track, channel);
 	}
 
 	protected void skipTrack(IChannel channel) {
