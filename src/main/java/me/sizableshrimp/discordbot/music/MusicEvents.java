@@ -37,7 +37,7 @@ public class MusicEvents {
 			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
 			if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
 				Music music = new Music();
-				music.loadAndPlay(event.getChannel(), message.substring(5, message.length()));
+				music.loadAndPlay(event.getChannel(), message.substring(6, message.length()));
 				return;
 			} else if (event.getGuild().getConnectedVoiceChannel() == null && channel == null) {
 				EventListener.sendMessage("Join a voice channel if you want me to play a song!", event.getChannel());
