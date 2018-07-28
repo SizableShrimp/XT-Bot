@@ -30,8 +30,12 @@ public class MusicEvents {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
 		if (message.startsWith(XTBot.prefix+"play")) {
+			if (message.split(" ").length < 2) {
+				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"play [song]```", event.getChannel());
+				return;
+			}
 			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
-			if (event.getGuild().getConnectedVoiceChannel() == channel) {
+			if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
 				Music music = new Music();
 				music.loadAndPlay(event.getChannel(), message.substring(5, message.length()));
 				return;
