@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import me.sizableshrimp.discordbot.music.Music;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -94,13 +95,21 @@ public class EventListener {
 			}
 		}
 	}
+	
+	@EventSubscriber
+	public void onUserVoiceLeave(UserVoiceChannelLeaveEvent event) {
+		IVoiceChannel channel = event.getVoiceChannel();
+		if (event.getGuild().getConnectedVoiceChannel() == channel) {
+			if (channel.getConnectedUsers().size() == 1) channel.leave();
+		}
+	}
 
 	public static void sendMessage(String message, IChannel channel) throws DiscordException, MissingPermissionsException {
-		new MessageBuilder(XTBot.client).appendContent("\u200B"+message).withChannel(channel).build();
+		channel.sendMessage("\u200B"+message);
 	}
 
 	public static void sendEmbed(EmbedBuilder embed, IChannel channel) throws DiscordException, MissingPermissionsException {
-		new MessageBuilder(XTBot.client).withEmbed(embed.build()).withChannel(channel).build();
+		channel.sendMessage(embed.build());
 	}
 
 	private String getUptime() {
