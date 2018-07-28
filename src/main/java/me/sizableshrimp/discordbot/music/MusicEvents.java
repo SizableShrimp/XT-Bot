@@ -37,7 +37,7 @@ public class MusicEvents {
 			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
 			if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
 				Music music = new Music();
-				music.loadAndPlay(event.getChannel(), message.split(" ")[1]);
+				music.loadAndPlay(event.getChannel(), channel, message.split(" ")[1]);
 				return;
 			} else if (event.getGuild().getConnectedVoiceChannel() == null && channel == null) {
 				EventListener.sendMessage("Join a voice channel if you want me to play a song!", event.getChannel());
@@ -46,9 +46,8 @@ public class MusicEvents {
 				EventListener.sendMessage("Join "+event.getGuild().getConnectedVoiceChannel()+" to add a song to the queue.", event.getChannel());
 				return;
 			} else if (event.getGuild().getConnectedVoiceChannel() == null & channel != null) {
-				channel.join();
 				Music music = new Music();
-				music.loadAndPlay(event.getChannel(), message.split(" ")[1]);
+				music.loadAndPlay(event.getChannel(), channel, message.split(" ")[1]);
 				return;
 			}
 		}
@@ -71,6 +70,7 @@ public class MusicEvents {
 					Music music = new Music();					
 					GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 					manager.player.setVolume(volume);
+					manager.player.setPaused(false);
 					EventListener.sendMessage("Volume set to **"+volume.toString()+"%**", event.getChannel());
 					return;
 				} else {
