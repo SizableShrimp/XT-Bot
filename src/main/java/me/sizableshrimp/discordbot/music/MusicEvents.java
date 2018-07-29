@@ -27,12 +27,8 @@ public class MusicEvents {
 		AudioPlayer player = manager.player;
 		TrackScheduler scheduler = manager.scheduler;
 		if (message.startsWith(XTBot.prefix+"play")) {
-			if (message.split(" ").length != 2) {
-				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"play [song]```", event.getChannel());
-				return;
-			}
 			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
-			String query = message.split(" ")[1];
+			String query = message.substring(6);
 			if (!query.startsWith("http")) query = "ytsearch:"+query;
 			if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
 				music.loadAndPlay(event.getChannel(), channel, query);
@@ -47,8 +43,7 @@ public class MusicEvents {
 				music.loadAndPlay(event.getChannel(), channel, query);
 				return;
 			}
-		}
-		if (message.startsWith(XTBot.prefix+"volume") || message.startsWith(XTBot.prefix+"vol")) {
+		} else if (message.startsWith(XTBot.prefix+"volume") || message.startsWith(XTBot.prefix+"vol")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				if (message.split(" ").length == 2) { 
@@ -63,7 +58,6 @@ public class MusicEvents {
 						EventListener.sendMessage("Please enter a number between 0 and 100.", event.getChannel());
 						return;
 					}
-					volume = Math.max(0, Math.min(100, volume));
 					player.setVolume(volume);
 					EventListener.sendMessage("Volume set to **"+volume.toString()+"%**", event.getChannel());
 					return;
@@ -75,8 +69,7 @@ public class MusicEvents {
 				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
 				return;
 			}
-		}
-		if (message.startsWith(XTBot.prefix+"pause")) {
+		} else if (message.startsWith(XTBot.prefix+"pause")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				if (player.isPaused()) {
@@ -92,8 +85,7 @@ public class MusicEvents {
 				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
 				return;
 			}
-		}
-		if (message.startsWith(XTBot.prefix+"resume")) {
+		} else if (message.startsWith(XTBot.prefix+"resume")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				if (player.isPaused()) {
@@ -108,8 +100,7 @@ public class MusicEvents {
 				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
 				return;
 			}
-		}
-		if (message.startsWith(XTBot.prefix+"clear")) {
+		} else if (message.startsWith(XTBot.prefix+"clear")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				scheduler.queue.clear();
@@ -119,8 +110,7 @@ public class MusicEvents {
 				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
 				return;
 			}
-		}
-		if (message.startsWith(XTBot.prefix+"skip")) {
+		} else if (message.startsWith(XTBot.prefix+"skip")) {
 			Integer wants = music.wantsToSkip.get(manager);
 			Integer needed = music.neededToSkip.get(manager);
 			if (wants+1 == needed) {
@@ -133,8 +123,7 @@ public class MusicEvents {
 			music.wantsToSkip.put(manager, wants+1);
 			EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", event.getChannel());
 			return;
-		}
-		if (message.startsWith(XTBot.prefix+"forceskip")) {
+		} else if (message.startsWith(XTBot.prefix+"forceskip")) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS)) {
 				music.skipTrack(event.getChannel());
 				music.wantsToSkip.remove(manager);
@@ -145,8 +134,7 @@ public class MusicEvents {
 				EventListener.sendMessage(":x: Insufficient permission.", event.getChannel());
 				return;
 			}
-		}
-		if (message.startsWith(XTBot.prefix+"queue") || message.startsWith(XTBot.prefix+"q")) {
+		} else if (message.startsWith(XTBot.prefix+"queue") || message.startsWith(XTBot.prefix+"q")) {
 			AudioTrack playing = player.getPlayingTrack();
 			BlockingQueue<AudioTrack> queue = scheduler.queue;
 			EmbedBuilder embed = new EmbedBuilder();
@@ -169,8 +157,7 @@ public class MusicEvents {
 			}
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
-		}
-		if (message.startsWith(XTBot.prefix+"nowplaying") || message.startsWith(XTBot.prefix+"np")) {
+		} else if (message.startsWith(XTBot.prefix+"nowplaying") || message.startsWith(XTBot.prefix+"np")) {
 			AudioTrack playing = player.getPlayingTrack();
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Now Playing");
@@ -182,8 +169,7 @@ public class MusicEvents {
 			embed.appendDesc(playing.getInfo().title+" - "+playing.getInfo().author);
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
-		}
-		if (message.startsWith(XTBot.prefix+"loop")) {
+		} else if (message.startsWith(XTBot.prefix+"loop")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				if (scheduler.isRepeating()) {
@@ -199,8 +185,7 @@ public class MusicEvents {
 				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
 				return;
 			}
-		}
-		if (message.startsWith(XTBot.prefix+"shuffle")) {
+		} else if (message.startsWith(XTBot.prefix+"shuffle")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				Collections.shuffle((List<?>) scheduler.queue);

@@ -12,11 +12,11 @@ public class GuildMusicManager {
   /**
    * Audio player for the guild.
    */
-  public final AudioPlayer player;
+  public AudioPlayer player;
   /**
    * Track scheduler for the player.
    */
-  public final TrackScheduler scheduler;
+  public TrackScheduler scheduler;
 
   /**
    * Creates a player and a track scheduler.
