@@ -23,7 +23,7 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
 public class Music {
 	private final AudioPlayerManager playerManager;
 	protected final Map<Long, GuildMusicManager> musicManagers;
-	public static final int DEFAULT_VOLUME = 35;
+	final int DEFAULT_VOLUME = 35;
 	protected static HashMap<AudioPlayer, IGuild> runningPlayers = new HashMap<AudioPlayer, IGuild>();
 	public final HashMap<GuildMusicManager, Integer> wantsToSkip = new HashMap<GuildMusicManager, Integer>();
 	public final HashMap<GuildMusicManager, Integer> neededToSkip = new HashMap<GuildMusicManager, Integer>();

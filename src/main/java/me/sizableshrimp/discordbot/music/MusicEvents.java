@@ -18,11 +18,17 @@ import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class MusicEvents {
+	//TODO add a disconnect command (isOne or has manage channels perm)
+	Music music;
+	
+	public MusicEvents() {
+		music = new Music();
+	}
+	
 	@EventSubscriber
 	public void onMessageReceived(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
-		Music music = new Music();
 		GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 		AudioPlayer player = manager.player;
 		TrackScheduler scheduler = manager.scheduler;
@@ -169,6 +175,21 @@ public class MusicEvents {
 			embed.appendDesc(playing.getInfo().title+" - "+playing.getInfo().author);
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
+		} else if (message.startsWith(XTBot.prefix+"disconnect") || message.startsWith(XTBot.prefix+"leave")) {
+			boolean isOne = isOne(event);
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+				IVoiceChannel channel = event.getGuild().getConnectedVoiceChannel();
+				if (channel == null) {
+					EventListener.sendMessage("I am not connected to a voice channel.", event.getChannel());
+					return;
+				}
+				channel.leave();
+				EventListener.sendMessage("Left "+channel.getName(), event.getChannel());
+				return;
+			} else {
+				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
+				return;
+			}
 		} else if (message.startsWith(XTBot.prefix+"loop")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
