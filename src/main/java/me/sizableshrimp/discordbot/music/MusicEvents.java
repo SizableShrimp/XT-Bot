@@ -20,11 +20,11 @@ import sx.blah.discord.util.EmbedBuilder;
 public class MusicEvents {
 	//TODO add a disconnect command (isOne or has manage channels perm)
 	Music music;
-	
+
 	public MusicEvents() {
 		music = new Music();
 	}
-	
+
 	@EventSubscriber
 	public void onMessageReceived(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
@@ -78,28 +78,18 @@ public class MusicEvents {
 		} else if (message.startsWith(XTBot.prefix+"pause")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
-				if (player.isPaused()) {
-					player.setPaused(false);
-					EventListener.sendMessage("Music resumed.", event.getChannel());
-					return;
+				if (music.isPlaying(event.getGuild())) {
+					if (player.isPaused()) {
+						player.setPaused(false);
+						EventListener.sendMessage("Music resumed.", event.getChannel());
+						return;
+					} else {
+						player.setPaused(true);
+						EventListener.sendMessage("Music paused.", event.getChannel());
+						return;
+					}
 				} else {
-					player.setPaused(true);
-					EventListener.sendMessage("Music paused.", event.getChannel());
-					return;
-				}
-			} else {
-				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
-				return;
-			}
-		} else if (message.startsWith(XTBot.prefix+"resume")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
-				if (player.isPaused()) {
-					player.setPaused(false);
-					EventListener.sendMessage("Music resumed.", event.getChannel());
-					return;
-				} else {
-					EventListener.sendMessage("The music is currently playing.", event.getChannel());
+					EventListener.sendMessage("There is no music to pause or unpause.", event.getChannel());
 					return;
 				}
 			} else {

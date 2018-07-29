@@ -43,7 +43,7 @@ public class Music {
 		long guildId = guild.getLongID();
 		GuildMusicManager musicManager = musicManagers.get(guildId);
 		if (musicManager == null) {
-			musicManager = new GuildMusicManager(playerManager, guild);
+			musicManager = new GuildMusicManager(playerManager, guild, this);
 			musicManager.player.setVolume(DEFAULT_VOLUME);
 			musicManagers.put(guildId, musicManager);
 		}

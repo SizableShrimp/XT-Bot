@@ -18,11 +18,13 @@ public class TrackScheduler extends AudioEventAdapter {
 	protected final AudioPlayer player;
 	protected final BlockingQueue<AudioTrack> queue;
 	private final IGuild guild;
+	Music music;
 
-	public TrackScheduler(AudioPlayer player, IGuild guild) {
+	public TrackScheduler(AudioPlayer player, IGuild guild, Music music) {
 		this.player = player;
 		this.guild = guild;
 		this.queue = new LinkedBlockingQueue<>();
+		this.music = music;
 	}
 
 	public void queue(AudioTrack track, IChannel channel) {
@@ -57,7 +59,6 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	@Override
 	public void onTrackStart(AudioPlayer player, AudioTrack track) {
-		Music music = new Music();
 		music.wantsToSkip.put(music.musicManagers.get(guild.getLongID()), 0);
 		Long number = Math.round(guild.getConnectedVoiceChannel().getConnectedUsers().size()/2D);
 		music.neededToSkip.put(music.musicManagers.get(guild.getLongID()), number.intValue());

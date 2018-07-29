@@ -9,9 +9,9 @@ public class GuildMusicManager {
   public AudioPlayer player;
   public TrackScheduler scheduler;
 
-  public GuildMusicManager(AudioPlayerManager manager, IGuild guild) {
+  public GuildMusicManager(AudioPlayerManager manager, IGuild guild, Music music) {
     player = manager.createPlayer();
-    scheduler = new TrackScheduler(player, guild);
+    scheduler = new TrackScheduler(player, guild, music);
     player.addListener(scheduler);
   }
 
