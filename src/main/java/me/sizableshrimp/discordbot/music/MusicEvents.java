@@ -18,8 +18,7 @@ import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class MusicEvents {
-	//TODO add a disconnect command (isOne or has manage channels perm)
-	Music music;
+	private Music music;
 
 	public MusicEvents() {
 		music = new Music();

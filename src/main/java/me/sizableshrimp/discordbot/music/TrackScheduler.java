@@ -13,12 +13,11 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 
 public class TrackScheduler extends AudioEventAdapter {
-	private AudioTrack lastTrack;
 	private boolean repeating = false;
 	protected final AudioPlayer player;
 	protected final BlockingQueue<AudioTrack> queue;
 	private final IGuild guild;
-	Music music;
+	private Music music;
 
 	public TrackScheduler(AudioPlayer player, IGuild guild, Music music) {
 		this.player = player;
@@ -47,10 +46,9 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	@Override
 	public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-		lastTrack = track;
 		if (endReason.mayStartNext) {
 			if (repeating) {
-				player.startTrack(lastTrack.makeClone(), false);
+				player.startTrack(track.makeClone(), false);
 			} else {
 				nextTrack();
 			}
@@ -59,9 +57,15 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	@Override
 	public void onTrackStart(AudioPlayer player, AudioTrack track) {
-		music.wantsToSkip.put(music.musicManagers.get(guild.getLongID()), 0);
-		Long number = Math.round(guild.getConnectedVoiceChannel().getConnectedUsers().size()/2D);
-		music.neededToSkip.put(music.musicManagers.get(guild.getLongID()), number.intValue());
+		if (guild.getConnectedVoiceChannel() == null) {
+			System.out.println("Error: Track was trying to play while bot is not connected to a voice channel. Stopping track.");
+			player.stopTrack();
+			return;
+		}
+		GuildMusicManager manager = music.getGuildAudioPlayer(guild);
+		music.wantsToSkip.put(manager, 0);
+		Long number = Math.round((guild.getConnectedVoiceChannel().getConnectedUsers().size()-1)/2D);
+		music.neededToSkip.put(manager, number.intValue());
 	}
 
 	@Override
