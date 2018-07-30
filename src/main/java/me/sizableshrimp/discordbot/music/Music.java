@@ -62,8 +62,10 @@ public class Music {
 
 			@Override
 			public void playlistLoaded(AudioPlaylist playlist) {
-				EventListener.sendMessage("Playlists are not supported.", channel);
-				//Playlists are not supported. This is only here because AudioLoadResultHandler requires it.
+				AudioTrack firstTrack = playlist.getSelectedTrack();
+				if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
+				voiceChannel.join();
+				play(channel, musicManager, firstTrack);
 			}
 
 			@Override
