@@ -59,13 +59,13 @@ public class MusicEvents {
 						EventListener.sendMessage("Please enter a number between 0 and 100.", event.getChannel());
 						return;
 					}
-					Integer volume = Integer.valueOf(message.split(" ")[1]);
+					int volume = Integer.valueOf(message.split(" ")[1]);
 					if (volume < 0 || volume > 100) {
 						EventListener.sendMessage("Please enter a number between 0 and 100.", event.getChannel());
 						return;
 					}
 					player.setVolume(volume);
-					EventListener.sendMessage("Volume set to **"+volume.toString()+"%**", event.getChannel());
+					EventListener.sendMessage("Volume set to **"+volume+"%**", event.getChannel());
 					return;
 				} else {
 					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"volume [new volume]```", event.getChannel());
@@ -109,6 +109,10 @@ public class MusicEvents {
 		} else if (message.startsWith(XTBot.prefix+"remove")) {
 			boolean isOne = isOne(event);
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+				if (scheduler.queue.isEmpty()) {
+					EventListener.sendMessage("There is nothing in the queue to remove.", event.getChannel());
+					return;
+				}
 				if (message.split(" ").length == 2) { 
 					try {
 						Integer.valueOf(message.split(" ")[1]);
@@ -117,7 +121,7 @@ public class MusicEvents {
 						return;
 					}
 					Integer queueNum = Integer.valueOf(message.split(" ")[1]);
-					if (scheduler.queue.size() < queueNum) {
+					if (scheduler.queue.size() < queueNum || queueNum <= 0) {
 						EventListener.sendMessage("Please enter a number from the queue.", event.getChannel());
 						return;
 					}
@@ -203,7 +207,8 @@ public class MusicEvents {
 			}
 			AudioTrackInfo info = playing.getInfo();
 			embed.appendDesc(info.title+" - "+info.author);
-			embed.withUrl("\n"+info.uri);
+			embed.appendDesc("\nLength "+info.length);
+			embed.withUrl(info.uri);
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
 		} else if (message.startsWith(XTBot.prefix+"disconnect") || message.startsWith(XTBot.prefix+"leave")) {

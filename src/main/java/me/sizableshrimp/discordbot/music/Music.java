@@ -53,7 +53,6 @@ public class Music {
 
 	public void loadAndPlay(final IChannel channel, final IVoiceChannel voiceChannel, final String trackUrl) {
 		GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-
 		playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
 			@Override
 			public void trackLoaded(AudioTrack track) {
@@ -63,10 +62,8 @@ public class Music {
 
 			@Override
 			public void playlistLoaded(AudioPlaylist playlist) {
-				AudioTrack firstTrack = playlist.getSelectedTrack();
-				if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
-				voiceChannel.join();
-				play(channel, musicManager, firstTrack);
+				EventListener.sendMessage("Playlists are not supported.", channel);
+				//Playlists are not supported. This is only here because AudioLoadResultHandler requires it.
 			}
 
 			@Override
