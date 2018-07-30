@@ -15,6 +15,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 import me.sizableshrimp.discordbot.EventListener;
+import me.sizableshrimp.discordbot.XTBot;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IVoiceChannel;
@@ -32,8 +33,8 @@ public class Music {
 		playerManager.registerSourceManager(new YoutubeAudioSourceManager());
 		playerManager.registerSourceManager(new HttpAudioSourceManager());
 		playerManager.registerSourceManager(new LocalAudioSourceManager());
-	    AudioSourceManagers.registerRemoteSources(playerManager);
-	    AudioSourceManagers.registerLocalSource(playerManager);
+		AudioSourceManagers.registerRemoteSources(playerManager);
+		AudioSourceManagers.registerLocalSource(playerManager);
 	}
 
 	synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
@@ -62,7 +63,6 @@ public class Music {
 				AudioTrack firstTrack = playlist.getSelectedTrack();
 				if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
 				voiceChannel.join();
-				try {Thread.sleep(2000L);} catch (InterruptedException e) {}
 				play(channel, musicManager, firstTrack);
 			}
 
@@ -83,11 +83,41 @@ public class Music {
 		musicManager.scheduler.queue(track, channel);
 	}
 
+	public void testPlayer() {
+		for (IGuild guild : XTBot.client.getGuilds()) {
+			GuildMusicManager musicManager = getGuildAudioPlayer(guild);
+			playerManager.loadItemOrdered(musicManager, "https://archive.org/download/AllStar/SmashMouth-AllStar_64kb.mp3", new AudioLoadResultHandler() {
+				@Override
+				public void trackLoaded(AudioTrack track) {
+					musicManager.player.playTrack(track);
+				}
+
+				@Override
+				public void playlistLoaded(AudioPlaylist playlist) {
+					AudioTrack firstTrack = playlist.getSelectedTrack();
+					if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
+					musicManager.player.playTrack(firstTrack);
+				}
+
+				@Override
+				public void noMatches() {
+
+				}
+
+				@Override
+				public void loadFailed(FriendlyException exception) {
+					System.out.println("Error when testing music player.");
+					exception.printStackTrace();
+				}
+			});
+		}
+	}
+
 	protected void skipTrack(IChannel channel) {
 		GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
 		musicManager.scheduler.nextTrack();
 	}
-	
+
 	public boolean isPlaying(IGuild guild) {
 		if (getGuildAudioPlayer(guild).player.getPlayingTrack() != null) return true;
 		return false;

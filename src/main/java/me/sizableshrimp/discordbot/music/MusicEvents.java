@@ -19,7 +19,7 @@ import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.EmbedBuilder;
 
 public class MusicEvents {
-	private Music music;
+	public Music music;
 
 	public MusicEvents() {
 		music = new Music();
