@@ -30,12 +30,15 @@ public class TrackScheduler extends AudioEventAdapter {
 		// Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
 		// something is playing, it returns false and does nothing. In that case the player was already playing so this
 		// track goes to the queue instead.
-		if (!player.startTrack(track, true)) {
+		boolean isPlaying = player.startTrack(track, true);
+		if (!isPlaying) {
 			queue.offer(track);
 			EventListener.sendMessage(track.getInfo().title+" added to queue.", channel);
 			return;
+		} else {
+			EventListener.sendMessage("Now playing "+"\n"+track.getInfo().uri, channel);
+			return;
 		}
-		EventListener.sendMessage("Now playing "+"\n"+track.getInfo().uri, channel);
 	}
 
 	public void nextTrack() {
@@ -82,11 +85,11 @@ public class TrackScheduler extends AudioEventAdapter {
 	public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
 
 	}
-	
+
 	public void setRepeating(boolean isRepeating) {
 		repeating = isRepeating;
 	}
-	
+
 	public boolean isRepeating() {
 		return repeating;
 	}

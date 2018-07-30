@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
@@ -24,13 +23,11 @@ public class Music {
 	private final AudioPlayerManager playerManager;
 	protected final Map<Long, GuildMusicManager> musicManagers;
 	final int DEFAULT_VOLUME = 35;
-	protected static HashMap<AudioPlayer, IGuild> runningPlayers = new HashMap<AudioPlayer, IGuild>();
 	public final HashMap<GuildMusicManager, Integer> wantsToSkip = new HashMap<GuildMusicManager, Integer>();
 	public final HashMap<GuildMusicManager, Integer> neededToSkip = new HashMap<GuildMusicManager, Integer>();
 
 	public Music() {
 		this.musicManagers = new HashMap<>();
-
 		this.playerManager = new DefaultAudioPlayerManager();
 		playerManager.registerSourceManager(new YoutubeAudioSourceManager());
 		playerManager.registerSourceManager(new HttpAudioSourceManager());
@@ -82,7 +79,6 @@ public class Music {
 	}
 
 	private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track) {
-		runningPlayers.put(musicManager.player, channel.getGuild());
 		musicManager.scheduler.queue(track, channel);
 	}
 
