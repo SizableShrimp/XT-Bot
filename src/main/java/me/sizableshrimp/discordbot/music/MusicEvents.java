@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 import me.sizableshrimp.discordbot.EventListener;
 import me.sizableshrimp.discordbot.XTBot;
@@ -105,6 +106,44 @@ public class MusicEvents {
 				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
 				return;
 			}
+		} else if (message.startsWith(XTBot.prefix+"remove")) {
+			boolean isOne = isOne(event);
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+				if (message.split(" ").length == 2) { 
+					try {
+						Integer.valueOf(message.split(" ")[1]);
+					} catch (NumberFormatException exception) {
+						EventListener.sendMessage("Please enter a number from the queue.", event.getChannel());
+						return;
+					}
+					Integer queueNum = Integer.valueOf(message.split(" ")[1]);
+					if (scheduler.queue.size() < queueNum) {
+						EventListener.sendMessage("Please enter a number from the queue.", event.getChannel());
+						return;
+					}
+					AudioTrack selected = null;
+					Integer num = 0;
+					for (AudioTrack track : scheduler.queue) {
+						num++;
+						if (queueNum == num) {
+							selected = track;
+						}
+					}
+					if (selected == null) {
+						EventListener.sendMessage("Please enter a number from the queue.", event.getChannel());
+						return;
+					}
+					scheduler.queue.remove(selected);
+					EventListener.sendMessage("Removed "+selected.getInfo().title+" from the queue.", event.getChannel());
+					return;
+				} else {
+					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"remove [number from queue]```", event.getChannel());
+					return;
+				}
+			} else {
+				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
+				return;
+			}
 		} else if (message.startsWith(XTBot.prefix+"skip")) {
 			Integer wants = music.wantsToSkip.get(manager);
 			Integer needed = music.neededToSkip.get(manager);
@@ -149,6 +188,7 @@ public class MusicEvents {
 			Integer number = 1;
 			for (AudioTrack track : queue) {
 				embed.appendDesc("\n"+number.toString()+". "+track.getInfo().title+" - "+track.getInfo().author);
+				number++;
 			}
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
@@ -161,7 +201,9 @@ public class MusicEvents {
 				EventListener.sendEmbed(embed, event.getChannel());
 				return;
 			}
-			embed.appendDesc(playing.getInfo().title+" - "+playing.getInfo().author);
+			AudioTrackInfo info = playing.getInfo();
+			embed.appendDesc(info.title+" - "+info.author);
+			embed.withUrl("\n"+info.uri);
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
 		} else if (message.startsWith(XTBot.prefix+"disconnect") || message.startsWith(XTBot.prefix+"leave")) {

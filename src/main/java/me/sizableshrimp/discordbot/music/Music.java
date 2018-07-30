@@ -83,7 +83,7 @@ public class Music {
 	}
 
 	private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track) {
-		runningPlayers.put(musicManager.scheduler.player, channel.getGuild());
+		runningPlayers.put(musicManager.player, channel.getGuild());
 		musicManager.scheduler.queue(track, channel);
 	}
 

@@ -35,7 +35,7 @@ public class TrackScheduler extends AudioEventAdapter {
 			EventListener.sendMessage(track.getInfo().title+" added to queue.", channel);
 			return;
 		}
-		EventListener.sendMessage("Now playing "+track.getInfo().title, channel);
+		EventListener.sendMessage("Now playing "+track.getInfo().title+"\n"+track.getInfo().uri, channel);
 	}
 
 	public void nextTrack() {
