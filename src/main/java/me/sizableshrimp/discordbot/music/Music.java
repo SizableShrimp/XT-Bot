@@ -62,6 +62,7 @@ public class Music {
 				AudioTrack firstTrack = playlist.getSelectedTrack();
 				if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
 				voiceChannel.join();
+				try {Thread.sleep(2000L);} catch (InterruptedException e) {}
 				play(channel, musicManager, firstTrack);
 			}
 
