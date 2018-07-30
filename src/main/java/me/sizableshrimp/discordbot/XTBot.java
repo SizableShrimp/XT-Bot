@@ -41,6 +41,7 @@ public class XTBot {
 					connection.setRequestMethod("GET");
 					connection.connect();
 					System.out.println("Heroku dyno idling refreshed. Response code: "+Integer.toString(connection.getResponseCode()));
+					connection.disconnect();
 				} catch (IOException e) {e.printStackTrace();}
 			}
 		}, 0, 5*60, TimeUnit.SECONDS);
