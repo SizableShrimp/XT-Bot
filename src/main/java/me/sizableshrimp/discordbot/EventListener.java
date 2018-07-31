@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import me.sizableshrimp.discordbot.music.Music;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -84,8 +83,8 @@ public class EventListener {
 					connection.setRequestMethod("GET");
 					connection.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_API"));
 					connection.connect();
-					Stream<String> lines = new BufferedReader(new InputStreamReader(connection.getInputStream())).lines();
-					for (String line : (String[]) lines.toArray()) System.out.println(line);
+					String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+					System.out.println(reply);
 					connection.disconnect();
 					return;
 					//TODO add catch for if connection is OK (response code 200) later
