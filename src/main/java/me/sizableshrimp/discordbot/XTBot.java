@@ -29,10 +29,8 @@ public class XTBot {
 		client = BotClient.createClient(System.getenv("TOKEN"), true);
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
-		MusicEvents events = new MusicEvents();
-		dispatcher.registerListener(events);
+		dispatcher.registerListener(new MusicEvents());
 		firstOnline = System.currentTimeMillis();
-		events.music.testPlayer();
 		dailyMeme();
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 		scheduler.scheduleAtFixedRate(new Runnable() {
