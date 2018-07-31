@@ -30,7 +30,11 @@ public class EventListener {
 	public void onMessageEvent(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
-		if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!event.getMessage().mentionsEveryone() && !event.getMessage().mentionsHere() && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
+		if (message.toLowerCase().startsWith(XTBot.prefix+"key")) {
+			System.out.println("KEY: "+System.getenv("FORTNITE_API"));
+			EventListener.sendMessage("Check logs", event.getChannel());
+			return;
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!event.getMessage().mentionsEveryone() && !event.getMessage().mentionsHere() && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
 			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\n`"+XTBot.prefix+"allstar`\nMore commands will be coming in the future!", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"allstar")) {
@@ -84,11 +88,12 @@ public class EventListener {
 					connection.setRequestMethod("GET");
 					connection.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_API"));
 					connection.connect();
+					//TODO add catch for if connection is OK (response code 200) later
 					BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-					System.out.println("Fortnite stats information:");
-					for (String line : (String[]) reader.lines().toArray()) {
-						System.out.println(line);
-					}
+					StringBuilder builder = new StringBuilder();
+					String currentLine;
+					while ((currentLine = reader.readLine()) != null) builder.append(currentLine+"\n");
+					System.out.println("\nFortnite stats information:\n"+builder.toString());
 					EventListener.sendMessage("Check system logs for stats. (Temporary)", event.getChannel());
 					return;
 //					if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
