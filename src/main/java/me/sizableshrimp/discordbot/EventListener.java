@@ -65,19 +65,18 @@ public class EventListener {
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
 			if (message.split(" ").length == 3) {
 				String platform = message.split(" ")[1].toLowerCase();
-				if (platform != "pc" && platform != "ps4" && platform != "xbox") {
-					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
-					return;
-				}
-				//String embedPlatform;
+				//String embedPlatform = "pc";
 				if (platform == "xbox") {
 					platform = "xb1";
 					//embedPlatform = "Xbox";
 				} else if (platform == "ps4") {
 					platform = "psn";
 					//embedPlatform = "PS4";
+				} else if (platform == "pc") {
+					//if statement holder
 				} else {
-					//embedPlatform = "PC";
+					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
+					return;
 				}
 				String username = message.split(" ")[2];
 				try {
