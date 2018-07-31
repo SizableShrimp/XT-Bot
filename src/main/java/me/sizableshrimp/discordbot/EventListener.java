@@ -65,18 +65,20 @@ public class EventListener {
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
 			if (message.split(" ").length == 3) {
 				String platform = message.split(" ")[1].toLowerCase();
-//				String embedPlatform;
-				if (platform != "pc" && platform != "psn" && platform != "xb1") {
-					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|psn|xb1] [username]```", event.getChannel());
+				if (!(platform.equals("pc") || platform.equals("ps4") || platform.equals("xbox"))) {
+					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
 					return;
 				}
-//				if (platform == "psn") {
-//					embedPlatform = "PS4";
-//				} else if (platform == "xb1") {
-//					embedPlatform = "Xbox";
-//				} else {
-//					embedPlatform = "PC";
-//				}
+				String embedPlatform;
+				if (platform == "ps4") {
+					embedPlatform = "PS4";
+					platform = "psn";
+				} else if (platform == "xbox") {
+					embedPlatform = "Xbox";
+					platform = "xb1";
+				} else {
+					embedPlatform = "PC";
+				}
 				String username = message.split(" ")[2];
 				try {
 					URL siteURL = new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username);
@@ -87,16 +89,16 @@ public class EventListener {
 					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
 						String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
 						System.out.println("Fortnite stats information:\n"+reply);
-//						String solo = "";
-//						String duo = "";
-//						String squad = "";
-//						EmbedBuilder embed = new EmbedBuilder();
-//						embed.withAuthorName(username+" - "+embedPlatform);
-//						embed.appendField("Solo", solo, true);
-//						embed.appendField("Duo", duo, true);
-//						embed.appendField("Squad", squad, true);
-//						embed.withFooterText("fortnitetracker.com");
-//						sendEmbed(embed, event.getChannel());
+						String solo = "";
+						String duo = "";
+						String squad = "";
+						EmbedBuilder embed = new EmbedBuilder();
+						embed.withAuthorName(username+" - "+embedPlatform);
+						embed.appendField("Solo", solo, true);
+						embed.appendField("Duo", duo, true);
+						embed.appendField("Squad", squad, true);
+						embed.withFooterText("fortnitetracker.com");
+						sendEmbed(embed, event.getChannel());
 						return;
 					}
 					EventListener.sendMessage("That user does not exist. Please try someone else.", event.getChannel());
@@ -107,7 +109,7 @@ public class EventListener {
 					return;
 				}
 			} else {
-				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|psn|xb1] [username]```", event.getChannel());
+				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings prefix")) {
