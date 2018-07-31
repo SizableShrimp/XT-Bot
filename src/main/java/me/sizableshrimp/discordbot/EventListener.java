@@ -1,9 +1,16 @@
 package me.sizableshrimp.discordbot;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import me.sizableshrimp.discordbot.music.Music;
 import sx.blah.discord.api.events.EventSubscriber;
@@ -20,16 +27,15 @@ import sx.blah.discord.util.MissingPermissionsException;
 
 public class EventListener {
 	public static HashMap<IGuild, IChannel> startedChannel = new HashMap<IGuild, IChannel>();
-	
+
 	@EventSubscriber
 	public void onMessageEvent(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
-		if (message.startsWith(XTBot.prefix+"help") || (!event.getMessage().mentionsEveryone() && !event.getMessage().mentionsHere() && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
+		if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!event.getMessage().mentionsEveryone() && !event.getMessage().mentionsHere() && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
 			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\n`"+XTBot.prefix+"allstar`\nMore commands will be coming in the future!", event.getChannel());
 			return;
-		}
-		if (message.startsWith(XTBot.prefix+"allstar")) {
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"allstar")) {
 			Music music = new Music();
 			if (music.isPlaying(event.getGuild())) {
 				sendMessage("I am already playing All Star in "+event.getGuild().getConnectedVoiceChannel().getName(), event.getChannel());
@@ -44,8 +50,7 @@ public class EventListener {
 			playAllStar(event, channel);
 			sendMessage("Joined "+channel.getName()+" and playing All Star", event.getChannel());
 			startedChannel.put(event.getGuild(), event.getChannel());
-		}
-		if (message.startsWith(XTBot.prefix+"info")) {
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Information");
 			embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
@@ -54,12 +59,59 @@ public class EventListener {
 			embed.appendField("Prefix", XTBot.prefix, false);
 			embed.appendField("Uptime", getUptime(), false);
 			new MessageBuilder(XTBot.client).appendContent("To find out my commands, use `"+XTBot.prefix+"help`").withEmbed(embed.build()).withChannel(event.getChannel()).build();
-		}
-		if (message.startsWith(XTBot.prefix+"hey")) {
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"hey")) {
 			sendMessage("Hello! :smile:", event.getChannel());
 			return;
-		}
-		if (message.startsWith(XTBot.prefix+"settings prefix")) {
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
+			if (message.split(" ").length == 3) {
+				String platform = message.split(" ")[1].toLowerCase();
+				if (platform != "pc" && platform != "ps4" && platform != "xbox") {
+					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
+					return;
+				}
+				//String embedPlatform;
+				if (platform == "xbox") {
+					platform = "xb1";
+					//embedPlatform = "Xbox";
+				} else if (platform == "ps4") {
+					platform = "psn";
+					//embedPlatform = "PS4";
+				} else {
+					//embedPlatform = "PC";
+				}
+				String username = message.split(" ")[2];
+				try {
+					URL siteURL = new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username);
+					HttpURLConnection connection = (HttpURLConnection) siteURL.openConnection();
+					connection.setRequestMethod("GET");
+					connection.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_API"));
+					connection.connect();
+					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+						String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+						System.out.println("Fortnite stats information:\n"+reply);
+//						String solo = "";
+//						String duo = "";
+//						String squad = "";
+//						EmbedBuilder embed = new EmbedBuilder();
+//						embed.withAuthorName(username+" - "+embedPlatform);
+//						embed.appendField("Solo", solo, true);
+//						embed.appendField("Duo", duo, true);
+//						embed.appendField("Squad", squad, true);
+//						embed.withFooterText("fortnitetracker.com");
+//						sendEmbed(embed, event.getChannel());
+						return;
+					}
+					EventListener.sendMessage("That user does not exist. Please try someone else.", event.getChannel());
+					return;
+				} catch (IOException exception) {
+					exception.printStackTrace();
+					EventListener.sendMessage("An error occured when trying to retrieve Fortnite stats. Please try agian later.", event.getChannel());
+				}
+			} else {
+				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
+				return;
+			}
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings prefix")) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 				if (message.split(" ").length != 3) {
 					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"settings prefix [new prefix]```", event.getChannel());
@@ -82,8 +134,7 @@ public class EventListener {
 				sendMessage(":x: Insufficient permission.", event.getChannel());
 				return;
 			}
-		}
-		if (message.startsWith(XTBot.prefix+"settings") && message.split(" ").length == 1) {
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings") && message.split(" ").length == 1) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 				EmbedBuilder embed = new EmbedBuilder();
 				embed.withAuthorName("XT Bot Settings");
@@ -96,7 +147,7 @@ public class EventListener {
 			}
 		}
 	}
-	
+
 	@EventSubscriber
 	public void onUserVoiceLeave(UserVoiceChannelLeaveEvent event) {
 		IVoiceChannel channel = event.getVoiceChannel();
