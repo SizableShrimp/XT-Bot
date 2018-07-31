@@ -36,7 +36,7 @@ public class XTBot {
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
-					URL siteURL = new URL("https://xt-bot42.herokuapp.com");
+					URL siteURL = new URL("https://botxt.herokuapp.com");
 					HttpURLConnection connection = (HttpURLConnection) siteURL.openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
