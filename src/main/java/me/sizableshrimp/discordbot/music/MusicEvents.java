@@ -1,8 +1,8 @@
 package me.sizableshrimp.discordbot.music;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -183,16 +183,16 @@ public class MusicEvents {
 				EventListener.sendEmbed(embed, event.getChannel());
 				return;
 			}
-			embed.appendDesc("**Now Playing**\n"+playing.getInfo().title+" - "+playing.getInfo().author);
-			embed.appendDesc("\n");
+			embed.appendDesc("__**Now Playing:**__\n"+"["+playing.getInfo().title+"]("+playing.getInfo().uri+")");
+			embed.appendDesc("\n\n__**Up Next:**__\n");
 			if (queue.isEmpty()) {
-				embed.appendDesc("\nThere is currently nothing in the queue.");
+				embed.appendDesc("\nThere is currently nothing up next.");
 				EventListener.sendEmbed(embed, event.getChannel());
 				return;
 			}
 			Integer number = 1;
 			for (AudioTrack track : queue) {
-				embed.appendDesc("\n"+number.toString()+". "+track.getInfo().title+" - "+track.getInfo().author);
+				embed.appendDesc("\n"+number.toString()+". "+"["+track.getInfo().title+"]("+track.getInfo().uri+")");
 				number++;
 			}
 			EventListener.sendEmbed(embed, event.getChannel());
@@ -207,8 +207,8 @@ public class MusicEvents {
 				return;
 			}
 			AudioTrackInfo info = playing.getInfo();
-			embed.appendDesc(info.title+" - "+info.author);
-			embed.appendDesc("\n"+info.uri);
+			embed.appendDesc("["+info.title+"]("+info.uri+")");
+			embed.appendDesc("\n"+getLength(System.currentTimeMillis()-music.trackStartTime)+" / "+getLength(info.length));
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
 		} else if (message.startsWith(XTBot.prefix+"disconnect") || message.startsWith(XTBot.prefix+"leave")) {
@@ -220,6 +220,8 @@ public class MusicEvents {
 					return;
 				}
 				channel.leave();
+				scheduler.queue.clear();
+				manager.player.stopTrack();
 				EventListener.sendMessage("Left "+channel.getName(), event.getChannel());
 				return;
 			} else {
@@ -242,16 +244,6 @@ public class MusicEvents {
 				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
 				return;
 			}
-		} else if (message.startsWith(XTBot.prefix+"shuffle")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
-				Collections.shuffle((List<?>) scheduler.queue);
-				EventListener.sendMessage("Queue shuffled.", event.getChannel());
-				return;
-			} else {
-				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
-				return;
-			}
 		}
 	}
 
@@ -266,4 +258,9 @@ public class MusicEvents {
 		return false;
 	}
 
+	String getLength(Long length) {
+		Long minutes = TimeUnit.MILLISECONDS.toMinutes(length);
+		Long seconds = TimeUnit.MILLISECONDS.toSeconds(length) - TimeUnit.MINUTES.toSeconds(minutes);
+		return minutes.toString()+":"+seconds.toString();
+	}
 }

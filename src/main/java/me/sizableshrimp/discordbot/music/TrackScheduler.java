@@ -33,10 +33,10 @@ public class TrackScheduler extends AudioEventAdapter {
 		boolean isPlaying = player.startTrack(track, true);
 		if (!isPlaying) {
 			queue.offer(track);
-			EventListener.sendMessage(track.getInfo().title+" added to queue.", channel);
+			EventListener.sendMessage("`"+track.getInfo().title+"` added to queue.", channel);
 			return;
 		} else {
-			EventListener.sendMessage("Now playing "+track.getInfo().uri, channel);
+			EventListener.sendMessage("Now playing `"+track.getInfo().title+"`\n"+track.getInfo().uri, channel);
 			return;
 		}
 	}
@@ -69,6 +69,7 @@ public class TrackScheduler extends AudioEventAdapter {
 		music.wantsToSkip.put(manager, 0);
 		Long number = Math.round((guild.getConnectedVoiceChannel().getConnectedUsers().size()-1)/2D);
 		music.neededToSkip.put(manager, number.intValue());
+		music.trackStartTime = System.currentTimeMillis();
 	}
 
 	@Override
