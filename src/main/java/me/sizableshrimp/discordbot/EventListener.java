@@ -84,8 +84,11 @@ public class EventListener {
 					connection.setRequestMethod("GET");
 					connection.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_API"));
 					connection.connect();
-					String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
-					System.out.println("Fortnite stats information:\n"+reply);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+					System.out.println("Fortnite stats information:");
+					for (String line : (String[]) reader.lines().toArray()) {
+						System.out.println(line);
+					}
 					EventListener.sendMessage("Check system logs for stats. (Temporary)", event.getChannel());
 					return;
 //					if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
