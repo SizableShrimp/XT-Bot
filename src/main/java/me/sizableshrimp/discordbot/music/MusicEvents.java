@@ -46,6 +46,7 @@ public class MusicEvents {
 				EventListener.sendMessage("Join "+event.getGuild().getConnectedVoiceChannel()+" to add a song to the queue.", event.getChannel());
 				return;
 			} else if (event.getGuild().getConnectedVoiceChannel() == null & channel != null) {
+				channel.join();
 				music.loadAndPlay(event.getChannel(), channel, query);
 				return;
 			}
@@ -207,8 +208,7 @@ public class MusicEvents {
 			}
 			AudioTrackInfo info = playing.getInfo();
 			embed.appendDesc(info.title+" - "+info.author);
-			embed.appendDesc("\nLength "+info.length);
-			embed.withUrl(info.uri);
+			embed.appendDesc("\n"+info.uri);
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
 		} else if (message.startsWith(XTBot.prefix+"disconnect") || message.startsWith(XTBot.prefix+"leave")) {
