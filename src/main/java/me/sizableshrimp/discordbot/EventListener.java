@@ -81,7 +81,7 @@ public class EventListener {
 				try {
 					HttpURLConnection connection = (HttpURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username).openConnection();
 					connection.setRequestMethod("GET");
-					connection.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_API"));
+					connection.addRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_API"));
 					connection.connect();
 					String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
 					System.out.println(reply);
