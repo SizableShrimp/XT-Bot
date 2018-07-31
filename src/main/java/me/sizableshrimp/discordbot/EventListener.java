@@ -84,23 +84,27 @@ public class EventListener {
 					connection.setRequestMethod("GET");
 					connection.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_API"));
 					connection.connect();
-					if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-						String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
-						System.out.println("Fortnite stats information:\n"+reply);
-						String solo = "";
-						String duo = "";
-						String squad = "";
-						EmbedBuilder embed = new EmbedBuilder();
-						embed.withAuthorName(username+" - "+embedPlatform);
-						embed.appendField("Solo", solo, true);
-						embed.appendField("Duo", duo, true);
-						embed.appendField("Squad", squad, true);
-						embed.withFooterText("fortnitetracker.com");
-						sendEmbed(embed, event.getChannel());
-						return;
-					}
-					EventListener.sendMessage("The user specified does not exist. Please try someone else.", event.getChannel());
+					String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+					System.out.println("Fortnite stats information:\n"+reply);
+					EventListener.sendMessage("Check system logs for stats. (Temporary)", event.getChannel());
 					return;
+//					if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+//						String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+//						System.out.println("Fortnite stats information:\n"+reply);
+//						String solo = "";
+//						String duo = "";
+//						String squad = "";
+//						EmbedBuilder embed = new EmbedBuilder();
+//						embed.withAuthorName(username+" - "+embedPlatform);
+//						embed.appendField("Solo", solo, true);
+//						embed.appendField("Duo", duo, true);
+//						embed.appendField("Squad", squad, true);
+//						embed.withFooterText("fortnitetracker.com");
+//						sendEmbed(embed, event.getChannel());
+//						return;
+//					}
+//					EventListener.sendMessage("The user specified does not exist. Please try someone else.", event.getChannel());
+//					return;
 				} catch (IOException exception) {
 					exception.printStackTrace();
 					EventListener.sendMessage("An error occured when trying to retrieve Fortnite stats. Please try agian later.", event.getChannel());
