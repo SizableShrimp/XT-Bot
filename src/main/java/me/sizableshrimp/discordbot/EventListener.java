@@ -74,9 +74,6 @@ public class EventListener {
 					//embedPlatform = "PS4";
 				} else if (platform == "pc") {
 					//if statement holder
-				} else {
-					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
-					return;
 				}
 				String username = message.split(" ")[2];
 				try {
@@ -105,6 +102,7 @@ public class EventListener {
 				} catch (IOException exception) {
 					exception.printStackTrace();
 					EventListener.sendMessage("An error occured when trying to retrieve Fortnite stats. Please try agian later.", event.getChannel());
+					return;
 				}
 			} else {
 				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
