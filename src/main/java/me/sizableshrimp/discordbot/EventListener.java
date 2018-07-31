@@ -65,16 +65,18 @@ public class EventListener {
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
 			if (message.split(" ").length == 3) {
 				String platform = message.split(" ")[1].toLowerCase();
-				//String embedPlatform = "pc";
-				if (platform == "xbox") {
-					platform = "xb1";
-					//embedPlatform = "Xbox";
-				} else if (platform == "ps4") {
-					platform = "psn";
-					//embedPlatform = "PS4";
-				} else if (platform == "pc") {
-					//if statement holder
+//				String embedPlatform;
+				if (platform != "pc" && platform != "psn" && platform != "xb1") {
+					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|psn|xb1] [username]```", event.getChannel());
+					return;
 				}
+//				if (platform == "psn") {
+//					embedPlatform = "PS4";
+//				} else if (platform == "xb1") {
+//					embedPlatform = "Xbox";
+//				} else {
+//					embedPlatform = "PC";
+//				}
 				String username = message.split(" ")[2];
 				try {
 					URL siteURL = new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username);
@@ -105,7 +107,7 @@ public class EventListener {
 					return;
 				}
 			} else {
-				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
+				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|psn|xb1] [username]```", event.getChannel());
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings prefix")) {
