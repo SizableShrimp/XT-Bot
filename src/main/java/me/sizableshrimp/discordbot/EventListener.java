@@ -1,15 +1,11 @@
 package me.sizableshrimp.discordbot;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import me.sizableshrimp.discordbot.music.GuildMusicManager;
 import me.sizableshrimp.discordbot.music.Music;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
@@ -60,67 +56,6 @@ public class EventListener {
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"hey")) {
 			sendMessage("Hello! :smile:", event.getChannel());
 			return;
-		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
-			if (message.split(" ").length == 3) {
-				String platform = message.split(" ")[1].toLowerCase();
-				if (!(platform.equals("pc") || platform.equals("ps4") || platform.equals("xbox"))) {
-					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
-					return;
-				}
-				String embedPlatform;
-				if (platform == "ps4") {
-					embedPlatform = "PS4";
-					platform = "psn";
-				} else if (platform == "xbox") {
-					embedPlatform = "Xbox";
-					platform = "xb1";
-				} else {
-					embedPlatform = "PC";
-				}
-				String username = message.split(" ")[2];
-				try {
-					HttpURLConnection connection = (HttpURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username).openConnection();
-					connection.setRequestMethod("GET");
-					connection.addRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_API"));
-					connection.connect();
-					String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
-					System.out.println(reply);
-					connection.disconnect();
-					return;
-					//TODO add catch for if connection is OK (response code 200) later
-//					BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-//					StringBuilder builder = new StringBuilder();
-//					String currentLine;
-//					while ((currentLine = reader.readLine()) != null) builder.append(currentLine+"\n");
-//					System.out.println("\nFortnite stats information:\n"+builder.toString());
-//					EventListener.sendMessage("Check system logs for stats. (Temporary)", event.getChannel());
-//					return;
-//					if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-//						String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
-//						System.out.println("Fortnite stats information:\n"+reply);
-//						String solo = "";
-//						String duo = "";
-//						String squad = "";
-//						EmbedBuilder embed = new EmbedBuilder();
-//						embed.withAuthorName(username+" - "+embedPlatform);
-//						embed.appendField("Solo", solo, true);
-//						embed.appendField("Duo", duo, true);
-//						embed.appendField("Squad", squad, true);
-//						embed.withFooterText("fortnitetracker.com");
-//						sendEmbed(embed, event.getChannel());
-//						return;
-//					}
-//					EventListener.sendMessage("The user specified does not exist. Please try someone else.", event.getChannel());
-//					return;
-				} catch (IOException exception) {
-					exception.printStackTrace();
-					EventListener.sendMessage("An error occured when trying to retrieve Fortnite stats. Please try agian later.", event.getChannel());
-					return;
-				}
-			} else {
-				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", event.getChannel());
-				return;
-			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings prefix")) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 				if (message.split(" ").length != 3) {
@@ -160,9 +95,16 @@ public class EventListener {
 
 	@EventSubscriber
 	public void onUserVoiceLeave(UserVoiceChannelLeaveEvent event) {
-		IVoiceChannel channel = event.getVoiceChannel();
-		if (event.getGuild().getConnectedVoiceChannel() == channel) {
-			if (channel.getConnectedUsers().size() == 1) channel.leave();
+		if (event.getUser() == XTBot.client.getOurUser()) {
+			GuildMusicManager manager = XTBot.music.getGuildAudioPlayer(event.getGuild());
+			manager.player.setVolume(XTBot.music.DEFAULT_VOLUME);
+			return;
+		} else {
+			IVoiceChannel channel = event.getVoiceChannel();
+			if (event.getGuild().getConnectedVoiceChannel() == channel) {
+				if (channel.getConnectedUsers().size() == 1) channel.leave();
+			}
+			return;
 		}
 	}
 
@@ -171,7 +113,7 @@ public class EventListener {
 	}
 
 	public static void sendEmbed(EmbedBuilder embed, IChannel channel) throws DiscordException, MissingPermissionsException {
-		channel.sendMessage(embed.build());
+		channel.sendMessage("\u200B", embed.build());
 	}
 
 	private String getUptime() {

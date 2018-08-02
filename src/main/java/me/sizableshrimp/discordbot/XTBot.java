@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import me.sizableshrimp.discordbot.music.Music;
 import me.sizableshrimp.discordbot.music.MusicEvents;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
@@ -23,13 +24,16 @@ public class XTBot {
 	public static IDiscordClient client;
 	public static String prefix = ",";
 	public static long firstOnline;
+	public static Music music;
 
 	public static void main(String[] args) {
 		SpringApplication.run(XTBot.class, args);
 		client = BotClient.createClient(System.getenv("TOKEN"), true);
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
-		dispatcher.registerListener(new MusicEvents());
+		MusicEvents events = new MusicEvents();
+		dispatcher.registerListener(events);
+		music = events.music;
 		firstOnline = System.currentTimeMillis();
 		dailyMeme();
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
