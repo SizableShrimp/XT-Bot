@@ -22,7 +22,7 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
 public class Music {
 	private final AudioPlayerManager playerManager;
 	protected final Map<Long, GuildMusicManager> musicManagers;
-	final int DEFAULT_VOLUME = 35;
+	public final int DEFAULT_VOLUME = 35;
 	public final HashMap<GuildMusicManager, Integer> wantsToSkip = new HashMap<GuildMusicManager, Integer>();
 	public final HashMap<GuildMusicManager, Integer> neededToSkip = new HashMap<GuildMusicManager, Integer>();
 	protected long trackStartTime;
@@ -37,7 +37,7 @@ public class Music {
 		AudioSourceManagers.registerLocalSource(playerManager);
 	}
 
-	synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
+	public synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
 		long guildId = guild.getLongID();
 		GuildMusicManager musicManager = musicManagers.get(guildId);
 		if (musicManager == null) {

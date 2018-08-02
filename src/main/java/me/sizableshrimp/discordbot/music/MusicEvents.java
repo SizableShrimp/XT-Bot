@@ -32,22 +32,30 @@ public class MusicEvents {
 		GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 		AudioPlayer player = manager.player;
 		TrackScheduler scheduler = manager.scheduler;
-		if (message.toLowerCase().startsWith(XTBot.prefix+"play")) {
-			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
-			String query = message.substring(6);
-			if (!query.startsWith("http")) query = "ytsearch:"+query;
-			if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
-				music.loadAndPlay(event.getChannel(), channel, query);
-				return;
-			} else if (event.getGuild().getConnectedVoiceChannel() == null && channel == null) {
-				EventListener.sendMessage("Join a voice channel if you want me to play a song!", event.getChannel());
-				return;
-			} else if (event.getGuild().getConnectedVoiceChannel() != null && channel != event.getGuild().getConnectedVoiceChannel()){
-				EventListener.sendMessage("Join "+event.getGuild().getConnectedVoiceChannel()+" to add a song to the queue.", event.getChannel());
-				return;
-			} else if (event.getGuild().getConnectedVoiceChannel() == null & channel != null) {
-				channel.join();
-				music.loadAndPlay(event.getChannel(), channel, query);
+		if (message.toLowerCase().startsWith(XTBot.prefix+"music")) {
+			EventListener.sendMessage("I can play music! My music commands are:```"+XTBot.prefix+"play [song] - Plays the song that you request.\n"+XTBot.prefix+"volume [new volume] or "+XTBot.prefix+"vol [new volume] - Changes the volume.\n"+XTBot.prefix+"pause - Pauses/unpauses the song.\n"+XTBot.prefix+"queue or "+XTBot.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+XTBot.prefix+"clear - Clears all the queued music.\n"+XTBot.prefix+"nowplaying or "+XTBot.prefix+"np\n"+XTBot.prefix+"remove [number in queue to remove] - Removes the song in the queue at the number given.\n"+XTBot.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+XTBot.prefix+"forceskip - Forecfully skips to the next song. (Admins only)\n"+XTBot.prefix+"disconnect - Disconnects from the voice channel and stops playing music.\n"+XTBot.prefix+"loop - Puts the song currently playing on/off repeat.```__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the channel with a bot, then you may use all commands.", event.getChannel());
+			return;
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"play")) {
+			if (message.split(" ").length == 2) {
+				IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
+				String query = message.split(" ")[1];
+				if (!query.startsWith("http")) query = "ytsearch:"+query;
+				if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
+					music.loadAndPlay(event.getChannel(), channel, query);
+					return;
+				} else if (event.getGuild().getConnectedVoiceChannel() == null && channel == null) {
+					EventListener.sendMessage("Join a voice channel if you want me to play a song!", event.getChannel());
+					return;
+				} else if (event.getGuild().getConnectedVoiceChannel() != null && channel != event.getGuild().getConnectedVoiceChannel()){
+					EventListener.sendMessage("Join "+event.getGuild().getConnectedVoiceChannel()+" to add a song to the queue.", event.getChannel());
+					return;
+				} else if (event.getGuild().getConnectedVoiceChannel() == null & channel != null) {
+					channel.join();
+					music.loadAndPlay(event.getChannel(), channel, query);
+					return;
+				}
+			} else {
+				EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"play [song]```", event.getChannel());
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"volume") || message.startsWith(XTBot.prefix+"vol")) {
