@@ -33,7 +33,7 @@ public class MusicEvents {
 		AudioPlayer player = manager.player;
 		TrackScheduler scheduler = manager.scheduler;
 		if (message.toLowerCase().startsWith(XTBot.prefix+"music")) {
-			EventListener.sendMessage("I can play music! My music commands are:```"+XTBot.prefix+"play [song] - Plays the song that you request.\n"+XTBot.prefix+"volume [new volume] or "+XTBot.prefix+"vol [new volume] - Changes the volume.\n"+XTBot.prefix+"pause - Pauses/unpauses the song.\n"+XTBot.prefix+"queue or "+XTBot.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+XTBot.prefix+"clear - Clears all the queued music.\n"+XTBot.prefix+"nowplaying or "+XTBot.prefix+"np\n"+XTBot.prefix+"remove [number in queue to remove] - Removes the song in the queue at the number given.\n"+XTBot.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+XTBot.prefix+"forceskip - Forecfully skips to the next song. (Admins only)\n"+XTBot.prefix+"disconnect - Disconnects from the voice channel and stops playing music.\n"+XTBot.prefix+"loop - Puts the song currently playing on/off repeat.```__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the channel with a bot, then you may use all commands.", event.getChannel());
+			EventListener.sendMessage("I can play music! My music commands are:```"+XTBot.prefix+"play [song] - Plays the song that you request.\n"+XTBot.prefix+"volume [new volume] or "+XTBot.prefix+"vol [new volume] - Changes the volume.\n"+XTBot.prefix+"pause - Pauses/unpauses the song.\n"+XTBot.prefix+"queue or "+XTBot.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+XTBot.prefix+"clear - Clears all the queued music.\n"+XTBot.prefix+"nowplaying or "+XTBot.prefix+"np\n"+XTBot.prefix+"remove [number in queue to remove] - Removes the song in the queue at the number given.\n"+XTBot.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+XTBot.prefix+"forceskip - Forecfully skips to the next song.\n"+XTBot.prefix+"disconnect - Disconnects from the voice channel and stops playing music.\n"+XTBot.prefix+"loop - Puts the song currently playing on/off repeat.```__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the channel with a bot, then you may use all commands.", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"play")) {
 			if (message.split(" ").length == 2) {
@@ -171,14 +171,15 @@ public class MusicEvents {
 			EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"forceskip")) {
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS)) {
+			boolean isOne = isOne(event);
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
 				music.skipTrack(event.getChannel());
 				music.wantsToSkip.remove(manager);
 				music.neededToSkip.remove(manager);
 				EventListener.sendMessage("Skipped song.", event.getChannel());
 				return;
 			} else {
-				EventListener.sendMessage(":x: Insufficient permission.", event.getChannel());
+				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"queue") || message.startsWith(XTBot.prefix+"q")) {
