@@ -1,5 +1,8 @@
 package me.sizableshrimp.discordbot.music;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +39,12 @@ public class MusicEvents {
 			EventListener.sendMessage("I can play music! My music commands are:```"+XTBot.prefix+"play [song] - Plays the song that you request.\n"+XTBot.prefix+"volume [new volume] or "+XTBot.prefix+"vol [new volume] - Changes the volume.\n"+XTBot.prefix+"pause - Pauses/unpauses the song.\n"+XTBot.prefix+"queue or "+XTBot.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+XTBot.prefix+"clear - Clears all the queued music.\n"+XTBot.prefix+"nowplaying or "+XTBot.prefix+"np\n"+XTBot.prefix+"remove [number in queue to remove] - Removes the song in the queue at the number given.\n"+XTBot.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+XTBot.prefix+"forceskip - Forecfully skips to the next song.\n"+XTBot.prefix+"disconnect - Disconnects from the voice channel and stops playing music.\n"+XTBot.prefix+"loop - Puts the song currently playing on/off repeat.```__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands.", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"play")) {
-			if (message.split(" ").length == 2) {
+			if (message.split(" ").length >= 2) {
 				IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
-				String query = message.split(" ")[1];
-				if (!query.startsWith("http")) query = "ytsearch:"+query;
+				String query = message.substring(6);
+				boolean isValid = true;
+				try {new URL(query).toURI();} catch (MalformedURLException | URISyntaxException exception) {isValid = false;}
+				if (!isValid) query = "ytsearch:"+query;
 				if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == channel) {
 					music.loadAndPlay(event.getChannel(), channel, query);
 					return;
@@ -232,7 +237,7 @@ public class MusicEvents {
 				}
 				channel.leave();
 				scheduler.queue.clear();
-				manager.player.stopTrack();
+				manager.player.startTrack(null, false);
 				EventListener.sendMessage("Left "+channel.getName(), event.getChannel());
 				return;
 			} else {

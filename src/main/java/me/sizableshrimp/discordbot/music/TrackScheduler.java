@@ -15,7 +15,7 @@ import sx.blah.discord.handle.obj.IGuild;
 public class TrackScheduler extends AudioEventAdapter {
 	private boolean repeating = false;
 	protected final AudioPlayer player;
-	protected final BlockingQueue<AudioTrack> queue;
+	public final BlockingQueue<AudioTrack> queue;
 	private final IGuild guild;
 	private Music music;
 
