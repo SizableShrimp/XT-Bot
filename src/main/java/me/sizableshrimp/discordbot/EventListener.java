@@ -6,11 +6,14 @@ import java.util.concurrent.TimeUnit;
 
 import me.sizableshrimp.discordbot.music.GuildMusicManager;
 import sx.blah.discord.api.events.EventSubscriber;
+import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
+import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.Permissions;
+import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
@@ -87,7 +90,12 @@ public class EventListener {
 			return;
 		}
 	}
-
+	
+	@EventSubscriber
+	public void onReady(ReadyEvent event) {
+		XTBot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing");
+	}
+	
 	public static void sendMessage(String message, IChannel channel) throws DiscordException, MissingPermissionsException {
 		channel.sendMessage("\u200B"+message);
 	}

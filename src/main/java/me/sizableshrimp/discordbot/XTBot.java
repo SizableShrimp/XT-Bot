@@ -17,8 +17,6 @@ import me.sizableshrimp.discordbot.music.Music;
 import me.sizableshrimp.discordbot.music.MusicEvents;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
-import sx.blah.discord.handle.obj.ActivityType;
-import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.MessageBuilder;
 
 @SpringBootApplication
@@ -37,7 +35,6 @@ public class XTBot {
 		dispatcher.registerListener(events);
 		music = events.music;
 		firstOnline = System.currentTimeMillis();
-		client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing");
 		dailyMeme();
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 		scheduler.scheduleAtFixedRate(new Runnable() {
