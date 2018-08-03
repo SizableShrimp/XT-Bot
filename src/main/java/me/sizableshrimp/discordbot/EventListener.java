@@ -1,17 +1,14 @@
 package me.sizableshrimp.discordbot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import me.sizableshrimp.discordbot.music.GuildMusicManager;
-import me.sizableshrimp.discordbot.music.Music;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
 import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.DiscordException;
@@ -20,8 +17,6 @@ import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 
 public class EventListener {
-	public static HashMap<IGuild, IChannel> startedChannel = new HashMap<IGuild, IChannel>();
-
 	@EventSubscriber
 	public void onMessageEvent(MessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return;
@@ -29,21 +24,6 @@ public class EventListener {
 		if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!event.getMessage().mentionsEveryone() && !event.getMessage().mentionsHere() && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
 			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\n`"+XTBot.prefix+"allstar`\nMore commands will be coming in the future!", event.getChannel());
 			return;
-		} else if (message.toLowerCase().startsWith(XTBot.prefix+"allstar")) {
-			Music music = new Music();
-			if (music.isPlaying(event.getGuild())) {
-				sendMessage("I am already playing All Star in "+event.getGuild().getConnectedVoiceChannel().getName(), event.getChannel());
-				return;
-			}
-			IVoiceChannel channel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
-			if (channel == null) {
-				sendMessage("Join a voice channel if you want me to play All Star!", event.getChannel());
-				return;
-			}
-			channel.join();
-			playAllStar(event, channel);
-			sendMessage("Joined "+channel.getName()+" and playing All Star", event.getChannel());
-			startedChannel.put(event.getGuild(), event.getChannel());
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Information");
@@ -123,57 +103,15 @@ public class EventListener {
 		Long minutes = TimeUnit.MILLISECONDS.toMinutes(uptime) - TimeUnit.HOURS.toMinutes(hours) - TimeUnit.DAYS.toMinutes(days);
 		Long seconds = TimeUnit.MILLISECONDS.toSeconds(uptime) - TimeUnit.MINUTES.toSeconds(minutes) - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.DAYS.toSeconds(days);
 		List<String> formats = new ArrayList<String>();
-		if (days > 0) {
-			String string;
-			if (days == 1) {
-				string = days.toString()+" day";
-			} else {
-				string = days.toString()+" days";
-			}
-			formats.add(string);
-		}
-		if (hours > 0) {
-			String string;
-			if (hours == 1) {
-				string = hours.toString()+" hour";
-			} else {
-				string = hours.toString()+" hours";
-			}
-			formats.add(string);
-		}
-		if (minutes > 0) {
-			String string;
-			if (minutes == 1) {
-				string = minutes.toString()+" minute";
-			} else {
-				string = minutes.toString()+" minutes";
-			}
-			formats.add(string);
-		}
-		if (seconds > 0) {
-			String string;
-			if (seconds == 1) {
-				string = seconds.toString()+" second";
-			} else {
-				string = seconds.toString()+" seconds";
-			}
-			formats.add(string);
-		}
-		String result;
-		if (formats.size() == 2) {
-			result = formats.get(0)+" and "+formats.get(1);
-		} else if (formats.size() == 3) {
-			result = formats.get(0)+", "+formats.get(1)+", and "+formats.get(2);
-		} else if (formats.size() == 4) {
-			result = formats.get(0)+", "+formats.get(1)+", "+formats.get(2)+", and "+formats.get(3);
-		} else {
-			result = formats.get(0);
-		}
+		if (days > 0) {if (days == 1) {formats.add(days.toString()+" day");} else {formats.add(days.toString()+" days");}}
+		if (hours > 0) {if (hours == 1) {formats.add(hours.toString()+" hour");} else {formats.add(hours.toString()+" hours");}}
+		if (minutes > 0) {if (minutes == 1) {formats.add(minutes.toString()+" minute");} else {formats.add(minutes.toString()+" minutes");}}
+		if (seconds > 0) {if (seconds == 1) {formats.add(seconds.toString()+" second");} else {formats.add(seconds.toString()+" seconds");}}
+		if (formats.size() == 0) return "Less than a second";
+		String result = formats.get(0);
+		if (formats.size() == 2) result = formats.get(0)+" and "+formats.get(1);
+		if (formats.size() == 3) result = formats.get(0)+", "+formats.get(1)+", and "+formats.get(2);
+		if (formats.size() == 4) result = formats.get(0)+", "+formats.get(1)+", "+formats.get(2)+", and "+formats.get(3);
 		return result;
-	}
-
-	public void playAllStar(MessageReceivedEvent event, IVoiceChannel channel) {
-		Music music = new Music();
-		music.loadAndPlay(event.getChannel(), channel, "https://archive.org/download/AllStar/SmashMouth-AllStar_64kb.mp3");
 	}
 }
