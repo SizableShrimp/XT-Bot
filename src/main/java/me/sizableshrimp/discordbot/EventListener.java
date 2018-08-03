@@ -122,4 +122,8 @@ public class EventListener {
 		if (formats.size() == 4) result = formats.get(0)+", "+formats.get(1)+", "+formats.get(2)+", and "+formats.get(3);
 		return result;
 	}
+	
+	public static void newVideo(String payload) {
+		EventListener.sendMessage("@everyone "+payload, XTBot.client.getChannelByID(341028279584817163L));
+	}
 }
