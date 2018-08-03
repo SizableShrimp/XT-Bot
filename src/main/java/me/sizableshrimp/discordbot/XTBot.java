@@ -49,26 +49,6 @@ public class XTBot {
 				} catch (IOException e) {e.printStackTrace();}
 			}
 		}, 0, 5*60, TimeUnit.SECONDS);
-		//TODO sending announcements on Joey going live is currently broken
-//		ScheduledExecutorService scheduler2 = Executors.newScheduledThreadPool(1);
-//		scheduler2.scheduleAtFixedRate(new Runnable() {
-//			public void run() {
-//				try {
-//					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1Ylw&type=video&eventType=live&key="+System.getenv("API_KEY")).openConnection();
-//					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-//						String reply = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
-//						if (reply.contains("\"totalResults\": 1")) {
-//							new MessageBuilder(XTBot.client).appendContent("@everyone Joeyxt123 is :red_circle: **LIVE** :red_circle:!\nCome join the stream at https://www.youtube.com/c/Joeyxt123/live").withChannel(client.getChannelByID(341028279584817163L)).build();
-//							System.out.println("Joey is now streaming, sending announcement.");
-//							return;
-//						}
-//						return;
-//					}
-//				} catch (IOException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}, 0, 60, TimeUnit.SECONDS);
 	}
 	
 	private static void dailyMeme() {
