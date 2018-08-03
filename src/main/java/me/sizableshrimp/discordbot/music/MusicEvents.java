@@ -192,7 +192,7 @@ public class MusicEvents {
 				EventListener.sendEmbed(embed, event.getChannel());
 				return;
 			}
-			embed.appendDesc("__**Now Playing:**__\n"+"["+playing.getInfo().title+"]("+playing.getInfo().uri+") | `"+playing.getInfo().length+"`");
+			embed.appendDesc("__**Now Playing:**__\n"+"["+playing.getInfo().title+"]("+playing.getInfo().uri+") | `"+getLength(playing.getInfo().length)+"`");
 			embed.appendDesc("\n\n__**Up Next:**__\n");
 			embed.withColor(242, 242, 242);
 			if (queue.isEmpty()) {
@@ -202,7 +202,7 @@ public class MusicEvents {
 			}
 			Integer number = 1;
 			for (AudioTrack track : queue) {
-				embed.appendDesc("\n"+number.toString()+". "+"["+track.getInfo().title+"]("+track.getInfo().uri+") | `"+track.getInfo().length+"`");
+				embed.appendDesc("\n"+number.toString()+". "+"["+track.getInfo().title+"]("+track.getInfo().uri+") | `"+getLength(track.getInfo().length)+"`");
 				number++;
 			}
 			EventListener.sendEmbed(embed, event.getChannel());
