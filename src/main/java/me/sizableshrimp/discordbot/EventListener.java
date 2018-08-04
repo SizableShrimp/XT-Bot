@@ -25,7 +25,7 @@ public class EventListener {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
 		if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!event.getMessage().mentionsEveryone() && !event.getMessage().mentionsHere() && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
-			sendMessage("Hello! I am XT Bot. I don't do much yet because I am still in development. Commands:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\n`"+XTBot.prefix+"allstar`\nMore commands will be coming in the future!", event.getChannel());
+			sendMessage("Hello! I am XT Bot. My commands are:\n`"+XTBot.prefix+"hey`\n`"+XTBot.prefix+"info`\n`"+XTBot.prefix+"settings`\n`"+XTBot.prefix+"music`", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
@@ -85,17 +85,22 @@ public class EventListener {
 		} else {
 			IVoiceChannel channel = event.getVoiceChannel();
 			if (event.getGuild().getConnectedVoiceChannel() == channel) {
-				if (channel.getConnectedUsers().size() == 1) channel.leave();
+				if (channel.getConnectedUsers().size() == 1) {
+					channel.leave();
+					GuildMusicManager manager = XTBot.music.getGuildAudioPlayer(event.getGuild());
+					manager.scheduler.queue.clear();
+					manager.player.startTrack(null, false);
+				}
 			}
 			return;
 		}
 	}
-	
+
 	@EventSubscriber
 	public void onReady(ReadyEvent event) {
 		XTBot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing");
 	}
-	
+
 	public static void sendMessage(String message, IChannel channel) throws DiscordException, MissingPermissionsException {
 		channel.sendMessage("\u200B"+message);
 	}
@@ -122,7 +127,7 @@ public class EventListener {
 		if (formats.size() == 4) result = formats.get(0)+", "+formats.get(1)+", "+formats.get(2)+", and "+formats.get(3);
 		return result;
 	}
-	
+
 	public static void newVideo(String payload) {
 		String formatted = payload.substring(7, payload.length()-2);
 		EventListener.sendMessage("@everyone "+formatted, XTBot.client.getChannelByID(341028279584817163L));
