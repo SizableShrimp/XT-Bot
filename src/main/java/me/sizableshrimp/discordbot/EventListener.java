@@ -65,6 +65,7 @@ public class EventListener {
 				try {
 					HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username).openConnection();
 					conn.setRequestMethod("GET");
+					conn.setRequestProperty("User-Agent", "Heroku");
 					conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
 					conn.connect();
 					sendMessage(Integer.toString(conn.getResponseCode())+" - "+conn.getResponseMessage(), channel); //TODO remove later
