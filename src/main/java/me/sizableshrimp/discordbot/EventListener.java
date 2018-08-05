@@ -246,10 +246,10 @@ public class EventListener {
 			JSONArray stats = json.getJSONArray("lifeTimeStats");
 			Double matches = Double.valueOf(stats.getJSONObject(7).getString("value"));
 			Double wins = Double.valueOf(stats.getJSONObject(8).getString("value"));
-			String percent = new BigDecimal(wins/matches).setScale(1, RoundingMode.HALF_UP).toString();
+			String percent = new BigDecimal(wins/matches*100).setScale(1, RoundingMode.HALF_UP).toString();
 			main.append("**Matches:** "+NumberFormat.getInstance().format(matches));
 			main.append("\n**Wins:** "+NumberFormat.getInstance().format(wins));
-			main.append("\n**Win Percentage:** "+percent+"%");
+			main.append("\n**Win Percentage:** "+percent+"0%");
 			main.append("\n**Top 10:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(3).getString("value"))));
 			main.append("\n**Top 25:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(5).getString("value"))));
 			main.append("\n**Kills:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(10).getString("value"))));
