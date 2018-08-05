@@ -72,10 +72,10 @@ public class EventListener {
 						reader.close();
 						JSONObject json = new JSONObject(response.toString());
 						try {
-						if (json.getString("error").equals("Player Not Found")) {
-							sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
-							return;
-						}
+							if (json.getString("error").equals("Player Not Found")) {
+								sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
+								return;
+							}
 						} catch (JSONException e) {}
 						EmbedBuilder embed = new EmbedBuilder();
 						embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
@@ -84,6 +84,7 @@ public class EventListener {
 						embed.appendField("Squads", getSquads(json), true);
 						embed.appendField("Lifetime", getLifetime(json), false);
 						embed.withFooterText("fortnitetracker.com");
+						embed.withColor(74, 134, 232);
 						sendEmbed(embed, channel);
 						return;
 					}
@@ -210,7 +211,7 @@ public class EventListener {
 			return "";
 		}
 	}
-	
+
 	private String getDuos(JSONObject json) {
 		StringBuffer main = new StringBuffer();
 		try {
@@ -227,7 +228,7 @@ public class EventListener {
 			return "";
 		}
 	}
-	
+
 	private String getSquads(JSONObject json) {
 		StringBuffer main = new StringBuffer();
 		try {
@@ -244,7 +245,7 @@ public class EventListener {
 			return "";
 		}
 	}
-	
+
 	private String getLifetime(JSONObject json) {
 		StringBuffer main = new StringBuffer();
 		try {
@@ -265,7 +266,7 @@ public class EventListener {
 			return "";
 		}
 	}
-	
+
 	public static void newVideo(String payload) {
 		String formatted = payload.substring(7, payload.length()-2);
 		EventListener.sendMessage("@everyone "+formatted, XTBot.client.getChannelByID(341028279584817163L));
