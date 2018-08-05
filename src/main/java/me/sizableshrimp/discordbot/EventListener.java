@@ -71,7 +71,6 @@ public class EventListener {
 						while ((inputLine = reader.readLine()) != null) response.append(inputLine);
 						reader.close();
 						JSONObject json = new JSONObject(response.toString());
-						sendMessage(json.getString("error"), channel);
 						if (json.getString("error").equals("Player Not Found")) {
 							sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
 							return;
