@@ -85,7 +85,7 @@ public class EventListener {
 						embed.appendField("Solos", getSolos(json), true);
 						embed.appendField("Duos", getDuos(json), true);
 						embed.appendField("Squads", getSquads(json), true);
-						embed.appendField("Lifetime", getLifetime(json), false);
+						embed.appendField("Lifetime", getLifetime(json), true);
 						embed.withFooterText("fortnitetracker.com");
 						embed.withColor(74, 134, 232);
 						sendEmbed(embed, channel);
