@@ -38,6 +38,7 @@ public class EventListener {
 		if (event.getAuthor().isBot()) return;
 		String message = event.getMessage().getContent();
 		IChannel channel = event.getChannel();
+		String[] args = message.split(" ");
 		if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
 			sendMessage("Hello! I am XT Bot. My commands are:\n```"+XTBot.prefix+"hey\n"+XTBot.prefix+"info\n"+XTBot.prefix+"music\n"+XTBot.prefix+"fortnite or "+XTBot.prefix+"ftn\n"+XTBot.prefix+"settings```", channel);
 			return;
@@ -51,15 +52,17 @@ public class EventListener {
 			embed.appendField("Uptime", getUptime(), false);
 			new MessageBuilder(XTBot.client).appendContent("To find out my commands, use `"+XTBot.prefix+"help`").withEmbed(embed.build()).withChannel(channel).build();
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
-			if (message.split(" ").length == 3) {
-				String platform = message.split(" ")[1];
+			if (args.length >= 3) {
+				String platform = args[1];
 				if (!platform.equals("pc") && !platform.equals("ps4") && !platform.equals("xbox")) {
 					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
 					return;
 				}
-				String username = message.split(" ")[2];
+				StringBuffer username = new StringBuffer();
+				username.append(args[2]);
+				for (int i = 3; i < args.length; i++) username.append(" "+args[i]);
 				try {
-					HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username).openConnection();
+					HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username.toString()).openConnection();
 					conn.setRequestMethod("GET");
 					conn.setRequestProperty("User-Agent", "Heroku");
 					conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
@@ -108,11 +111,11 @@ public class EventListener {
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings prefix")) {
 			if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
-				if (message.split(" ").length != 3) {
+				if (args.length != 3) {
 					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"settings prefix [new prefix]```", channel);
 					return;
 				} else {
-					String newPrefix = message.split(" ")[2];
+					String newPrefix = args[2];
 					if (newPrefix.length() != 1) {
 						sendMessage(":x: A prefix can only be 1 character long.", channel);
 						return;
@@ -129,7 +132,7 @@ public class EventListener {
 				sendMessage(":x: Insufficient permission.", channel);
 				return;
 			}
-		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings") && message.split(" ").length == 1) {
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings") && args.length == 1) {
 			if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 				EmbedBuilder embed = new EmbedBuilder();
 				embed.withAuthorName("XT Bot Settings");
