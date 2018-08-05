@@ -39,7 +39,7 @@ public class EventListener {
 		String message = event.getMessage().getContent();
 		IChannel channel = event.getChannel();
 		if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
-			sendMessage("Hello! I am XT Bot. My commands are:\n```"+XTBot.prefix+"hey\n"+XTBot.prefix+"info\n"+XTBot.prefix+"settings\n"+XTBot.prefix+"music```", channel);
+			sendMessage("Hello! I am XT Bot. My commands are:\n```"+XTBot.prefix+"hey\n"+XTBot.prefix+"info\n"+XTBot.prefix+"music\n"+XTBot.prefix+"fortnite or "+XTBot.prefix+"ftn\n"+XTBot.prefix+"settings```", channel);
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"info")) {
 			EmbedBuilder embed = new EmbedBuilder();
