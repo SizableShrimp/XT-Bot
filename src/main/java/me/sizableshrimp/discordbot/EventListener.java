@@ -71,10 +71,12 @@ public class EventListener {
 						while ((inputLine = reader.readLine()) != null) response.append(inputLine);
 						reader.close();
 						JSONObject json = new JSONObject(response.toString());
+						try {
 						if (json.getString("error").equals("Player Not Found")) {
 							sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
 							return;
 						}
+						} catch (JSONException e) {}
 						EmbedBuilder embed = new EmbedBuilder();
 						embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
 						embed.appendField("Solos", getSolos(json), true);
