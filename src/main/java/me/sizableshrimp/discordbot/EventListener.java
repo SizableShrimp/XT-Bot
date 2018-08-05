@@ -54,7 +54,9 @@ public class EventListener {
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
 			if (args.length >= 3) {
 				String platform = args[1];
-				if (!platform.equalsIgnoreCase("pc") && !platform.equalsIgnoreCase("ps4") && !platform.equalsIgnoreCase("xbox")) {
+				if (platform.equalsIgnoreCase("pc") || platform.equalsIgnoreCase("ps4") || platform.equalsIgnoreCase("xbox")) {
+					platform = platform.toLowerCase();
+				} else {
 					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
 					return;
 				}
