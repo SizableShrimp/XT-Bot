@@ -64,7 +64,6 @@ public class EventListener {
 					conn.setRequestProperty("User-Agent", "Heroku");
 					conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
 					conn.connect();
-					sendMessage(Integer.toString(conn.getResponseCode())+" - "+conn.getResponseMessage(), channel); //TODO remove later
 					if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
 						BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 						String inputLine;
@@ -72,6 +71,10 @@ public class EventListener {
 						while ((inputLine = reader.readLine()) != null) response.append(inputLine);
 						reader.close();
 						JSONObject json = new JSONObject(response.toString());
+						if (json.getString("epicUserHandle") == null) {
+							sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
+							return;
+						}
 						EmbedBuilder embed = new EmbedBuilder();
 						embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
 						embed.appendField("Solos", getSolos(json), true);
