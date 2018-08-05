@@ -1,7 +1,6 @@
 package me.sizableshrimp.discordbot;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.ZoneId;
@@ -9,6 +8,8 @@ import java.time.ZonedDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -41,7 +42,7 @@ public class XTBot {
 			public void run() {
 				try {
 					URL siteURL = new URL("https://botxt.herokuapp.com");
-					HttpURLConnection connection = (HttpURLConnection) siteURL.openConnection();
+					HttpsURLConnection connection = (HttpsURLConnection) siteURL.openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
 					connection.disconnect();

@@ -67,6 +67,7 @@ public class EventListener {
 					conn.setRequestMethod("GET");
 					conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
 					conn.connect();
+					sendMessage(Integer.toString(conn.getResponseCode())+" - "+conn.getResponseMessage(), channel); //TODO remove later
 					if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
 						BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 						String inputLine;
