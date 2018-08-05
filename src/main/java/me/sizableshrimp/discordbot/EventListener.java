@@ -10,6 +10,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import me.sizableshrimp.discordbot.music.GuildMusicManager;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
@@ -63,28 +67,32 @@ public class EventListener {
 					conn.setRequestMethod("GET");
 					conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
 					conn.connect();
-					sendMessage(Integer.toString(conn.getResponseCode())+" - "+conn.getResponseMessage(), channel);
 					if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
 						BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 						String inputLine;
 						StringBuffer response = new StringBuffer();
 						while ((inputLine = reader.readLine()) != null) response.append(inputLine);
 						reader.close();
-						System.out.println("Fortnite Tracker Response: \n"+response.toString());
-						sendMessage("Check console (Temporary)", channel);
-						//					EmbedBuilder embed = new EmbedBuilder();
-						//					embed.withAuthorName(username+" | "+embedPlatform);
-						//TODO change response.toString() below to proper info
-						//					embed.appendField("Solos", response.toString(), true);
-						//					embed.appendField("Duos", response.toString(), true);
-						//					embed.appendField("Squads", response.toString(), true);
-						//					embed.withFooterText("fortnitetracker.com");
-						//					sendEmbed(embed, channel);
+						JSONObject json = new JSONObject(response.toString());
+						EmbedBuilder embed = new EmbedBuilder();
+						embed.withAuthorName(username+" | "+embedPlatform);
+						embed.appendField("Solos", getSolos(json), true);
+						embed.appendField("Duos", getDuos(json), true);
+						embed.appendField("Squads", getSquads(json), true);
+						embed.appendField("Lifetime", getLifetime(json), false);
+						embed.withFooterText("fortnitetracker.com");
+						sendEmbed(embed, channel);
+						return;
 					}
+					sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
 					return;
 				} catch (IOException e) {
-					e.printStackTrace(); //TODO remove after done debugging
-					sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
+					e.printStackTrace();
+					sendMessage("An error occured when trying to fetch the stats. Please try again later.", channel);
+					return;
+				} catch (JSONException e) {
+					e.printStackTrace();
+					sendMessage("An error occured when trying to parse the stats. Please try again later.", channel);
 					return;
 				}
 			} else {
@@ -183,6 +191,75 @@ public class EventListener {
 		return result;
 	}
 
+	private String getSolos(JSONObject json) {
+		StringBuffer main = new StringBuffer();
+		try {
+			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("matches").getString("displayValue"));
+			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top1").getString("displayValue"));
+			main.append("\n**Win Ratio:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("winRatio").getString("displayValue")+"%");
+			main.append("\n**Top 10:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top10").getString("displayValue"));
+			main.append("\n**Top 25:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top25").getString("displayValue"));
+			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("kills").getString("displayValue"));
+			main.append("\n**K/D:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("kd").getString("displayValue"));
+			return main.toString();
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
+	private String getDuos(JSONObject json) {
+		StringBuffer main = new StringBuffer();
+		try {
+			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("matches").getString("displayValue"));
+			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top1").getString("displayValue"));
+			main.append("\n**Win Ratio:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("winRatio").getString("displayValue")+"%");
+			main.append("\n**Top 10:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top10").getString("displayValue"));
+			main.append("\n**Top 25:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top25").getString("displayValue"));
+			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("kills").getString("displayValue"));
+			main.append("\n**K/D:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("kd").getString("displayValue"));
+			return main.toString();
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
+	private String getSquads(JSONObject json) {
+		StringBuffer main = new StringBuffer();
+		try {
+			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("matches").getString("displayValue"));
+			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top1").getString("displayValue"));
+			main.append("\n**Win Ratio:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("winRatio").getString("displayValue")+"%");
+			main.append("\n**Top 10:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top10").getString("displayValue"));
+			main.append("\n**Top 25:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top25").getString("displayValue"));
+			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("kills").getString("displayValue"));
+			main.append("\n**K/D:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("kd").getString("displayValue"));
+			return main.toString();
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
+	private String getLifetime(JSONObject json) {
+		StringBuffer main = new StringBuffer();
+		try {
+			JSONArray stats = json.getJSONArray("lifeTimeStats");
+			main.append("**Matches:** "+stats.getString(7));
+			main.append("\n**Wins:** "+stats.getString(8));
+			main.append("\n**Win Ratio:** "+stats.getString(9));
+			main.append("\n**Top 10:** "+stats.getString(3));
+			main.append("\n**Top 25:** "+stats.getString(5));
+			main.append("\n**Kills:** "+stats.getString(10));
+			main.append("\n**K/D:** "+stats.getString(11));
+			return main.toString();
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
 	public static void newVideo(String payload) {
 		String formatted = payload.substring(7, payload.length()-2);
 		EventListener.sendMessage("@everyone "+formatted, XTBot.client.getChannelByID(341028279584817163L));
