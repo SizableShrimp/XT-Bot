@@ -3,7 +3,10 @@ package me.sizableshrimp.discordbot;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -50,14 +53,7 @@ public class EventListener {
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
 			if (message.split(" ").length == 3) {
 				String platform = message.split(" ")[1];
-				String embedPlatform;
-				if (platform.equals("pc")) {
-					embedPlatform = "PC";
-				} else if (platform.equals("ps4")) {
-					embedPlatform = "PS4";
-				} else if (platform.equals("xbox")) {
-					embedPlatform = "Xbox One";
-				} else {
+				if (!platform.equals("pc") && !platform.equals("ps4") && !platform.equals("xbox")) {
 					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
 					return;
 				}
@@ -77,7 +73,7 @@ public class EventListener {
 						reader.close();
 						JSONObject json = new JSONObject(response.toString());
 						EmbedBuilder embed = new EmbedBuilder();
-						embed.withAuthorName(username+" | "+embedPlatform);
+						embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
 						embed.appendField("Solos", getSolos(json), true);
 						embed.appendField("Duos", getDuos(json), true);
 						embed.appendField("Squads", getSquads(json), true);
@@ -198,7 +194,7 @@ public class EventListener {
 		try {
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top1").getString("displayValue"));
-			main.append("\n**Win Ratio:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("winRatio").getString("displayValue")+"%");
+			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("winRatio").getString("displayValue")+"%");
 			main.append("\n**Top 10:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top10").getString("displayValue"));
 			main.append("\n**Top 25:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top25").getString("displayValue"));
 			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("kills").getString("displayValue"));
@@ -215,9 +211,9 @@ public class EventListener {
 		try {
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top1").getString("displayValue"));
-			main.append("\n**Win Ratio:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("winRatio").getString("displayValue")+"%");
-			main.append("\n**Top 10:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top10").getString("displayValue"));
-			main.append("\n**Top 25:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top25").getString("displayValue"));
+			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("winRatio").getString("displayValue")+"%");
+			main.append("\n**Top 5:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top5").getString("displayValue"));
+			main.append("\n**Top 12:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top12").getString("displayValue"));
 			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("kills").getString("displayValue"));
 			main.append("\n**K/D:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("kd").getString("displayValue"));
 			return main.toString();
@@ -232,9 +228,9 @@ public class EventListener {
 		try {
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top1").getString("displayValue"));
-			main.append("\n**Win Ratio:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("winRatio").getString("displayValue")+"%");
-			main.append("\n**Top 10:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top10").getString("displayValue"));
-			main.append("\n**Top 25:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top25").getString("displayValue"));
+			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("winRatio").getString("displayValue")+"%");
+			main.append("\n**Top 3:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top3").getString("displayValue"));
+			main.append("\n**Top 6:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top6").getString("displayValue"));
 			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("kills").getString("displayValue"));
 			main.append("\n**K/D:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("kd").getString("displayValue"));
 			return main.toString();
@@ -248,12 +244,15 @@ public class EventListener {
 		StringBuffer main = new StringBuffer();
 		try {
 			JSONArray stats = json.getJSONArray("lifeTimeStats");
-			main.append("**Matches:** "+stats.getJSONObject(7).getString("value"));
-			main.append("\n**Wins:** "+stats.getJSONObject(8).getString("value"));
-			main.append("\n**Win Ratio:** "+stats.getJSONObject(9).getString("value"));
-			main.append("\n**Top 10:** "+stats.getJSONObject(3).getString("value"));
-			main.append("\n**Top 25:** "+stats.getJSONObject(5).getString("value"));
-			main.append("\n**Kills:** "+stats.getJSONObject(10).getString("value"));
+			Double matches = Double.valueOf(stats.getJSONObject(7).getString("value"));
+			Double wins = Double.valueOf(stats.getJSONObject(8).getString("value"));
+			String percent = new BigDecimal(wins/matches).setScale(1, RoundingMode.HALF_UP).toString();
+			main.append("**Matches:** "+NumberFormat.getInstance().format(matches));
+			main.append("\n**Wins:** "+NumberFormat.getInstance().format(wins));
+			main.append("\n**Win Percentage:** "+percent+"%");
+			main.append("\n**Top 10:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(3).getString("value"))));
+			main.append("\n**Top 25:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(5).getString("value"))));
+			main.append("\n**Kills:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(10).getString("value"))));
 			main.append("\n**K/D:** "+stats.getJSONObject(11).getString("value"));
 			return main.toString();
 		} catch (JSONException e) {
