@@ -45,6 +45,7 @@ public class XTBot {
 					HttpsURLConnection connection = (HttpsURLConnection) siteURL.openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
+					connection.getResponseCode();
 					connection.disconnect();
 				} catch (IOException e) {e.printStackTrace();}
 			}
