@@ -248,13 +248,13 @@ public class EventListener {
 		StringBuffer main = new StringBuffer();
 		try {
 			JSONArray stats = json.getJSONArray("lifeTimeStats");
-			main.append("**Matches:** "+stats.getString(7));
-			main.append("\n**Wins:** "+stats.getString(8));
-			main.append("\n**Win Ratio:** "+stats.getString(9));
-			main.append("\n**Top 10:** "+stats.getString(3));
-			main.append("\n**Top 25:** "+stats.getString(5));
-			main.append("\n**Kills:** "+stats.getString(10));
-			main.append("\n**K/D:** "+stats.getString(11));
+			main.append("**Matches:** "+stats.getJSONObject(7).getString("value"));
+			main.append("\n**Wins:** "+stats.getJSONObject(8).getString("value"));
+			main.append("\n**Win Ratio:** "+stats.getJSONObject(9).getString("value"));
+			main.append("\n**Top 10:** "+stats.getJSONObject(3).getString("value"));
+			main.append("\n**Top 25:** "+stats.getJSONObject(5).getString("value"));
+			main.append("\n**Kills:** "+stats.getJSONObject(10).getString("value"));
+			main.append("\n**K/D:** "+stats.getJSONObject(11).getString("value"));
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
