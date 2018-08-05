@@ -63,21 +63,24 @@ public class EventListener {
 					conn.setRequestMethod("GET");
 					conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
 					conn.connect();
-					BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-					String inputLine;
-					StringBuffer response = new StringBuffer();
-					while ((inputLine = reader.readLine()) != null) response.append(inputLine);
-					reader.close();
-					System.out.println("Fortnite Tracker Response: \n"+response.toString());
-					sendMessage("Check console (Temporary)", channel);
-//					EmbedBuilder embed = new EmbedBuilder();
-//					embed.withAuthorName(username+" | "+embedPlatform);
-					//TODO change response.toString() below to proper info
-//					embed.appendField("Solos", response.toString(), true);
-//					embed.appendField("Duos", response.toString(), true);
-//					embed.appendField("Squads", response.toString(), true);
-//					embed.withFooterText("fortnitetracker.com");
-//					sendEmbed(embed, channel);
+					sendMessage(Integer.toString(conn.getResponseCode())+" - "+conn.getResponseMessage(), channel);
+					if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+						BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+						String inputLine;
+						StringBuffer response = new StringBuffer();
+						while ((inputLine = reader.readLine()) != null) response.append(inputLine);
+						reader.close();
+						System.out.println("Fortnite Tracker Response: \n"+response.toString());
+						sendMessage("Check console (Temporary)", channel);
+						//					EmbedBuilder embed = new EmbedBuilder();
+						//					embed.withAuthorName(username+" | "+embedPlatform);
+						//TODO change response.toString() below to proper info
+						//					embed.appendField("Solos", response.toString(), true);
+						//					embed.appendField("Duos", response.toString(), true);
+						//					embed.appendField("Squads", response.toString(), true);
+						//					embed.withFooterText("fortnitetracker.com");
+						//					sendEmbed(embed, channel);
+					}
 					return;
 				} catch (IOException e) {
 					e.printStackTrace(); //TODO remove after done debugging
