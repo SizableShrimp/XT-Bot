@@ -1,11 +1,6 @@
 package me.sizableshrimp.discordbot;
 
-import java.util.Map;
-
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,7 +13,7 @@ public class WebController {
 		return "The XT Discord Bot is currently running.";
 	}
 
-	@RequestMapping(
+	/*@RequestMapping(
 			value = "/hook", 
 			method = RequestMethod.POST,
 			consumes = "application/json")
@@ -26,5 +21,5 @@ public class WebController {
 		if (verified.equals(System.getenv("VERIFIED_KEY"))) {
 			EventListener.newVideo(payload);
 		}
-	}
+	}*/
 }

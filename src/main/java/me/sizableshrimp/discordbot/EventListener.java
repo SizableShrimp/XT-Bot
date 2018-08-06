@@ -7,15 +7,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.text.NumberFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -279,12 +272,13 @@ public class EventListener {
 		}
 	}
 
-	protected static void newVideo(Map<String, String> payload) {
+	/*protected static void newVideo(Map<String, String> payload) {
 		sendMessage("@everyone "+payload.get("content")+" on "+getTime(payload.get("date"))+"\n"+payload.get("link"), XTBot.client.getChannelByID(341028279584817163L));
 		return;
-	}
-
-	private static String getTime(String string) {
+	}*/
+	
+	
+	/*private static String getTime(String string) {
 		ZonedDateTime time = Instant.parse(string).atZone(ZoneId.of("US/Eastern"));
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+getOrdinal(time.getDayOfMonth())+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
 		return format.format(time);
@@ -301,5 +295,5 @@ public class EventListener {
 		default:
 			return "th";
 		}
-	}
+	}*/
 }
