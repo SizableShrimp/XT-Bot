@@ -15,6 +15,7 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -278,10 +279,10 @@ public class EventListener {
 		}
 	}
 
-	protected static void newVideo(String payload) {
+	protected static void newVideo(Map<String, String> payload) {
 		try {
 			JSONObject json = new JSONObject(payload);	
-			//sendMessage("@everyone "+json.getString("content")+" on "+date+"\n"+json.getString("link"), XTBot.client.getChannelByID(341028279584817163L));
+			//sendMessage("@everyone "+json.getString("content")+" on "+getDate(json.getString("date"))+"\n"+json.getString("link"), XTBot.client.getChannelByID(341028279584817163L));
 			sendMessage(json.getString("content")+" on "+getDate(json.getString("date"))+"\n"+json.getString("link"), XTBot.client.getChannelByID(4746412383902105629L));
 			return;
 		} catch (JSONException e) {
