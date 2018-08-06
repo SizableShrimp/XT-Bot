@@ -1,15 +1,15 @@
 package me.sizableshrimp.discordbot;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import java.util.Map;
+
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 public class WebController {
 
 	@RequestMapping("/")
@@ -22,11 +22,12 @@ public class WebController {
 			value = "/hook", 
 			method = RequestMethod.POST,
 			consumes = "application/json")
-	public ResponseEntity<Hook> videoHook(@RequestBody Hook payload, @RequestHeader(value="Verified") String verified) throws Exception {
+	public void videoHook(@RequestBody Map<String, String> payload, @RequestHeader(value="Verified") String verified) throws Exception {
 		if (verified.equals(System.getenv("VERIFIED_KEY"))) {
-			EventListener.newVideo(payload);
-			return new ResponseEntity<Hook>(HttpStatus.OK);
+			//EventListener.newVideo(payload);
+			for (String s : payload.keySet()) {
+				System.out.println(s+" - "+payload.get(s));
+			}
 		}
-		return new ResponseEntity<Hook>(HttpStatus.FORBIDDEN);
 	}
 }
