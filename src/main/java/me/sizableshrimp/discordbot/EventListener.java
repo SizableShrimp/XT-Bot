@@ -7,8 +7,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -272,8 +278,33 @@ public class EventListener {
 		}
 	}
 
-	public static void newVideo(String payload) {
-		String formatted = payload.substring(7, payload.length()-2);
-		EventListener.sendMessage("@everyone "+formatted, XTBot.client.getChannelByID(341028279584817163L));
+	protected static void newVideo(String payload) {
+		try {
+			JSONObject json = new JSONObject(payload);	
+			//sendMessage("@everyone "+json.getString("content")+" on "+date+"\n"+json.getString("link"), XTBot.client.getChannelByID(341028279584817163L));
+			sendMessage(json.getString("content")+" on "+getDate(json.getString("date"))+"\n"+json.getString("link"), XTBot.client.getChannelByID(4746412383902105629L));
+			return;
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static String getDate(String string) {
+		ZonedDateTime time = Instant.parse(string).atZone(ZoneId.of("US/Eastern"));
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+getOrdinal(time.getDayOfMonth())+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
+		return format.format(time);
+	}
+	
+	private static String getOrdinal(int day) {
+		switch (day) {
+		case 1: case 21: case 31:
+			return "st";
+		case 2: case 22:
+			return "nd";
+		case 3: case 23:
+			return "rd";
+		default:
+			return "th";
+		}
 	}
 }
