@@ -280,22 +280,17 @@ public class EventListener {
 	}
 
 	protected static void newVideo(Map<String, String> payload) {
-		try {
-			JSONObject json = new JSONObject(payload);	
-			//sendMessage("@everyone "+json.getString("content")+" on "+getDate(json.getString("date"))+"\n"+json.getString("link"), XTBot.client.getChannelByID(341028279584817163L));
-			sendMessage(json.getString("content")+" on "+getDate(json.getString("date"))+"\n"+json.getString("link"), XTBot.client.getChannelByID(4746412383902105629L));
-			return;
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		//sendMessage("@everyone "+json.getString("content")+" on "+getDate(json.getString("date"))+"\n"+json.getString("link"), XTBot.client.getChannelByID(341028279584817163L));
+		sendMessage(payload.get("content")+" on "+getDate(payload.get("date"))+"\n"+payload.get("link"), XTBot.client.getChannelByID(4746412383902105629L));
+		return;
 	}
-	
+
 	private static String getDate(String string) {
 		ZonedDateTime time = Instant.parse(string).atZone(ZoneId.of("US/Eastern"));
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+getOrdinal(time.getDayOfMonth())+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
 		return format.format(time);
 	}
-	
+
 	private static String getOrdinal(int day) {
 		switch (day) {
 		case 1: case 21: case 31:
