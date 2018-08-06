@@ -24,10 +24,7 @@ public class WebController {
 			consumes = "application/json")
 	public void videoHook(@RequestBody Map<String, String> payload, @RequestHeader(value="Verified") String verified) throws Exception {
 		if (verified.equals(System.getenv("VERIFIED_KEY"))) {
-			//EventListener.newVideo(payload);
-			for (String s : payload.keySet()) {
-				System.out.println(s+" - "+payload.get(s));
-			}
+			EventListener.newVideo(payload);
 		}
 	}
 }

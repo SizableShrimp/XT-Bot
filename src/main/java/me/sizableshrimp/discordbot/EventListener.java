@@ -281,7 +281,10 @@ public class EventListener {
 
 	protected static void newVideo(Map<String, String> payload) {
 		//sendMessage("@everyone "+json.getString("content")+" on "+getDate(json.getString("date"))+"\n"+json.getString("link"), XTBot.client.getChannelByID(341028279584817163L));
-		sendMessage(payload.get("content")+" on "+getTime(payload.get("date"))+"\n"+payload.get("link"), XTBot.client.getChannelByID(4746412383902105629L));
+		//sendMessage(payload.get("content")+" on "+getTime(payload.get("date"))+"\n"+payload.get("link"), XTBot.client.getChannelByID(4746412383902105629L));
+		for (String s : payload.keySet()) {
+			System.out.println(s+" - "+payload.get(s));
+		}
 		return;
 	}
 
