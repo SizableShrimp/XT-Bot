@@ -19,7 +19,7 @@ public class WebController {
 	@RequestMapping(
 			value = "/hook", 
 			method = RequestMethod.POST,
-			consumes = "text/plain")
+			consumes = "application/json")
 	public void videoHook(@RequestBody String payload, @RequestHeader(value="Verified") String verified) throws Exception {
 		if (verified.equals(System.getenv("VERIFIED_KEY"))) EventListener.newVideo(payload);
 	}
