@@ -15,6 +15,7 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -278,13 +279,13 @@ public class EventListener {
 		}
 	}
 
-	protected static void newVideo(Hook payload) {
+	protected static void newVideo(Map<String, String> payload) {
 		//sendMessage("@everyone "+json.getString("content")+" on "+getDate(json.getString("date"))+"\n"+json.getString("link"), XTBot.client.getChannelByID(341028279584817163L));
-		sendMessage(payload.getContent()+" on "+getDate(payload.getDate())+"\n"+payload.getLink(), XTBot.client.getChannelByID(4746412383902105629L));
+		sendMessage(payload.get("content")+" on "+getTime(payload.get("date"))+"\n"+payload.get("link"), XTBot.client.getChannelByID(4746412383902105629L));
 		return;
 	}
 
-	private static String getDate(String string) {
+	private static String getTime(String string) {
 		ZonedDateTime time = Instant.parse(string).atZone(ZoneId.of("US/Eastern"));
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+getOrdinal(time.getDayOfMonth())+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
 		return format.format(time);
