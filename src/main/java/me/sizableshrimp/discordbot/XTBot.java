@@ -65,7 +65,8 @@ public class XTBot {
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
-					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&eventType=live&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
+					//HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&eventType=live&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
+					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCPI1R-pIs5vwiDFHS4ic40w&eventType=live&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
 					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
@@ -78,8 +79,9 @@ public class XTBot {
 						JSONObject json = new JSONObject(response.toString());
 						if (json.getJSONObject("pageInfo").getInt("totalResults") == 1) {
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
-							if (isLive = false) {
-								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getJSONObject("videoId"), XTBot.client.getChannelByID(341028279584817163L));
+							if (isLive == false) {
+								//EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(341028279584817163L));
+								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(474641238390210562L));
 								isLive = true;
 							}
 						} else {
@@ -95,29 +97,22 @@ public class XTBot {
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
-					//HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
 					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCOWSGxYNYJEaUuqnh8Cpc-g&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
-					System.out.println("Connected");
 					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-						System.out.println("HTTP OK");
 						BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 						StringBuffer response = new StringBuffer();
 						String inputLine;
 						while ((inputLine = reader.readLine()) != null) response.append(inputLine);
 						reader.close();
 						connection.disconnect();
-						System.out.println(response.toString());
 						JSONObject json = new JSONObject(response.toString());
 						if (json.getJSONObject("pageInfo").getInt("totalResults") >= 1) {
-							System.out.println("results is greater than or equal to 1");
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
 							ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
-							System.out.println(publishDate.toString());
 							if (publishDate.toInstant().toEpochMilli() > firstOnline && latestVideo != publishDate.toInstant().toEpochMilli()) {
-								//EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** at "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(341028279584817163L));
-								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** at "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(474641238390210562L));
+								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** on "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(341028279584817163L));
 								latestVideo = publishDate.toInstant().toEpochMilli();
 							}
 						}
