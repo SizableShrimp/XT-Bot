@@ -99,15 +99,19 @@ public class XTBot {
 					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCOWSGxYNYJEaUuqnh8Cpc-g&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
+					System.out.println("Connected");
 					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+						System.out.println("HTTP OK");
 						BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 						StringBuffer response = new StringBuffer();
 						String inputLine;
 						while ((inputLine = reader.readLine()) != null) response.append(inputLine);
 						reader.close();
 						connection.disconnect();
+						System.out.println(response.toString());
 						JSONObject json = new JSONObject(response.toString());
 						if (json.getJSONObject("pageInfo").getInt("totalResults") >= 1) {
+							System.out.println("results is greater than or equal to 1");
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
 							ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
 							if (publishDate.isAfter(ZonedDateTime.ofInstant(Instant.ofEpochSecond(firstOnline), ZoneId.of("US/Eastern"))) && latestVideo != publishDate.toInstant().toEpochMilli()) {
