@@ -23,9 +23,6 @@ public class Music {
 	private final AudioPlayerManager playerManager;
 	protected final Map<Long, GuildMusicManager> musicManagers;
 	public final int DEFAULT_VOLUME = 35;
-	public final HashMap<GuildMusicManager, Integer> wantsToSkip = new HashMap<GuildMusicManager, Integer>();
-	public final HashMap<GuildMusicManager, Integer> neededToSkip = new HashMap<GuildMusicManager, Integer>();
-	protected long trackStartTime;
 
 	public Music() {
 		this.musicManagers = new HashMap<>();

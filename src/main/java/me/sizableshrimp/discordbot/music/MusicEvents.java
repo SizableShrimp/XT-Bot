@@ -64,8 +64,7 @@ public class MusicEvents {
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"volume") || message.startsWith(XTBot.prefix+"vol")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 				if (message.split(" ").length == 2) { 
 					try {
 						Integer.valueOf(message.split(" ")[1]);
@@ -90,8 +89,7 @@ public class MusicEvents {
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"pause")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 				if (music.isPlaying(event.getGuild())) {
 					if (player.isPaused()) {
 						player.setPaused(false);
@@ -111,8 +109,7 @@ public class MusicEvents {
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"clear")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 				scheduler.queue.clear();
 				EventListener.sendMessage("Queue cleared.", event.getChannel());
 				return;
@@ -121,8 +118,7 @@ public class MusicEvents {
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"remove")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 				if (scheduler.queue.isEmpty()) {
 					EventListener.sendMessage("There is nothing in the queue to remove.", event.getChannel());
 					return;
@@ -161,24 +157,19 @@ public class MusicEvents {
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"skip")) {
-			Integer wants = music.wantsToSkip.get(manager);
-			Integer needed = music.neededToSkip.get(manager);
+			Integer wants = manager.wantsToSkip;
+			Integer needed = manager.neededToSkip;
 			if (wants+1 == needed) {
 				music.skipTrack(event.getChannel());
-				music.wantsToSkip.remove(manager);
-				music.neededToSkip.remove(manager);
 				EventListener.sendMessage("Skipped song.", event.getChannel());
 				return;
 			}
-			music.wantsToSkip.put(manager, wants+1);
+			manager.wantsToSkip = wants+1;
 			EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"forceskip")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 				music.skipTrack(event.getChannel());
-				music.wantsToSkip.remove(manager);
-				music.neededToSkip.remove(manager);
 				EventListener.sendMessage("Skipped song.", event.getChannel());
 				return;
 			} else {
@@ -190,6 +181,7 @@ public class MusicEvents {
 			BlockingQueue<AudioTrack> queue = scheduler.queue;
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Queue");
+			embed.withColor(242, 242, 242);
 			if (playing == null) {
 				embed.appendDesc("There is currently nothing playing.");
 				EventListener.sendEmbed(embed, event.getChannel());
@@ -197,7 +189,6 @@ public class MusicEvents {
 			}
 			embed.appendDesc("__**Now Playing:**__\n"+"["+playing.getInfo().title+"]("+playing.getInfo().uri+") | `"+getLength(playing.getInfo().length)+"`");
 			embed.appendDesc("\n\n__**Up Next:**__\n");
-			embed.withColor(242, 242, 242);
 			if (queue.isEmpty()) {
 				embed.appendDesc("\nThere is currently nothing up next.");
 				EventListener.sendEmbed(embed, event.getChannel());
@@ -214,6 +205,7 @@ public class MusicEvents {
 			AudioTrack playing = player.getPlayingTrack();
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.withAuthorName("Now Playing");
+			embed.withColor(242, 242, 242);
 			if (playing == null) {
 				embed.appendDesc("There is currently nothing playing.");
 				EventListener.sendEmbed(embed, event.getChannel());
@@ -221,13 +213,11 @@ public class MusicEvents {
 			}
 			AudioTrackInfo info = playing.getInfo();
 			embed.appendDesc("["+info.title+"]("+info.uri+")");
-			embed.appendDesc("\n"+getLength(System.currentTimeMillis()-music.trackStartTime)+" / "+getLength(info.length));
-			embed.withColor(242, 242, 242);
+			embed.appendDesc("\n"+getLength(System.currentTimeMillis()-manager.trackStartTime)+" / "+getLength(info.length));
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"disconnect") || message.startsWith(XTBot.prefix+"leave")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 				IVoiceChannel channel = event.getGuild().getConnectedVoiceChannel();
 				if (channel == null) {
 					EventListener.sendMessage("I am not connected to a voice channel.", event.getChannel());
@@ -243,8 +233,7 @@ public class MusicEvents {
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"loop")) {
-			boolean isOne = isOne(event);
-			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne == true) {
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 				if (scheduler.isRepeating()) {
 					scheduler.setRepeating(false);
 					EventListener.sendMessage("Loop stopped.", event.getChannel());
