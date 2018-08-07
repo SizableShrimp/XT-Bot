@@ -157,6 +157,10 @@ public class MusicEvents {
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"skip")) {
+			if (manager.usersSkipping.contains(event.getAuthor())) {
+				EventListener.sendMessage(":x: You have already requested to skip this song.", event.getChannel());
+				return;
+			}
 			Integer wants = manager.wantsToSkip;
 			Integer needed = manager.neededToSkip;
 			if (wants+1 == needed) {
@@ -164,7 +168,9 @@ public class MusicEvents {
 				EventListener.sendMessage("Skipped song.", event.getChannel());
 				return;
 			}
-			manager.wantsToSkip = wants+1;
+			wants++;
+			manager.wantsToSkip = wants;
+			manager.usersSkipping.add(event.getAuthor());
 			EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"forceskip")) {

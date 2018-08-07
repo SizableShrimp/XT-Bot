@@ -1,9 +1,13 @@
 package me.sizableshrimp.discordbot.music;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 
 import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IUser;
 
 public class GuildMusicManager {
   public AudioPlayer player;
@@ -11,6 +15,7 @@ public class GuildMusicManager {
   public long trackStartTime;
   public int neededToSkip;
   public int wantsToSkip;
+  public final List<IUser> usersSkipping = new ArrayList<IUser>();
 
   public GuildMusicManager(AudioPlayerManager manager, IGuild guild, Music music) {
     player = manager.createPlayer();
