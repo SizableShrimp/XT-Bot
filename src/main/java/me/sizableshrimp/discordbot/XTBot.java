@@ -65,8 +65,7 @@ public class XTBot {
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
-					//HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&eventType=live&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
-					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCPI1R-pIs5vwiDFHS4ic40w&eventType=live&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
+					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&eventType=live&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
 					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
@@ -80,8 +79,7 @@ public class XTBot {
 						if (json.getJSONObject("pageInfo").getInt("totalResults") == 1) {
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
 							if (isLive == false) {
-								//EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(341028279584817163L));
-								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(474641238390210562L));
+								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(341028279584817163L));
 								isLive = true;
 							}
 						} else {
