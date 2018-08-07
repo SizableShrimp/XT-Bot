@@ -114,7 +114,8 @@ public class XTBot {
 							System.out.println("results is greater than or equal to 1");
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
 							ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
-							if (publishDate.isAfter(ZonedDateTime.ofInstant(Instant.ofEpochSecond(firstOnline), ZoneId.of("US/Eastern"))) && latestVideo != publishDate.toInstant().toEpochMilli()) {
+							System.out.println(publishDate.toString());
+							if (publishDate.toInstant().toEpochMilli() > firstOnline && latestVideo != publishDate.toInstant().toEpochMilli()) {
 								//EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** at "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getJSONObject("videoId"), XTBot.client.getChannelByID(341028279584817163L));
 								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** at "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getJSONObject("videoId"), XTBot.client.getChannelByID(474641238390210562L));
 								latestVideo = publishDate.toInstant().toEpochMilli();
