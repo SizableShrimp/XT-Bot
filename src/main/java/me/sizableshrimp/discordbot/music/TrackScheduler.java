@@ -67,7 +67,7 @@ public class TrackScheduler extends AudioEventAdapter {
 		}
 		GuildMusicManager manager = music.getGuildAudioPlayer(guild);
 		manager.wantsToSkip = 0;
-		manager.neededToSkip = (int) Math.round((guild.getConnectedVoiceChannel().getConnectedUsers().size()-1)/2);
+		manager.neededToSkip = (int) Math.round((guild.getConnectedVoiceChannel().getConnectedUsers().size()-1)/2D);
 		manager.trackStartTime = System.currentTimeMillis();
 	}
 
