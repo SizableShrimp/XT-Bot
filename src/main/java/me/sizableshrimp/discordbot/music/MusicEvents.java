@@ -143,16 +143,14 @@ public class MusicEvents {
 					Integer num = 0;
 					for (AudioTrack track : scheduler.queue) {
 						num++;
-						if (queueNum == num) {
-							selected = track;
-						}
+						if (queueNum == num) selected = track;
 					}
 					if (selected == null) {
 						EventListener.sendMessage("Please enter a number from the queue.", event.getChannel());
 						return;
 					}
 					scheduler.queue.remove(selected);
-					EventListener.sendMessage("Removed "+selected.getInfo().title+" from the queue.", event.getChannel());
+					EventListener.sendMessage("Removed `"+selected.getInfo().title+"` from the queue.", event.getChannel());
 					return;
 				} else {
 					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"remove [number from queue]```", event.getChannel());
