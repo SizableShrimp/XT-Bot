@@ -95,7 +95,8 @@ public class XTBot {
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
-					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
+					//HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
+					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCOWSGxYNYJEaUuqnh8Cpc-g&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
 					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
@@ -110,7 +111,8 @@ public class XTBot {
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
 							ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
 							if (publishDate.isAfter(ZonedDateTime.ofInstant(Instant.ofEpochSecond(firstOnline), ZoneId.of("US/Eastern"))) && latestVideo != publishDate.toInstant().toEpochMilli()) {
-								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** at "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getJSONObject("videoId"), XTBot.client.getChannelByID(341028279584817163L));
+								//EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** at "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getJSONObject("videoId"), XTBot.client.getChannelByID(341028279584817163L));
+								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** at "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getJSONObject("videoId"), XTBot.client.getChannelByID(474641238390210562L));
 								latestVideo = publishDate.toInstant().toEpochMilli();
 							}
 						}
