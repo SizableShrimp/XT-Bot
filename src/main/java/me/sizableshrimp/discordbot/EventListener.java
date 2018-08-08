@@ -203,6 +203,7 @@ public class EventListener {
 	private String getSolos(JSONObject json) {
 		StringBuffer main = new StringBuffer();
 		try {
+			if (json.getJSONObject("stats").optJSONObject("p2") == null) return "No stats found for Solos.";
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top1").getString("displayValue"));
 			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("winRatio").getString("displayValue")+"%");
@@ -220,6 +221,7 @@ public class EventListener {
 	private String getDuos(JSONObject json) {
 		StringBuffer main = new StringBuffer();
 		try {
+			if (json.getJSONObject("stats").optJSONObject("p10") == null) return "No stats found for Duos.";
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top1").getString("displayValue"));
 			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("winRatio").getString("displayValue")+"%");
@@ -237,6 +239,7 @@ public class EventListener {
 	private String getSquads(JSONObject json) {
 		StringBuffer main = new StringBuffer();
 		try {
+			if (json.getJSONObject("stats").optJSONObject("p9") == null) return "No stats found for Squads.";
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top1").getString("displayValue"));
 			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("winRatio").getString("displayValue")+"%");
@@ -257,7 +260,12 @@ public class EventListener {
 			JSONArray stats = json.getJSONArray("lifeTimeStats");
 			Double matches = Double.valueOf(stats.getJSONObject(7).getString("value"));
 			Double wins = Double.valueOf(stats.getJSONObject(8).getString("value"));
-			String percent = new BigDecimal(wins/matches*100).setScale(1, RoundingMode.HALF_UP).toString();
+			String percent;
+			if (matches == 0) {
+				percent = "";
+			} else {
+				percent = new BigDecimal(wins/matches*100).setScale(1, RoundingMode.HALF_UP).toString();
+			}
 			main.append("**Matches:** "+NumberFormat.getInstance().format(matches));
 			main.append("\n**Wins:** "+NumberFormat.getInstance().format(wins));
 			main.append("\n**Win Percentage:** "+percent+"0%");
