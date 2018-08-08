@@ -85,7 +85,6 @@ public class Music {
 	}
 
 	public boolean isPlaying(IGuild guild) {
-		if (getGuildAudioPlayer(guild).player.getPlayingTrack() != null) return true;
-		return false;
+		return getGuildAudioPlayer(guild).player.getPlayingTrack() != null;
 	}
 }
