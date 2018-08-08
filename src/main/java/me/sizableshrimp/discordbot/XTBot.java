@@ -22,7 +22,6 @@ import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import me.sizableshrimp.discordbot.music.Music;
 import me.sizableshrimp.discordbot.music.MusicEvents;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
@@ -32,7 +31,6 @@ public class XTBot {
 	public static IDiscordClient client;
 	public static String prefix = ",";
 	public static long firstOnline;
-	public static Music music;
 	private static boolean isLive = false;
 	private static long latestVideo;
 
@@ -41,9 +39,7 @@ public class XTBot {
 		client = BotClient.createClient(System.getenv("TOKEN"), true);
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
-		MusicEvents events = new MusicEvents();
-		dispatcher.registerListener(events);
-		music = events.music;
+		dispatcher.registerListener(new MusicEvents());
 		firstOnline = System.currentTimeMillis();
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 		scheduler.scheduleAtFixedRate(new Runnable() {
@@ -54,7 +50,7 @@ public class XTBot {
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
-					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://botxt.herokuapp.com").openConnection();
+					HttpsURLConnection connection = (HttpsURLConnection) new URL(System.getenv("URL")).openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
 					connection.getResponseCode();
@@ -76,14 +72,14 @@ public class XTBot {
 						reader.close();
 						connection.disconnect();
 						JSONObject json = new JSONObject(response.toString());
-						if (json.getJSONObject("pageInfo").getInt("totalResults") == 1) {
+						if (json.getJSONObject("pageInfo").getInt("totalResults") == 0 && isLive) {
+							isLive = false;
+							return;
+						}
+						if (json.getJSONObject("pageInfo").getInt("totalResults") == 1 && !isLive) {
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
-							if (isLive == false) {
-								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(341028279584817163L));
-								isLive = true;
-							}
-						} else {
-							if (isLive == true) isLive = false;
+							EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), XTBot.client.getChannelByID(341028279584817163L));
+							isLive = true;
 						}
 						return;
 					}
@@ -129,22 +125,23 @@ public class XTBot {
 		if (time.compareTo(tomorrow) > 0) tomorrow = tomorrow.plusDays(1);
 		return Duration.between(time, tomorrow).getSeconds();
 	}
-	
-	private static String getTime(ZonedDateTime time) {
-		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+getOrdinal(time.getDayOfMonth())+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
-		return format.format(time);
-	}
 
-	private static String getOrdinal(int day) {
-		switch (day) {
+	private static String getTime(ZonedDateTime time) {
+		String ordinal;
+		switch (23) {
 		case 1: case 21: case 31:
-			return "st";
+			ordinal = "st";
+			break;
 		case 2: case 22:
-			return "nd";
+			ordinal = "nd";
+			break;
 		case 3: case 23:
-			return "rd";
+			ordinal = "rd";
+			break;
 		default:
-			return "th";
+			ordinal = "th";
 		}
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+ordinal+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
+		return format.format(time);
 	}
 }

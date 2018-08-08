@@ -17,20 +17,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import me.sizableshrimp.discordbot.music.GuildMusicManager;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
 import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.handle.obj.StatusType;
-import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
-import sx.blah.discord.util.MissingPermissionsException;
 
 public class EventListener {
 	@EventSubscriber
@@ -86,8 +81,8 @@ public class EventListener {
 						embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
 						embed.appendField("Solos", getSolos(json), true);
 						embed.appendField("Duos", getDuos(json), true);
-						embed.appendField("Squads", getSquads(json), true);
-						embed.appendField("Lifetime", getLifetime(json), true);
+						embed.appendField("Squads", getSquads(json), false);
+						embed.appendField("Lifetime", getLifetime(json), false);
 						embed.withFooterText("fortnitetracker.com");
 						embed.withColor(74, 134, 232);
 						sendEmbed(embed, channel);
@@ -143,28 +138,7 @@ public class EventListener {
 				return;
 			} else {
 				sendMessage(":x: Insufficient permission.", channel);
-				return;
 			}
-		}
-	}
-
-	@EventSubscriber
-	public void onUserVoiceLeave(UserVoiceChannelLeaveEvent event) {
-		if (event.getUser() == XTBot.client.getOurUser()) {
-			GuildMusicManager manager = XTBot.music.getGuildAudioPlayer(event.getGuild());
-			manager.player.setVolume(XTBot.music.DEFAULT_VOLUME);
-			return;
-		} else {
-			IVoiceChannel channel = event.getVoiceChannel();
-			if (event.getGuild().getConnectedVoiceChannel() == channel) {
-				if (channel.getConnectedUsers().size() == 1) {
-					channel.leave();
-					GuildMusicManager manager = XTBot.music.getGuildAudioPlayer(event.getGuild());
-					manager.scheduler.queue.clear();
-					manager.player.startTrack(null, false);
-				}
-			}
-			return;
 		}
 	}
 
@@ -173,11 +147,11 @@ public class EventListener {
 		XTBot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing");
 	}
 
-	public static void sendMessage(String message, IChannel channel) throws DiscordException, MissingPermissionsException {
+	public static void sendMessage(String message, IChannel channel) {
 		channel.sendMessage("\u200B"+message);
 	}
 
-	public static void sendEmbed(EmbedBuilder embed, IChannel channel) throws DiscordException, MissingPermissionsException {
+	public static void sendEmbed(EmbedBuilder embed, IChannel channel) {
 		channel.sendMessage("\u200B", embed.build());
 	}
 
@@ -188,21 +162,20 @@ public class EventListener {
 		Long minutes = TimeUnit.MILLISECONDS.toMinutes(uptime) - TimeUnit.HOURS.toMinutes(hours) - TimeUnit.DAYS.toMinutes(days);
 		Long seconds = TimeUnit.MILLISECONDS.toSeconds(uptime) - TimeUnit.MINUTES.toSeconds(minutes) - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.DAYS.toSeconds(days);
 		List<String> formats = new ArrayList<String>();
-		if (days > 0) {if (days == 1) {formats.add(days.toString()+" day");} else {formats.add(days.toString()+" days");}}
-		if (hours > 0) {if (hours == 1) {formats.add(hours.toString()+" hour");} else {formats.add(hours.toString()+" hours");}}
-		if (minutes > 0) {if (minutes == 1) {formats.add(minutes.toString()+" minute");} else {formats.add(minutes.toString()+" minutes");}}
-		if (seconds > 0) {if (seconds == 1) {formats.add(seconds.toString()+" second");} else {formats.add(seconds.toString()+" seconds");}}
+		if (days > 0) formats.add(days == 1 ? days.toString()+" day" : days.toString()+" days");
+		if (hours > 0) formats.add(hours == 1 ? hours.toString()+" hour" : hours.toString()+" hours");
+		if (minutes > 0) formats.add(minutes == 1 ? minutes.toString()+" minute" : minutes.toString()+" minutes");
+		if (seconds > 0) formats.add(seconds == 1 ? seconds.toString()+" second" : seconds.toString()+" seconds");
 		if (formats.size() == 0) return "Less than a second";
-		String result = formats.get(0);
-		if (formats.size() == 2) result = formats.get(0)+" and "+formats.get(1);
-		if (formats.size() == 3) result = formats.get(0)+", "+formats.get(1)+", and "+formats.get(2);
-		if (formats.size() == 4) result = formats.get(0)+", "+formats.get(1)+", "+formats.get(2)+", and "+formats.get(3);
-		return result;
+		if (formats.size() == 2) return formats.get(0)+" and "+formats.get(1);
+		if (formats.size() == 3) return formats.get(0)+", "+formats.get(1)+", and "+formats.get(2);
+		if (formats.size() == 4) return formats.get(0)+", "+formats.get(1)+", "+formats.get(2)+", and "+formats.get(3);
+		return formats.get(0);
 	}
 
 	private String getSolos(JSONObject json) {
-		StringBuffer main = new StringBuffer();
 		try {
+			StringBuffer main = new StringBuffer();
 			if (json.getJSONObject("stats").optJSONObject("p2") == null) return "No stats found for Solos.";
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top1").getString("displayValue"));
@@ -214,13 +187,13 @@ public class EventListener {
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
-			return "";
+			return "Error when retrieving Solos stats.";
 		}
 	}
 
 	private String getDuos(JSONObject json) {
-		StringBuffer main = new StringBuffer();
 		try {
+			StringBuffer main = new StringBuffer();
 			if (json.getJSONObject("stats").optJSONObject("p10") == null) return "No stats found for Duos.";
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top1").getString("displayValue"));
@@ -232,13 +205,13 @@ public class EventListener {
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
-			return "";
+			return "Error when retrieving Duos stats.";
 		}
 	}
 
 	private String getSquads(JSONObject json) {
-		StringBuffer main = new StringBuffer();
 		try {
+			StringBuffer main = new StringBuffer();
 			if (json.getJSONObject("stats").optJSONObject("p9") == null) return "No stats found for Squads.";
 			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("matches").getString("displayValue"));
 			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top1").getString("displayValue"));
@@ -250,22 +223,17 @@ public class EventListener {
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
-			return "";
+			return "Error when retrieving Squads stats.";
 		}
 	}
 
 	private String getLifetime(JSONObject json) {
-		StringBuffer main = new StringBuffer();
 		try {
+			StringBuffer main = new StringBuffer();
 			JSONArray stats = json.getJSONArray("lifeTimeStats");
-			Double matches = Double.valueOf(stats.getJSONObject(7).getString("value"));
-			Double wins = Double.valueOf(stats.getJSONObject(8).getString("value"));
-			String percent;
-			if (matches == 0) {
-				percent = "";
-			} else {
-				percent = new BigDecimal(wins/matches*100).setScale(1, RoundingMode.HALF_UP).toString();
-			}
+			Double matches = (Double.valueOf(stats.getJSONObject(7).getString("value")));
+			Double wins = (Double.valueOf(stats.getJSONObject(8).getString("value")));
+			String percent = matches == 0 ? "" : new BigDecimal((Double.valueOf(stats.getJSONObject(8).getString("value")))/matches*100).setScale(1, RoundingMode.HALF_UP).toString();
 			main.append("**Matches:** "+NumberFormat.getInstance().format(matches));
 			main.append("\n**Wins:** "+NumberFormat.getInstance().format(wins));
 			main.append("\n**Win Percentage:** "+percent+"0%");
@@ -276,32 +244,12 @@ public class EventListener {
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
-			return "";
+			return "Error when retrieving Lifetime stats.";
 		}
 	}
 
 	/*protected static void newVideo(Map<String, String> payload) {
 		sendMessage("@everyone "+payload.get("content")+" on "+getTime(payload.get("date"))+"\n"+payload.get("link"), XTBot.client.getChannelByID(341028279584817163L));
 		return;
-	}*/
-	
-	
-	/*private static String getTime(String string) {
-		ZonedDateTime time = Instant.parse(string).atZone(ZoneId.of("US/Eastern"));
-		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+getOrdinal(time.getDayOfMonth())+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
-		return format.format(time);
-	}
-
-	private static String getOrdinal(int day) {
-		switch (day) {
-		case 1: case 21: case 31:
-			return "st";
-		case 2: case 22:
-			return "nd";
-		case 3: case 23:
-			return "rd";
-		default:
-			return "th";
-		}
 	}*/
 }
