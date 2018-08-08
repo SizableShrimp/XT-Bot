@@ -15,6 +15,7 @@ import me.sizableshrimp.discordbot.EventListener;
 import me.sizableshrimp.discordbot.XTBot;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.IVoiceState;
@@ -256,6 +257,24 @@ public class MusicEvents {
 		}
 	}
 
+
+	@EventSubscriber
+	public void onUserVoiceLeave(UserVoiceChannelLeaveEvent event) {
+		if (event.getUser() == XTBot.client.getOurUser()) {
+			GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
+			manager.player.setVolume(music.DEFAULT_VOLUME);
+			return;
+		} else {
+			IVoiceChannel channel = event.getVoiceChannel();
+			if (event.getGuild().getConnectedVoiceChannel() == channel && channel.getConnectedUsers().size() == 1) {
+				channel.leave();
+				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
+				manager.scheduler.queue.clear();
+				manager.player.startTrack(null, false);
+			}
+		}
+	}
+	
 	boolean isOne(MessageReceivedEvent event) {
 		if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 			IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
