@@ -354,11 +354,11 @@ public class MusicEvents {
 	}
 
 	String getLength(Long length) {
-		Long hours = null;
-		if (TimeUnit.MILLISECONDS.toHours(length) > 1) hours = TimeUnit.MILLISECONDS.toHours(length);
-		Long minutes = TimeUnit.MILLISECONDS.toMinutes(length);
-		Long seconds = TimeUnit.MILLISECONDS.toSeconds(length) - TimeUnit.MINUTES.toSeconds(minutes);
+		Long hours = 0L;
+		if (TimeUnit.MILLISECONDS.toHours(length) > 0) hours = TimeUnit.MILLISECONDS.toHours(length);
+		Long minutes = TimeUnit.MILLISECONDS.toMinutes(length) - TimeUnit.HOURS.toMinutes(hours);
+		Long seconds = TimeUnit.MILLISECONDS.toSeconds(length) - TimeUnit.MINUTES.toSeconds(minutes) - TimeUnit.HOURS.toSeconds(hours);
 		String convertedSeconds = seconds < 10L ? "0"+seconds.toString() : seconds.toString();
-		return hours != null ? hours.toString()+":"+minutes.toString()+":"+convertedSeconds : minutes.toString()+":"+convertedSeconds;
+		return hours != 0L ? hours.toString()+":"+minutes.toString()+":"+convertedSeconds : minutes.toString()+":"+convertedSeconds;
 	}
 }
