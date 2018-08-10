@@ -176,7 +176,7 @@ public class MusicEvents {
 			wants++;
 			manager.wantsToSkip = wants;
 			manager.usersSkipping.add(event.getAuthor());
-			EventListener.sendMessage(wants.toString()+"//"+needed.toString()+" people have requested to skip this song.", event.getChannel());
+			EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"forceskip")) {
 			if (manager.player.getPlayingTrack() == null) {
