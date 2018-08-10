@@ -26,138 +26,141 @@ import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
+import sx.blah.discord.util.RequestBuffer;
 
 public class EventListener {
 	@EventSubscriber
 	public void onMessageEvent(MessageReceivedEvent event) {
-		if (event.getAuthor().isBot()) return;
-		String message = event.getMessage().getContent();
-		IChannel channel = event.getChannel();
-		String[] args = message.split(" ");
-		if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
-			sendMessage("Hello! I am XT Bot. My commands are:\n```"+
-					XTBot.prefix+"hey\n"+
-					XTBot.prefix+"info\n"+
-					XTBot.prefix+"music\n"+
-					XTBot.prefix+"fortnite or "+XTBot.prefix+"ftn\n"+
-					XTBot.prefix+"settings```", channel);
-			return;
-		} else if (message.toLowerCase().startsWith(XTBot.prefix+"info")) {
-			EmbedBuilder embed = new EmbedBuilder();
-			embed.withAuthorName("Information");
-			embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
-			embed.appendField("Author", "SizableShrimp", true);
-			embed.appendField("Discord4J Version", "2.10.1", true);
-			embed.appendField("Prefix", XTBot.prefix, false);
-			embed.appendField("Uptime", getUptime(), false);
-			new MessageBuilder(XTBot.client).appendContent("To find out my commands, use `"+XTBot.prefix+"help`").withEmbed(embed.build()).withChannel(channel).build();
-		} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
-			if (args.length >= 3) {
-				String platform = args[1];
-				if (platform.equalsIgnoreCase("pc") || platform.equalsIgnoreCase("ps4") || platform.equalsIgnoreCase("xbox")) {
-					platform = platform.toLowerCase();
+		RequestBuffer.request(() -> {
+			if (event.getAuthor().isBot()) return;
+			String message = event.getMessage().getContent();
+			IChannel channel = event.getChannel();
+			String[] args = message.split(" ");
+			if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
+				sendMessage("Hello! I am XT Bot. My commands are:\n```"+
+						XTBot.prefix+"hey\n"+
+						XTBot.prefix+"info\n"+
+						XTBot.prefix+"music\n"+
+						XTBot.prefix+"fortnite or "+XTBot.prefix+"ftn\n"+
+						XTBot.prefix+"settings```", channel);
+				return;
+			} else if (message.toLowerCase().startsWith(XTBot.prefix+"info")) {
+				EmbedBuilder embed = new EmbedBuilder();
+				embed.withAuthorName("Information");
+				embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
+				embed.appendField("Author", "SizableShrimp", true);
+				embed.appendField("Discord4J Version", "2.10.1", true);
+				embed.appendField("Prefix", XTBot.prefix, false);
+				embed.appendField("Uptime", getUptime(), false);
+				new MessageBuilder(XTBot.client).appendContent("To find out my commands, use `"+XTBot.prefix+"help`").withEmbed(embed.build()).withChannel(channel).build();
+			} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
+				if (args.length >= 3) {
+					String platform = args[1];
+					if (platform.equalsIgnoreCase("pc") || platform.equalsIgnoreCase("ps4") || platform.equalsIgnoreCase("xbox")) {
+						platform = platform.toLowerCase();
+					} else {
+						sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
+						return;
+					}
+					StringBuffer username = new StringBuffer();
+					username.append(args[2]);
+					for (int i = 3; i < args.length; i++) username.append(" "+args[i]);
+					try {
+						HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username.toString()).openConnection();
+						conn.setRequestMethod("GET");
+						conn.setRequestProperty("User-Agent", "Heroku");
+						conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
+						conn.connect();
+						if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+							BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+							String inputLine;
+							StringBuffer response = new StringBuffer();
+							while ((inputLine = reader.readLine()) != null) response.append(inputLine);
+							reader.close();
+							JSONObject json = new JSONObject(response.toString());
+							try {
+								if (json.getString("error").equals("Player Not Found")) {
+									sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
+									return;
+								}
+							} catch (JSONException e) {}
+							EmbedBuilder embed = new EmbedBuilder();
+							embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
+							embed.appendField("Solos", getSolos(json), true);
+							embed.appendField("Duos", getDuos(json), true);
+							embed.appendField("Squads", getSquads(json), true);
+							embed.appendField("Lifetime", getLifetime(json), false);
+							embed.withFooterText("fortnitetracker.com");
+							embed.withColor(74, 134, 232);
+							sendEmbed(embed, channel);
+							return;
+						}
+						sendMessage("A good connection was not established. Please try again later.", channel);
+						return;
+					} catch (IOException e) {
+						e.printStackTrace();
+						sendMessage("An error occured when trying to fetch the stats. Please try again later.", channel);
+						return;
+					} catch (JSONException e) {
+						e.printStackTrace();
+						sendMessage("An error occured when trying to parse the stats. Please try again later.", channel);
+						return;
+					}
 				} else {
 					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
 					return;
 				}
-				StringBuffer username = new StringBuffer();
-				username.append(args[2]);
-				for (int i = 3; i < args.length; i++) username.append(" "+args[i]);
-				try {
-					HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username.toString()).openConnection();
-					conn.setRequestMethod("GET");
-					conn.setRequestProperty("User-Agent", "Heroku");
-					conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
-					conn.connect();
-					if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-						BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-						String inputLine;
-						StringBuffer response = new StringBuffer();
-						while ((inputLine = reader.readLine()) != null) response.append(inputLine);
-						reader.close();
-						JSONObject json = new JSONObject(response.toString());
-						try {
-							if (json.getString("error").equals("Player Not Found")) {
-								sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
-								return;
-							}
-						} catch (JSONException e) {}
-						EmbedBuilder embed = new EmbedBuilder();
-						embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
-						embed.appendField("Solos", getSolos(json), true);
-						embed.appendField("Duos", getDuos(json), true);
-						embed.appendField("Squads", getSquads(json), true);
-						embed.appendField("Lifetime", getLifetime(json), false);
-						embed.withFooterText("fortnitetracker.com");
-						embed.withColor(74, 134, 232);
-						sendEmbed(embed, channel);
+			} else if (message.toLowerCase().startsWith(XTBot.prefix+"hey")) {
+				sendMessage("Hello! :smile:", channel);
+				return;
+			} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings prefix")) {
+				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
+					if (args.length != 3) {
+						sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"settings prefix [new prefix]```", channel);
+						return;
+					} else {
+						String newPrefix = args[2];
+						if (newPrefix.length() != 1) {
+							sendMessage(":x: A prefix can only be 1 character long.", channel);
+							return;
+						}
+						if (newPrefix.toUpperCase() != newPrefix) {
+							sendMessage(":x: A prefix cannot be a letter.", channel);
+							return;
+						}
+						XTBot.prefix = newPrefix;
+						sendMessage(":white_check_mark: Prefix successfully changed to `"+XTBot.prefix+"`", channel);
 						return;
 					}
-					sendMessage("A good connection was not established. Please try again later.", channel);
-					return;
-				} catch (IOException e) {
-					e.printStackTrace();
-					sendMessage("An error occured when trying to fetch the stats. Please try again later.", channel);
-					return;
-				} catch (JSONException e) {
-					e.printStackTrace();
-					sendMessage("An error occured when trying to parse the stats. Please try again later.", channel);
+				} else {
+					sendMessage(":x: Insufficient permission.", channel);
 					return;
 				}
-			} else {
-				sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
-				return;
-			}
-		} else if (message.toLowerCase().startsWith(XTBot.prefix+"hey")) {
-			sendMessage("Hello! :smile:", channel);
-			return;
-		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings prefix")) {
-			if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
-				if (args.length != 3) {
-					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"settings prefix [new prefix]```", channel);
+			} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings") && args.length == 1) {
+				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
+					EmbedBuilder embed = new EmbedBuilder();
+					embed.withAuthorName("XT Bot Settings");
+					embed.appendField(":exclamation: **Prefix**", "`"+XTBot.prefix+"settings prefix [new prefix]`", true);
+					sendEmbed(embed, channel);
 					return;
 				} else {
-					String newPrefix = args[2];
-					if (newPrefix.length() != 1) {
-						sendMessage(":x: A prefix can only be 1 character long.", channel);
-						return;
-					}
-					if (newPrefix.toUpperCase() != newPrefix) {
-						sendMessage(":x: A prefix cannot be a letter.", channel);
-						return;
-					}
-					XTBot.prefix = newPrefix;
-					sendMessage(":white_check_mark: Prefix successfully changed to `"+XTBot.prefix+"`", channel);
-					return;
+					sendMessage(":x: Insufficient permission.", channel);
 				}
-			} else {
-				sendMessage(":x: Insufficient permission.", channel);
-				return;
 			}
-		} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings") && args.length == 1) {
-			if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
-				EmbedBuilder embed = new EmbedBuilder();
-				embed.withAuthorName("XT Bot Settings");
-				embed.appendField(":exclamation: **Prefix**", "`"+XTBot.prefix+"settings prefix [new prefix]`", true);
-				sendEmbed(embed, channel);
-				return;
-			} else {
-				sendMessage(":x: Insufficient permission.", channel);
-			}
-		}
+		});
 	}
 
 	@EventSubscriber
 	public void onReady(ReadyEvent event) {
-		XTBot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing");
+		RequestBuffer.request(() -> XTBot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
 	}
 
 	public static void sendMessage(String message, IChannel channel) {
-		channel.sendMessage("\u200B"+message);
+		RequestBuffer.request(() -> channel.sendMessage("\u200B"+message));
 	}
 
 	public static void sendEmbed(EmbedBuilder embed, IChannel channel) {
-		channel.sendMessage("\u200B", embed.build());
+		RequestBuffer.request(() -> channel.sendMessage("\u200B", embed.build()));
 	}
 
 	private String getUptime() {

@@ -9,11 +9,7 @@ public class BotClient {
 		ClientBuilder clientBuilder = new ClientBuilder();
 		clientBuilder.withToken(token);
 		try {
-			if (login) {
-				return clientBuilder.login();
-			} else {
-				return clientBuilder.build();
-			}
+			return login ? clientBuilder.login() : clientBuilder.build();
 		} catch (DiscordException e) {
 			e.printStackTrace();
 			return null;
