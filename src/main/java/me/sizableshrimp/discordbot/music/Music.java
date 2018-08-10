@@ -2,6 +2,7 @@ package me.sizableshrimp.discordbot.music;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -76,6 +77,10 @@ public class Music {
 	}
 
 	private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track) {
+		if (TimeUnit.MILLISECONDS.toSeconds(track.getDuration()) > TimeUnit.HOURS.toSeconds(10)) {
+			EventListener.sendMessage(":x: Cannot play a song over 10 hours in length.", channel);
+			return;
+		}
 		musicManager.scheduler.queue(track, channel);
 	}
 
