@@ -83,8 +83,4 @@ public class Music {
 		GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
 		musicManager.scheduler.nextTrack();
 	}
-
-	public boolean isPlaying(IGuild guild) {
-		return getGuildAudioPlayer(guild).player.getPlayingTrack() != null;
-	}
 }

@@ -91,7 +91,7 @@ public class MusicEvents {
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"pause")) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
-				if (music.isPlaying(event.getGuild())) {
+				if (manager.player.getPlayingTrack() != null) {
 					if (player.isPaused()) {
 						player.setPaused(false);
 						EventListener.sendMessage("Music resumed.", event.getChannel());
@@ -158,6 +158,10 @@ public class MusicEvents {
 				return;
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"skip")) {
+			if (manager.player.getPlayingTrack() == null) {
+				EventListener.sendMessage("There is nothing to skip.", event.getChannel());
+				return;
+			}
 			if (manager.usersSkipping.contains(event.getAuthor())) {
 				EventListener.sendMessage(":x: You have already requested to skip this song.", event.getChannel());
 				return;
@@ -175,6 +179,10 @@ public class MusicEvents {
 			EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"forceskip")) {
+			if (manager.player.getPlayingTrack() == null) {
+				EventListener.sendMessage("There is nothing to skip.", event.getChannel());
+				return;
+			}
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 				music.skipTrack(event.getChannel());
 				EventListener.sendMessage("Skipped song.", event.getChannel());
