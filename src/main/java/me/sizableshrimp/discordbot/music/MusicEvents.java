@@ -3,6 +3,7 @@ package me.sizableshrimp.discordbot.music;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +38,20 @@ public class MusicEvents {
 		AudioPlayer player = manager.player;
 		TrackScheduler scheduler = manager.scheduler;
 		if (message.toLowerCase().startsWith(XTBot.prefix+"music")) {
-			EventListener.sendMessage("I can play music! My music commands are:```"+XTBot.prefix+"play [song] - Plays the song that you request.\n"+XTBot.prefix+"volume [new volume] or "+XTBot.prefix+"vol [new volume] - Changes the volume.\n"+XTBot.prefix+"pause - Pauses/unpauses the song.\n"+XTBot.prefix+"queue or "+XTBot.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+XTBot.prefix+"clear - Clears all the queued music.\n"+XTBot.prefix+"nowplaying or "+XTBot.prefix+"np\n"+XTBot.prefix+"remove [number in queue to remove] - Removes the song in the queue at the number given.\n"+XTBot.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+XTBot.prefix+"forceskip - Forecfully skips to the next song.\n"+XTBot.prefix+"disconnect or "+XTBot.prefix+"leave - Disconnects from the voice channel and stops playing music.\n"+XTBot.prefix+"loop - Puts the song currently playing on/off repeat.```__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands.", event.getChannel());
+			EventListener.sendMessage("I can play music! My music commands are:```"+
+					XTBot.prefix+"play [song] - Plays the song that you request.\n"+
+					XTBot.prefix+"volume [new volume] or "+XTBot.prefix+"vol [new volume] - Changes the volume.\n"+
+					XTBot.prefix+"pause - Pauses/unpauses the song.\n"+
+					XTBot.prefix+"queue or "+XTBot.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+
+					XTBot.prefix+"clear - Clears all the queued music.\n"+
+					XTBot.prefix+"nowplaying or "+XTBot.prefix+"np - Shows what is currently playing.\n"+
+					XTBot.prefix+"remove [number in queue to remove] - Removes the song in the queue at the number given.\n"+
+					XTBot.prefix+"goto [time in song] - Starts playing from a certain point in the song.\n"+
+					XTBot.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+
+					XTBot.prefix+"forceskip - Forecfully skips to the next song.\n"+
+					XTBot.prefix+"disconnect or "+XTBot.prefix+"leave - Disconnects from the voice channel and stops playing music.\n"+
+					XTBot.prefix+"loop - Puts the song currently playing on/off repeat.```"+
+					"__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands.", event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"play")) {
 			if (message.split(" ").length >= 2) {
@@ -151,6 +165,48 @@ public class MusicEvents {
 					return;
 				} else {
 					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"remove [number from queue]```", event.getChannel());
+					return;
+				}
+			} else {
+				EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", event.getChannel());
+				return;
+			}
+		} else if (message.toLowerCase().startsWith(XTBot.prefix+"goto")) {
+			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+				if (message.split(" ").length == 2) {
+					if (!message.contains(":")) {
+						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```\nExample: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
+						return;
+					}
+					String time = message.split(" ")[1];
+					int colons = 0;
+					for (char c : time.toCharArray()) if (c == ':') colons++;
+					if (colons == 1 || colons == 2) {
+						List<Integer> numbers = new ArrayList<Integer>();
+						for (String s : time.split(":")) {
+							try {
+								Integer.valueOf(s);
+							} catch (NumberFormatException e) {
+								EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```\nExample: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
+								return;
+							}
+							numbers.add(Integer.valueOf(s));
+						}
+						Long millis = colons == 1 ? TimeUnit.MINUTES.toMillis(numbers.get(0)) + TimeUnit.SECONDS.toMillis(numbers.get(1)) : TimeUnit.HOURS.toMillis(numbers.get(0)) + TimeUnit.MINUTES.toMillis(numbers.get(1)) + TimeUnit.SECONDS.toMillis(numbers.get(2));
+						AudioTrack track = player.getPlayingTrack();
+						if (millis > track.getDuration() || millis < track.getDuration()) {
+							EventListener.sendMessage("Specified time is out of range. Please choose a different time.", event.getChannel());
+							return;
+						}
+						track.setPosition(millis);
+						EventListener.sendMessage("Now playing at `"+time+"`", event.getChannel());
+						return;
+					} else {
+						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```\nExample: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
+						return;
+					}
+				} else {
+					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```\nExample: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
 					return;
 				}
 			} else {
@@ -281,7 +337,7 @@ public class MusicEvents {
 			}
 		}
 	}
-	
+
 	boolean isOne(MessageReceivedEvent event) {
 		if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 			IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
@@ -294,9 +350,11 @@ public class MusicEvents {
 	}
 
 	String getLength(Long length) {
+		Long hours = null;
+		if (TimeUnit.MILLISECONDS.toHours(length) > 1) hours = TimeUnit.MILLISECONDS.toHours(length);
 		Long minutes = TimeUnit.MILLISECONDS.toMinutes(length);
 		Long seconds = TimeUnit.MILLISECONDS.toSeconds(length) - TimeUnit.MINUTES.toSeconds(minutes);
 		String convertedSeconds = seconds < 10L ? "0"+seconds.toString() : seconds.toString();
-		return minutes.toString()+":"+convertedSeconds;
+		return hours != null ? hours.toString()+":"+minutes.toString()+":"+convertedSeconds : minutes.toString()+":"+convertedSeconds;
 	}
 }
