@@ -81,7 +81,7 @@ public class EventListener {
 						embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
 						embed.appendField("Solos", getSolos(json), true);
 						embed.appendField("Duos", getDuos(json), true);
-						embed.appendField("Squads", getSquads(json), false);
+						embed.appendField("Squads", getSquads(json), true);
 						embed.appendField("Lifetime", getLifetime(json), false);
 						embed.withFooterText("fortnitetracker.com");
 						embed.withColor(74, 134, 232);
