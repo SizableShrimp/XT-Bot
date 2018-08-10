@@ -67,7 +67,7 @@ public class MusicEvents {
 					EventListener.sendMessage("Join a voice channel if you want me to play a song!", event.getChannel());
 					return;
 				} else if (event.getGuild().getConnectedVoiceChannel() != null && channel != event.getGuild().getConnectedVoiceChannel()){
-					EventListener.sendMessage("Join "+event.getGuild().getConnectedVoiceChannel()+" to add a song to the queue.", event.getChannel());
+					EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to add a song to the queue.", event.getChannel());
 					return;
 				} else if (event.getGuild().getConnectedVoiceChannel() == null & channel != null) {
 					channel.join();
@@ -299,7 +299,7 @@ public class MusicEvents {
 					return;
 				}
 				channel.leave();
-				EventListener.sendMessage("Left "+channel.getName(), event.getChannel());
+				EventListener.sendMessage("Left `"+channel.getName()+"`", event.getChannel());
 				scheduler.queue.clear();
 				manager.player.startTrack(null, false);
 				return;
