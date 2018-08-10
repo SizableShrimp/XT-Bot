@@ -12,7 +12,6 @@ import sx.blah.discord.handle.obj.IUser;
 public class GuildMusicManager {
   public AudioPlayer player;
   public TrackScheduler scheduler;
-  public long trackStartTime;
   public int neededToSkip;
   public int wantsToSkip;
   public final List<IUser> usersSkipping = new ArrayList<IUser>();

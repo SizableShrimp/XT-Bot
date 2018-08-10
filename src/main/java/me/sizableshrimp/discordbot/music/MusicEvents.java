@@ -173,9 +173,13 @@ public class MusicEvents {
 			}
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"goto")) {
 			if (event.getChannel().getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+				if (player.getPlayingTrack() == null) {
+					EventListener.sendMessage("There is nothing to change the time of.", event.getChannel());
+					return;
+				}
 				if (message.split(" ").length == 2) {
 					if (!message.contains(":")) {
-						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```\nExample: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
+						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```Example: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
 						return;
 					}
 					String time = message.split(" ")[1];
@@ -187,14 +191,14 @@ public class MusicEvents {
 							try {
 								Integer.valueOf(s);
 							} catch (NumberFormatException e) {
-								EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```\nExample: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
+								EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```Example: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
 								return;
 							}
 							numbers.add(Integer.valueOf(s));
 						}
 						Long millis = colons == 1 ? TimeUnit.MINUTES.toMillis(numbers.get(0)) + TimeUnit.SECONDS.toMillis(numbers.get(1)) : TimeUnit.HOURS.toMillis(numbers.get(0)) + TimeUnit.MINUTES.toMillis(numbers.get(1)) + TimeUnit.SECONDS.toMillis(numbers.get(2));
 						AudioTrack track = player.getPlayingTrack();
-						if (millis > track.getDuration() || millis < track.getDuration()) {
+						if (millis < 0L || millis > track.getDuration()) {
 							EventListener.sendMessage("Specified time is out of range. Please choose a different time.", event.getChannel());
 							return;
 						}
@@ -202,11 +206,11 @@ public class MusicEvents {
 						EventListener.sendMessage("Now playing at `"+time+"`", event.getChannel());
 						return;
 					} else {
-						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```\nExample: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
+						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```Example: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
 						return;
 					}
 				} else {
-					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```\nExample: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
+					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```Example: `"+XTBot.prefix+"goto 5:35`", event.getChannel());
 					return;
 				}
 			} else {
@@ -284,7 +288,7 @@ public class MusicEvents {
 			}
 			AudioTrackInfo info = playing.getInfo();
 			embed.appendDesc("["+info.title+"]("+info.uri+")");
-			embed.appendDesc("\n"+getLength(System.currentTimeMillis()-manager.trackStartTime)+" / "+getLength(info.length));
+			embed.appendDesc("\n"+getLength(playing.getPosition())+" / "+getLength(info.length));
 			EventListener.sendEmbed(embed, event.getChannel());
 			return;
 		} else if (message.toLowerCase().startsWith(XTBot.prefix+"disconnect") || message.startsWith(XTBot.prefix+"leave")) {
