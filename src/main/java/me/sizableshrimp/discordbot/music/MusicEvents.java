@@ -299,6 +299,10 @@ public class MusicEvents {
 				return;
 			} else if (message.toLowerCase().startsWith(XTBot.prefix+"rewind")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if (player.getPlayingTrack() == null) {
+						EventListener.sendMessage("There is nothing to rewind.", channel);
+						return;
+					}
 					player.getPlayingTrack().setPosition(player.getPlayingTrack().getPosition()-TimeUnit.SECONDS.toMillis(10));
 					EventListener.sendMessage("Skipped 10 seconds backwards.", channel);
 					return;
@@ -308,6 +312,10 @@ public class MusicEvents {
 				}
 			} else if (message.toLowerCase().startsWith(XTBot.prefix+"fastforward") || message.toLowerCase().startsWith(XTBot.prefix+"ff")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if (player.getPlayingTrack() == null) {
+						EventListener.sendMessage("There is nothing to fast forward.", channel);
+						return;
+					}
 					player.getPlayingTrack().setPosition(player.getPlayingTrack().getPosition()+TimeUnit.SECONDS.toMillis(10));
 					EventListener.sendMessage("Skipped 10 seconds forwards.", channel);
 					return;
