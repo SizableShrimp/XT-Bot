@@ -360,18 +360,14 @@ public class MusicEvents {
 	@EventSubscriber
 	public void onUserVoiceLeave(UserVoiceChannelLeaveEvent event) {
 		RequestBuffer.request(() -> {
-			if (event.getUser() == XTBot.client.getOurUser()) {
+			IVoiceChannel channel = event.getVoiceChannel();
+			if (event.getGuild().getConnectedVoiceChannel() == channel && channel.getConnectedUsers().size() == 1) {
 				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
+				manager.scheduler.queue.clear();
+				manager.player.startTrack(null, false);
 				manager.player.setVolume(music.DEFAULT_VOLUME);
-				return;
-			} else {
-				IVoiceChannel channel = event.getVoiceChannel();
-				if (event.getGuild().getConnectedVoiceChannel() == channel && channel.getConnectedUsers().size() == 1) {
-					channel.leave();
-					GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
-					manager.scheduler.queue.clear();
-					manager.player.startTrack(null, false);
-				}
+				manager.player.setPaused(false);
+				channel.leave();
 			}
 		});
 	}
