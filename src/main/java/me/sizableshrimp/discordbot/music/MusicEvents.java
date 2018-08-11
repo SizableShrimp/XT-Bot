@@ -114,11 +114,11 @@ public class MusicEvents {
 					if (manager.player.getPlayingTrack() != null) {
 						if (player.isPaused()) {
 							player.setPaused(false);
-							EventListener.sendMessage("Music resumed.", channel);
+							EventListener.sendMessage(":arrow_forward: Music resumed.", channel);
 							return;
 						} else {
 							player.setPaused(true);
-							EventListener.sendMessage("Music paused.", channel);
+							EventListener.sendMessage(":pause_button: Music paused.", channel);
 							return;
 						}
 					} else {
@@ -304,7 +304,7 @@ public class MusicEvents {
 						return;
 					}
 					player.getPlayingTrack().setPosition(player.getPlayingTrack().getPosition()-TimeUnit.SECONDS.toMillis(10));
-					EventListener.sendMessage("Skipped 10 seconds backwards.", channel);
+					EventListener.sendMessage(":rewind: Skipped 10 seconds backwards.", channel);
 					return;
 				} else {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
@@ -317,7 +317,7 @@ public class MusicEvents {
 						return;
 					}
 					player.getPlayingTrack().setPosition(player.getPlayingTrack().getPosition()+TimeUnit.SECONDS.toMillis(10));
-					EventListener.sendMessage("Skipped 10 seconds forwards.", channel);
+					EventListener.sendMessage(":fast_forward: Skipped 10 seconds forwards.", channel);
 					return;
 				} else {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
@@ -343,11 +343,11 @@ public class MusicEvents {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					if (scheduler.isRepeating()) {
 						scheduler.setRepeating(false);
-						EventListener.sendMessage("Loop stopped.", channel);
+						EventListener.sendMessage("Loop disabled.", channel);
 						return;
 					} else {
 						scheduler.setRepeating(true);
-						EventListener.sendMessage(":repeat: Song looped.", channel);
+						EventListener.sendMessage(":repeat: Loop enabled.", channel);
 						return;
 					}
 				} else {
@@ -356,7 +356,6 @@ public class MusicEvents {
 			}
 		});
 	}
-
 
 	@EventSubscriber
 	public void onUserVoiceLeave(UserVoiceChannelLeaveEvent event) {
