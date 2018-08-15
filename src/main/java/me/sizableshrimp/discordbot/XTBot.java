@@ -30,7 +30,7 @@ import sx.blah.discord.api.events.EventDispatcher;
 public class XTBot {
 	public static IDiscordClient client;
 	public static String prefix = ",";
-	public static long firstOnline;
+	public static final long firstOnline = System.currentTimeMillis();
 	private static boolean isLive = false;
 	private static long latestVideo;
 
@@ -40,7 +40,6 @@ public class XTBot {
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 		dispatcher.registerListener(new MusicEvents());
-		firstOnline = System.currentTimeMillis();
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
