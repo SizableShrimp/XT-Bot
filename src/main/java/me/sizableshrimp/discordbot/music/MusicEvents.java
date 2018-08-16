@@ -13,7 +13,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 import me.sizableshrimp.discordbot.EventListener;
-import me.sizableshrimp.discordbot.XTBot;
+import me.sizableshrimp.discordbot.Main;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
@@ -41,25 +41,25 @@ public class MusicEvents {
 			AudioPlayer player = manager.player;
 			TrackScheduler scheduler = manager.scheduler;
 			IChannel channel = event.getChannel();
-			if (message.toLowerCase().startsWith(XTBot.prefix+"music")) {
+			if (message.toLowerCase().startsWith(Main.prefix+"music")) {
 				EventListener.sendMessage("I can play music! My music commands are:```"+
-						XTBot.prefix+"play [song] - Plays the song that you request.\n"+
-						XTBot.prefix+"volume [new volume] or "+XTBot.prefix+"vol [new volume] - Changes the volume.\n"+
-						XTBot.prefix+"pause - Pauses/unpauses the song.\n"+
-						XTBot.prefix+"queue or "+XTBot.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+
-						XTBot.prefix+"clear - Clears all the queued music.\n"+
-						XTBot.prefix+"nowplaying or "+XTBot.prefix+"np - Shows what is currently playing.\n"+
-						XTBot.prefix+"remove [number in queue to remove] - Removes the song in the queue at the number given.\n"+
-						XTBot.prefix+"rewind - Rewinds the song by 10 seconds.\n"+
-						XTBot.prefix+"fastforward or "+XTBot.prefix+"ff - Fast forwards the song by 10 seconds.\n"+
-						XTBot.prefix+"goto [time in song] - Starts playing from a certain point in the song.\n"+
-						XTBot.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+
-						XTBot.prefix+"forceskip - Forecfully skips to the next song.\n"+
-						XTBot.prefix+"disconnect or "+XTBot.prefix+"leave - Disconnects from the voice channel and stops playing music.\n"+
-						XTBot.prefix+"loop - Puts the song currently playing on/off repeat.```"+
+						Main.prefix+"play [song] - Plays the song that you request.\n"+
+						Main.prefix+"volume [new volume] or "+Main.prefix+"vol [new volume] - Changes the volume.\n"+
+						Main.prefix+"pause - Pauses/unpauses the song.\n"+
+						Main.prefix+"queue or "+Main.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+
+						Main.prefix+"clear - Clears all the queued music.\n"+
+						Main.prefix+"nowplaying or "+Main.prefix+"np - Shows what is currently playing.\n"+
+						Main.prefix+"remove [number in queue to remove] - Removes the song in the queue at the number given.\n"+
+						Main.prefix+"rewind - Rewinds the song by 10 seconds.\n"+
+						Main.prefix+"fastforward or "+Main.prefix+"ff - Fast forwards the song by 10 seconds.\n"+
+						Main.prefix+"goto [time in song] - Starts playing from a certain point in the song.\n"+
+						Main.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+
+						Main.prefix+"forceskip - Forecfully skips to the next song.\n"+
+						Main.prefix+"disconnect or "+Main.prefix+"leave - Disconnects from the voice channel and stops playing music.\n"+
+						Main.prefix+"loop - Puts the song currently playing on/off repeat.```"+
 						"__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands.", channel);
 				return;
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"play")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"play")) {
 				if (message.split(" ").length >= 2) {
 					IVoiceChannel voiceChannel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
 					String query = message.substring(6);
@@ -81,10 +81,10 @@ public class MusicEvents {
 						return;
 					}
 				} else {
-					EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"play [song]```", channel);
+					EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"play [song]```", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"volume") || message.startsWith(XTBot.prefix+"vol")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"volume") || message.startsWith(Main.prefix+"vol")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					if (message.split(" ").length == 2) { 
 						try {
@@ -102,14 +102,14 @@ public class MusicEvents {
 						EventListener.sendMessage("Volume set to **"+volume+"%**", channel);
 						return;
 					} else {
-						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"volume [new volume]```", channel);
+						EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"volume [new volume]```", channel);
 						return;
 					}
 				} else {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"pause")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"pause")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					if (manager.player.getPlayingTrack() != null) {
 						if (player.isPaused()) {
@@ -129,7 +129,7 @@ public class MusicEvents {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"clear")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"clear")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					scheduler.queue.clear();
 					EventListener.sendMessage("Queue cleared.", channel);
@@ -138,7 +138,7 @@ public class MusicEvents {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"remove")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"remove")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					if (scheduler.queue.isEmpty()) {
 						EventListener.sendMessage("There is nothing in the queue to remove.", channel);
@@ -170,14 +170,14 @@ public class MusicEvents {
 						EventListener.sendMessage("Removed `"+selected.getInfo().title+"` from the queue.", channel);
 						return;
 					} else {
-						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"remove [number from queue]```", channel);
+						EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"remove [number from queue]```", channel);
 						return;
 					}
 				} else {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"goto")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"goto")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					if (player.getPlayingTrack() == null) {
 						EventListener.sendMessage("There is nothing to change the time of.", channel);
@@ -185,7 +185,7 @@ public class MusicEvents {
 					}
 					if (message.split(" ").length == 2) {
 						if (!message.contains(":")) {
-							EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```Example: `"+XTBot.prefix+"goto 5:35`", channel);
+							EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"goto [time in song]```Example: `"+Main.prefix+"goto 5:35`", channel);
 							return;
 						}
 						String time = message.split(" ")[1];
@@ -197,7 +197,7 @@ public class MusicEvents {
 								try {
 									Integer.valueOf(s);
 								} catch (NumberFormatException e) {
-									EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```Example: `"+XTBot.prefix+"goto 5:35`", channel);
+									EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"goto [time in song]```Example: `"+Main.prefix+"goto 5:35`", channel);
 									return;
 								}
 								numbers.add(Integer.valueOf(s));
@@ -212,18 +212,18 @@ public class MusicEvents {
 							EventListener.sendMessage("Now playing at `"+time+"`", channel);
 							return;
 						} else {
-							EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```Example: `"+XTBot.prefix+"goto 5:35`", channel);
+							EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"goto [time in song]```Example: `"+Main.prefix+"goto 5:35`", channel);
 							return;
 						}
 					} else {
-						EventListener.sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"goto [time in song]```Example: `"+XTBot.prefix+"goto 5:35`", channel);
+						EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"goto [time in song]```Example: `"+Main.prefix+"goto 5:35`", channel);
 						return;
 					}
 				} else {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"skip")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"skip")) {
 				if (manager.player.getPlayingTrack() == null) {
 					EventListener.sendMessage("There is nothing to skip.", channel);
 					return;
@@ -244,7 +244,7 @@ public class MusicEvents {
 				manager.usersSkipping.add(event.getAuthor());
 				EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", channel);
 				return;
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"forceskip")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"forceskip")) {
 				if (manager.player.getPlayingTrack() == null) {
 					EventListener.sendMessage("There is nothing to skip.", channel);
 					return;
@@ -257,7 +257,7 @@ public class MusicEvents {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"queue") || message.startsWith(XTBot.prefix+"q")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"queue") || message.startsWith(Main.prefix+"q")) {
 				AudioTrack playing = player.getPlayingTrack();
 				BlockingQueue<AudioTrack> queue = scheduler.queue;
 				EmbedBuilder embed = new EmbedBuilder();
@@ -282,7 +282,7 @@ public class MusicEvents {
 				}
 				EventListener.sendEmbed(embed, channel);
 				return;
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"nowplaying") || message.startsWith(XTBot.prefix+"np")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"nowplaying") || message.startsWith(Main.prefix+"np")) {
 				AudioTrack playing = player.getPlayingTrack();
 				EmbedBuilder embed = new EmbedBuilder();
 				embed.withAuthorName("Now Playing");
@@ -297,7 +297,7 @@ public class MusicEvents {
 				embed.appendDesc("\n"+getLength(playing.getPosition())+" / "+getLength(info.length));
 				EventListener.sendEmbed(embed, channel);
 				return;
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"rewind")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"rewind")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					if (player.getPlayingTrack() == null) {
 						EventListener.sendMessage("There is nothing to rewind.", channel);
@@ -310,7 +310,7 @@ public class MusicEvents {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"fastforward") || message.toLowerCase().startsWith(XTBot.prefix+"ff")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"fastforward") || message.toLowerCase().startsWith(Main.prefix+"ff")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					if (player.getPlayingTrack() == null) {
 						EventListener.sendMessage("There is nothing to fast forward.", channel);
@@ -323,11 +323,15 @@ public class MusicEvents {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"disconnect") || message.startsWith(XTBot.prefix+"leave")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"disconnect") || message.startsWith(Main.prefix+"leave")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					IVoiceChannel voiceChannel = event.getGuild().getConnectedVoiceChannel();
 					if (voiceChannel == null) {
-						EventListener.sendMessage("I am not connected to a voice channel.", voiceChannel);
+						EventListener.sendMessage("I am not connected to a voice channel.", channel);
+						return;
+					}
+					if (voiceChannel != event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel()) {
+						EventListener.sendMessage(":x: You must be connected to `"+voiceChannel.getName()+"` to make me leave!", channel);
 						return;
 					}
 					voiceChannel.leave();
@@ -339,7 +343,7 @@ public class MusicEvents {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"loop")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"loop")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
 					if (scheduler.isRepeating()) {
 						scheduler.setRepeating(false);
@@ -378,7 +382,7 @@ public class MusicEvents {
 				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
 				if (state.getChannel() != null && state.getChannel().getConnectedUsers().size() == 2) {
 					List<IUser> users = state.getChannel().getConnectedUsers();
-					if (users.contains(XTBot.client.getOurUser()) && users.contains(event.getAuthor())) return true;
+					if (users.contains(Main.client.getOurUser()) && users.contains(event.getAuthor())) return true;
 				}
 			}
 			return false;
