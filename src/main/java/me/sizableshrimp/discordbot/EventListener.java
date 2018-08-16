@@ -36,30 +36,30 @@ public class EventListener {
 			String message = event.getMessage().getContent();
 			IChannel channel = event.getChannel();
 			String[] args = message.split(" ");
-			if (message.toLowerCase().startsWith(XTBot.prefix+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(XTBot.client.getOurUser()))) {
+			if (message.toLowerCase().startsWith(Main.prefix+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(Main.client.getOurUser()))) {
 				sendMessage("Hello! I am XT Bot. My commands are:\n```"+
-						XTBot.prefix+"hey\n"+
-						XTBot.prefix+"info\n"+
-						XTBot.prefix+"music\n"+
-						XTBot.prefix+"fortnite or "+XTBot.prefix+"ftn\n"+
-						XTBot.prefix+"settings```", channel);
+						Main.prefix+"hey\n"+
+						Main.prefix+"info\n"+
+						Main.prefix+"music\n"+
+						Main.prefix+"fortnite or "+Main.prefix+"ftn\n"+
+						Main.prefix+"settings```", channel);
 				return;
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"info")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"info")) {
 				EmbedBuilder embed = new EmbedBuilder();
 				embed.withAuthorName("Information");
 				embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot) and hosted on [Heroku](https://dashboard.heroku.com). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
 				embed.appendField("Author", "SizableShrimp", true);
 				embed.appendField("Discord4J Version", "2.10.1", true);
-				embed.appendField("Prefix", XTBot.prefix, false);
+				embed.appendField("Prefix", Main.prefix, false);
 				embed.appendField("Uptime", getUptime(), false);
-				new MessageBuilder(XTBot.client).appendContent("To find out my commands, use `"+XTBot.prefix+"help`").withEmbed(embed.build()).withChannel(channel).build();
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"fortnite") || message.toLowerCase().startsWith(XTBot.prefix+"ftn")) {
+				new MessageBuilder(Main.client).appendContent("To find out my commands, use `"+Main.prefix+"help`").withEmbed(embed.build()).withChannel(channel).build();
+			} else if (message.toLowerCase().startsWith(Main.prefix+"fortnite") || message.toLowerCase().startsWith(Main.prefix+"ftn")) {
 				if (args.length >= 3) {
 					String platform = args[1];
 					if (platform.equalsIgnoreCase("pc") || platform.equalsIgnoreCase("ps4") || platform.equalsIgnoreCase("xbox")) {
 						platform = platform.toLowerCase();
 					} else {
-						sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
+						sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
 						return;
 					}
 					StringBuffer username = new StringBuffer();
@@ -107,16 +107,16 @@ public class EventListener {
 						return;
 					}
 				} else {
-					sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
+					sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"hey")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"hey")) {
 				sendMessage("Hello! :smile:", channel);
 				return;
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings prefix")) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"settings prefix")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 					if (args.length != 3) {
-						sendMessage("Incorrect usage. Please use: ```"+XTBot.prefix+"settings prefix [new prefix]```", channel);
+						sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"settings prefix [new prefix]```", channel);
 						return;
 					} else {
 						String newPrefix = args[2];
@@ -128,19 +128,19 @@ public class EventListener {
 							sendMessage(":x: A prefix cannot be a letter.", channel);
 							return;
 						}
-						XTBot.prefix = newPrefix;
-						sendMessage(":white_check_mark: Prefix successfully changed to `"+XTBot.prefix+"`", channel);
+						Main.prefix = newPrefix;
+						sendMessage(":white_check_mark: Prefix successfully changed to `"+Main.prefix+"`", channel);
 						return;
 					}
 				} else {
 					sendMessage(":x: Insufficient permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(XTBot.prefix+"settings") && args.length == 1) {
+			} else if (message.toLowerCase().startsWith(Main.prefix+"settings") && args.length == 1) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 					EmbedBuilder embed = new EmbedBuilder();
 					embed.withAuthorName("XT Bot Settings");
-					embed.appendField(":exclamation: **Prefix**", "`"+XTBot.prefix+"settings prefix [new prefix]`", true);
+					embed.appendField(":exclamation: **Prefix**", "`"+Main.prefix+"settings prefix [new prefix]`", true);
 					sendEmbed(embed, channel);
 					return;
 				} else {
@@ -152,7 +152,7 @@ public class EventListener {
 
 	@EventSubscriber
 	public void onReady(ReadyEvent event) {
-		RequestBuffer.request(() -> XTBot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
+		RequestBuffer.request(() -> Main.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
 	}
 
 	public static void sendMessage(String message, IChannel channel) {
@@ -164,7 +164,7 @@ public class EventListener {
 	}
 
 	private String getUptime() {
-		Long uptime = System.currentTimeMillis()-XTBot.firstOnline;
+		Long uptime = System.currentTimeMillis()-Main.firstOnline;
 		Long days = TimeUnit.MILLISECONDS.toDays(uptime);
 		Long hours = TimeUnit.MILLISECONDS.toHours(uptime) - TimeUnit.DAYS.toHours(days);
 		Long minutes = TimeUnit.MILLISECONDS.toMinutes(uptime) - TimeUnit.HOURS.toMinutes(hours) - TimeUnit.DAYS.toMinutes(days);
