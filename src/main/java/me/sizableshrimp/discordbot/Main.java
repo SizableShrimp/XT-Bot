@@ -92,7 +92,7 @@ public class Main {
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
-					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCOWSGxYNYJEaUuqnh8Cpc-g&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
+					HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
 					connection.setRequestMethod("GET");
 					connection.connect();
 					if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
