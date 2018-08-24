@@ -35,6 +35,7 @@ public class Main {
 	public static final long firstOnline = System.currentTimeMillis();
 	private static boolean isLive = false;
 	private static long latestVideo;
+	private static String latestStreamId;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Main.class, args);
@@ -78,8 +79,9 @@ public class Main {
 							return;
 						}
 						if (json.getJSONObject("pageInfo").getInt("totalResults") == 1 && !isLive) {
-							JSONObject video = json.getJSONArray("items").getJSONObject(0);
-							EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
+							JSONObject stream = json.getJSONArray("items").getJSONObject(0);
+							EventListener.sendMessage("@everyone **"+stream.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+stream.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
+							latestStreamId = stream.getJSONObject("id").getString("videoId");
 							isLive = true;
 						}
 						return;
@@ -106,7 +108,7 @@ public class Main {
 						if (json.getJSONObject("pageInfo").getInt("totalResults") >= 1) {
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
 							ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
-							if (publishDate.toInstant().toEpochMilli() > firstOnline && latestVideo != publishDate.toInstant().toEpochMilli()) {
+							if (publishDate.toInstant().toEpochMilli() > firstOnline && latestVideo != publishDate.toInstant().toEpochMilli() && latestStreamId != video.getJSONObject("id").getString("videoId")) {
 								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** on "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
 								latestVideo = publishDate.toInstant().toEpochMilli();
 							}
