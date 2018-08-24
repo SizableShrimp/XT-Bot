@@ -18,6 +18,7 @@ import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
 import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.IVoiceState;
@@ -27,6 +28,7 @@ import sx.blah.discord.util.RequestBuffer;
 
 public class MusicEvents {
 	public Music music;
+	private List<IGuild> lockedGuilds = new ArrayList<IGuild>();
 
 	public MusicEvents() {
 		music = new Music();
@@ -42,9 +44,9 @@ public class MusicEvents {
 			TrackScheduler scheduler = manager.scheduler;
 			IChannel channel = event.getChannel();
 			if (message.toLowerCase().startsWith(Main.prefix+"music")) {
-				EventListener.sendMessage("I can play music! My music commands are:```"+
+				EventListener.sendMessage("I can play music! My music commands are:```[] = required  () = optional\n"+
 						Main.prefix+"play [song] - Plays the song that you request.\n"+
-						Main.prefix+"volume [new volume] or "+Main.prefix+"vol [new volume] - Changes the volume.\n"+
+						Main.prefix+"volume (new volume) or "+Main.prefix+"vol (new volume) - Changes the volume or tells the current volume.\n"+
 						Main.prefix+"pause - Pauses/unpauses the song.\n"+
 						Main.prefix+"queue or "+Main.prefix+"q - Shows what is currently playing and what is queued up to go next.\n"+
 						Main.prefix+"clear - Clears all the queued music.\n"+
@@ -57,9 +59,11 @@ public class MusicEvents {
 						Main.prefix+"forceskip - Forecfully skips to the next song.\n"+
 						Main.prefix+"disconnect or "+Main.prefix+"leave - Disconnects from the voice channel and stops playing music.\n"+
 						Main.prefix+"loop - Puts the song currently playing on/off repeat.```"+
-						"__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands.", channel);
+						Main.prefix+"lock - Locks the bot to admins only.```"+
+						"__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands (except"+Main.prefix+"lock).", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Main.prefix+"play")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (message.split(" ").length >= 2) {
 					IVoiceChannel voiceChannel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
 					String query = message.substring(6);
@@ -85,7 +89,12 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"volume") || message.startsWith(Main.prefix+"vol")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to change/look at the volume.", channel);
+						return;
+					}
 					if (message.split(" ").length == 2) { 
 						try {
 							Integer.valueOf(message.split(" ")[1]);
@@ -99,10 +108,13 @@ public class MusicEvents {
 							return;
 						}
 						player.setVolume(volume);
-						EventListener.sendMessage("Volume set to **"+volume+"%**", channel);
+						EventListener.sendMessage("Volume set to **"+volume+"%** from **"+player.getVolume()+"**%", channel);
+						return;
+					} else if (message.split(" ").length == 1) {
+						EventListener.sendMessage("Volume is at **"+player.getVolume()+"%**", channel);
 						return;
 					} else {
-						EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"volume [new volume]```", channel);
+						EventListener.sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"volume [new volume] or "+Main.prefix+"volume```", channel);
 						return;
 					}
 				} else {
@@ -110,7 +122,12 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"pause")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to pause/unpause the music.", channel);
+						return;
+					}
 					if (manager.player.getPlayingTrack() != null) {
 						if (player.isPaused()) {
 							player.setPaused(false);
@@ -130,7 +147,12 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"clear")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to clear the queue.", channel);
+						return;
+					}
 					scheduler.queue.clear();
 					EventListener.sendMessage("Queue cleared.", channel);
 					return;
@@ -139,7 +161,12 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"remove")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to remove a song from the queue.", channel);
+						return;
+					}
 					if (scheduler.queue.isEmpty()) {
 						EventListener.sendMessage("There is nothing in the queue to remove.", channel);
 						return;
@@ -178,7 +205,12 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"goto")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to change the time of the current song.", channel);
+						return;
+					}
 					if (player.getPlayingTrack() == null) {
 						EventListener.sendMessage("There is nothing to change the time of.", channel);
 						return;
@@ -224,6 +256,11 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"skip")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
+				if(!isConnectedToSame(event)) {
+					EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to request to skip the current song.", channel);
+					return;
+				}
 				if (manager.player.getPlayingTrack() == null) {
 					EventListener.sendMessage("There is nothing to skip.", channel);
 					return;
@@ -245,11 +282,16 @@ public class MusicEvents {
 				EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Main.prefix+"forceskip")) {
-				if (manager.player.getPlayingTrack() == null) {
-					EventListener.sendMessage("There is nothing to skip.", channel);
-					return;
-				}
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to forceskip the current song.", channel);
+						return;
+					}
+					if (manager.player.getPlayingTrack() == null) {
+						EventListener.sendMessage(":x: There is nothing to skip.", channel);
+						return;
+					}
 					music.skipTrack(channel);
 					EventListener.sendMessage("Skipped song.", channel);
 					return;
@@ -298,7 +340,12 @@ public class MusicEvents {
 				EventListener.sendEmbed(embed, channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Main.prefix+"rewind")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to rewind.", channel);
+						return;
+					}
 					if (player.getPlayingTrack() == null) {
 						EventListener.sendMessage("There is nothing to rewind.", channel);
 						return;
@@ -311,7 +358,12 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"fastforward") || message.toLowerCase().startsWith(Main.prefix+"ff")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to fast forward.", channel);
+						return;
+					}
 					if (player.getPlayingTrack() == null) {
 						EventListener.sendMessage("There is nothing to fast forward.", channel);
 						return;
@@ -324,7 +376,12 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"disconnect") || message.startsWith(Main.prefix+"leave")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to make me disconnect.", channel);
+						return;
+					}
 					IVoiceChannel voiceChannel = event.getGuild().getConnectedVoiceChannel();
 					if (voiceChannel == null) {
 						EventListener.sendMessage("I am not connected to a voice channel.", channel);
@@ -344,7 +401,12 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Main.prefix+"loop")) {
+				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) || isOne(event)) {
+					if(!isConnectedToSame(event)) {
+						EventListener.sendMessage("Join `"+event.getGuild().getConnectedVoiceChannel()+"` to loop the song.", channel);
+						return;
+					}
 					if (scheduler.isRepeating()) {
 						scheduler.setRepeating(false);
 						EventListener.sendMessage("Loop disabled.", channel);
@@ -356,6 +418,22 @@ public class MusicEvents {
 					}
 				} else {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					return;
+				}
+			} else if (message.toLowerCase().startsWith(Main.prefix+"lock")) {
+				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS)) {
+					if (lockedGuilds.contains(event.getGuild())) {
+						lockedGuilds.remove(event.getGuild());
+						EventListener.sendMessage(":white_check_mark: Music unlocked.", channel);
+						return;
+					} else {
+						lockedGuilds.add(event.getGuild());
+						EventListener.sendMessage(":lock: Music locked.", channel);
+						return;
+					}
+				} else {
+					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you have the **Manage Channels** permission.", channel);
+					return;
 				}
 			}
 		});
@@ -371,12 +449,13 @@ public class MusicEvents {
 				manager.player.startTrack(null, false);
 				manager.player.setVolume(music.DEFAULT_VOLUME);
 				manager.player.setPaused(false);
+				lockedGuilds.remove(event.getGuild());
 				channel.leave();
 			}
 		});
 	}
 
-	boolean isOne(MessageReceivedEvent event) {
+	private boolean isOne(MessageReceivedEvent event) {
 		RequestBuffer.request(() -> {
 			if (event.getAuthor().getVoiceStateForGuild(event.getGuild()) != null) {
 				IVoiceState state = event.getAuthor().getVoiceStateForGuild(event.getGuild());
@@ -390,7 +469,7 @@ public class MusicEvents {
 		return false;
 	}
 
-	String getLength(Long length) {
+	private String getLength(Long length) {
 		Long hours = 0L;
 		if (TimeUnit.MILLISECONDS.toHours(length) > 0) hours = TimeUnit.MILLISECONDS.toHours(length);
 		Long minutes = TimeUnit.MILLISECONDS.toMinutes(length) - TimeUnit.HOURS.toMinutes(hours);
@@ -398,5 +477,20 @@ public class MusicEvents {
 		String convertedSeconds = seconds < 10L ? "0"+seconds.toString() : seconds.toString();
 		String convertedMinutes = minutes < 10L ? "0"+minutes.toString() : minutes.toString();
 		return hours != 0L ? hours.toString()+":"+convertedMinutes+":"+convertedSeconds : minutes.toString()+":"+convertedSeconds;
+	}
+
+	private boolean isConnectedToSame(MessageReceivedEvent event) {
+		RequestBuffer.request(() -> {
+			return (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel());
+		});
+		return false;
+	}
+	
+	private boolean isLocked(IGuild guild, IChannel channel) {
+		if (lockedGuilds.contains(guild)) {
+			EventListener.sendMessage(":lock: Music is currently locked for normal members. Please try again later.", channel);
+			return true;
+		}
+		return false;
 	}
 }
