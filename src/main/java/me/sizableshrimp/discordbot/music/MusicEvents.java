@@ -111,8 +111,9 @@ public class MusicEvents {
 							EventListener.sendMessage("Please enter a number between 0 and 100.", channel);
 							return;
 						}
+						int oldVolume = player.getVolume();
 						player.setVolume(volume);
-						EventListener.sendMessage("Volume set to **"+volume+"%** from **"+player.getVolume()+"**%", channel);
+						EventListener.sendMessage("Volume set to **"+volume+"%** from **"+oldVolume+"**%", channel);
 						return;
 					} else if (message.split(" ").length == 1) {
 						EventListener.sendMessage("Volume is at **"+player.getVolume()+"%**", channel);
