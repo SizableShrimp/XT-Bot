@@ -528,7 +528,7 @@ public class MusicEvents {
 	}
 
 	private boolean isConnectedToSame(MessageReceivedEvent event) {
-		return (event.getGuild().getConnectedVoiceChannel() != null && event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel() != event.getGuild().getConnectedVoiceChannel());
+		return (event.getGuild().getConnectedVoiceChannel() != null && event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel() == event.getGuild().getConnectedVoiceChannel());
 	}
 	
 	private boolean isLocked(IGuild guild, IChannel channel) {
