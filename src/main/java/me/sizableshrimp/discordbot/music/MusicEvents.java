@@ -491,15 +491,13 @@ public class MusicEvents {
 	@EventSubscriber
 	public void onUserVoiceLeave(UserVoiceChannelLeaveEvent event) {
 		RequestBuffer.request(() -> {
-			IVoiceChannel channel = event.getVoiceChannel();
-			if (event.getGuild().getConnectedVoiceChannel() == channel && channel.getConnectedUsers().size() == 1) {
+			if (event.getUser() == Main.client.getOurUser()) {
 				GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 				manager.scheduler.queue.clear();
 				manager.player.startTrack(null, false);
 				manager.player.setVolume(music.DEFAULT_VOLUME);
 				manager.player.setPaused(false);
 				lockedGuilds.remove(event.getGuild());
-				channel.leave();
 			}
 		});
 	}
