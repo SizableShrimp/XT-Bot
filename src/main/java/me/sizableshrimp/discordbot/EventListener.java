@@ -255,9 +255,4 @@ public class EventListener {
 			return "Error when retrieving Lifetime stats.";
 		}
 	}
-
-	/*static void newVideo(Map<String, String> payload) {
-		sendMessage("@everyone "+payload.get("content")+" on "+getTime(payload.get("date"))+"\n"+payload.get("link"), XTBot.client.getChannelByID(341028279584817163L));
-		return;
-	}*/
 }

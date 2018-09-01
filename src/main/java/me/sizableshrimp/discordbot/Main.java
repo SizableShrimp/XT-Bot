@@ -49,17 +49,19 @@ public class Main {
 				EventListener.sendMessage("Happy 420!", client.getChannelByID(332985255151665152L));
 			}
 		}, dailyMeme(), 24*60*60, TimeUnit.SECONDS);
-		scheduler.scheduleAtFixedRate(new Runnable() {
-			public void run() {
-				try {
-					HttpsURLConnection connection = (HttpsURLConnection) new URL(System.getenv("URL")).openConnection();
-					connection.setRequestMethod("GET");
-					connection.connect();
-					connection.getResponseCode();
-					connection.disconnect();
-				} catch (IOException e) {e.printStackTrace();}
-			}
-		}, 0, 5*60, TimeUnit.SECONDS);
+		if (System.getenv("HEROKU").equals("true")) {
+			scheduler.scheduleAtFixedRate(new Runnable() {
+				public void run() {
+					try {
+						HttpsURLConnection connection = (HttpsURLConnection) new URL(System.getenv("URL")).openConnection();
+						connection.setRequestMethod("GET");
+						connection.connect();
+						connection.getResponseCode();
+						connection.disconnect();
+					} catch (IOException e) {e.printStackTrace();}
+				}
+			}, 0, 5*60, TimeUnit.SECONDS);
+		}
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				try {
@@ -147,7 +149,7 @@ public class Main {
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+ordinal+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
 		return format.format(time);
 	}
-	
+
 	private static IDiscordClient createClient(String token, boolean login) {
 		ClientBuilder clientBuilder = new ClientBuilder();
 		clientBuilder.withToken(token);
