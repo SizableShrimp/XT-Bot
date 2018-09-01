@@ -140,7 +140,7 @@ public class EventListener {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 					EmbedBuilder embed = new EmbedBuilder();
 					embed.withAuthorName("XT Bot Settings");
-					embed.appendField(":exclamation: **Prefix**", "`"+Main.prefix+"settings prefix [new prefix]`", true);
+					embed.appendField("**Prefix**", "`"+Main.prefix+"settings prefix [new prefix]`", true);
 					sendEmbed(embed, channel);
 					return;
 				} else {
