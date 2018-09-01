@@ -58,7 +58,7 @@ public class MusicEvents {
 						Main.prefix+"skip - Requests to skip the song. If enough people have voted to skip, the next song will be played.\n"+
 						Main.prefix+"forceskip - Forecfully skips to the next song.\n"+
 						Main.prefix+"disconnect or "+Main.prefix+"leave - Disconnects from the voice channel and stops playing music.\n"+
-						Main.prefix+"loop - Puts the song currently playing on/off repeat.```"+
+						Main.prefix+"loop - Puts the song currently playing on/off repeat.\n"+
 						Main.prefix+"lock - Locks the bot to admins only.```"+
 						"__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands (except"+Main.prefix+"lock).", channel);
 				return;
