@@ -60,7 +60,7 @@ public class MusicEvents {
 						Main.prefix+"disconnect or "+Main.prefix+"leave - Disconnects from the voice channel and stops playing music.\n"+
 						Main.prefix+"loop - Puts the song currently playing on/off repeat.\n"+
 						Main.prefix+"lock - Locks the bot to admins only.```"+
-						"__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands (except "+Main.prefix+"lock).", channel);
+						"__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands (except `"+Main.prefix+"lock`).", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Main.prefix+"play")) {
 				if (!channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_CHANNELS) && isLocked(event.getGuild(), channel)) return;
@@ -434,8 +434,6 @@ public class MusicEvents {
 					}
 					voiceChannel.leave();
 					EventListener.sendMessage("Left `"+voiceChannel.getName()+"`", channel);
-					scheduler.queue.clear();
-					manager.player.startTrack(null, false);
 					return;
 				} else {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
