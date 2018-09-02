@@ -48,7 +48,7 @@ public class EventListener {
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"info")) {
 				EmbedBuilder embed = new EmbedBuilder();
 				embed.withAuthorName("Information");
-				embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
+				embed.appendDesc("This bot is built with [Spring Boot](https://spring.io/projects/spring-boot). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
 				embed.appendField("Author", "SizableShrimp", true);
 				embed.appendField("Discord4J Version", "2.10.1", true);
 				embed.appendField("Prefix", Bot.getPrefix(event.getGuild()), false);
@@ -134,7 +134,7 @@ public class EventListener {
 						return;
 					}
 				} else {
-					sendMessage(":x: Insufficient permission.", channel);
+					sendMessage(":x: Insufficient permission. You can do this command if you have the **Manage Server** permission.", channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings") && args.length == 1) {
@@ -145,7 +145,7 @@ public class EventListener {
 					sendEmbed(embed, channel);
 					return;
 				} else {
-					sendMessage(":x: Insufficient permission.", channel);
+					sendMessage(":x: Insufficient permission. You can do this command if you have the **Manage Server** permission.", channel);
 				}
 			}
 		});
