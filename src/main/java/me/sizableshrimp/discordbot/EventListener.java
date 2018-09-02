@@ -19,6 +19,7 @@ import org.json.JSONObject;
 
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IChannel;
@@ -36,30 +37,30 @@ public class EventListener {
 			String message = event.getMessage().getContent();
 			IChannel channel = event.getChannel();
 			String[] args = message.split(" ");
-			if (message.toLowerCase().startsWith(Main.prefix+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(Main.client.getOurUser()))) {
+			if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(Bot.client.getOurUser()))) {
 				sendMessage("Hello! I am XT Bot. My commands are:\n```"+
-						Main.prefix+"hey\n"+
-						Main.prefix+"info\n"+
-						Main.prefix+"music\n"+
-						Main.prefix+"fortnite or "+Main.prefix+"ftn\n"+
-						Main.prefix+"settings```", channel);
+						Bot.getPrefix(event.getGuild())+"hey\n"+
+						Bot.getPrefix(event.getGuild())+"info\n"+
+						Bot.getPrefix(event.getGuild())+"music\n"+
+						Bot.getPrefix(event.getGuild())+"fortnite or "+Bot.getPrefix(event.getGuild())+"ftn\n"+
+						Bot.getPrefix(event.getGuild())+"settings```", channel);
 				return;
-			} else if (message.toLowerCase().startsWith(Main.prefix+"info")) {
+			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"info")) {
 				EmbedBuilder embed = new EmbedBuilder();
 				embed.withAuthorName("Information");
 				embed.appendDesc("This bot is built with [Spring Boot 2.0.3](https://spring.io/projects/spring-boot). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
 				embed.appendField("Author", "SizableShrimp", true);
 				embed.appendField("Discord4J Version", "2.10.1", true);
-				embed.appendField("Prefix", Main.prefix, false);
+				embed.appendField("Prefix", Bot.getPrefix(event.getGuild()), false);
 				embed.appendField("Uptime", getUptime(), false);
-				new MessageBuilder(Main.client).appendContent("To find out my commands, use `"+Main.prefix+"help`").withEmbed(embed.build()).withChannel(channel).build();
-			} else if (message.toLowerCase().startsWith(Main.prefix+"fortnite") || message.toLowerCase().startsWith(Main.prefix+"ftn")) {
+				new MessageBuilder(Bot.client).appendContent("To find out my commands, use `"+Bot.getPrefix(event.getGuild())+"help`").withEmbed(embed.build()).withChannel(channel).build();
+			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"fortnite") || message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"ftn")) {
 				if (args.length >= 3) {
 					String platform = args[1];
 					if (platform.equalsIgnoreCase("pc") || platform.equalsIgnoreCase("ps4") || platform.equalsIgnoreCase("xbox")) {
 						platform = platform.toLowerCase();
 					} else {
-						sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
+						sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(event.getGuild())+"fortnite [pc|ps4|xbox] [username]```", channel);
 						return;
 					}
 					StringBuffer username = new StringBuffer();
@@ -107,16 +108,16 @@ public class EventListener {
 						return;
 					}
 				} else {
-					sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"fortnite [pc|ps4|xbox] [username]```", channel);
+					sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(event.getGuild())+"fortnite [pc|ps4|xbox] [username]```", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(Main.prefix+"hey")) {
+			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"hey")) {
 				sendMessage("Hello! :smile:", channel);
 				return;
-			} else if (message.toLowerCase().startsWith(Main.prefix+"settings prefix")) {
+			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 					if (args.length != 3) {
-						sendMessage("Incorrect usage. Please use: ```"+Main.prefix+"settings prefix [new prefix]```", channel);
+						sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(event.getGuild())+"settings prefix [new prefix]```", channel);
 						return;
 					} else {
 						String newPrefix = args[2];
@@ -128,19 +129,19 @@ public class EventListener {
 							sendMessage(":x: A prefix cannot be a letter.", channel);
 							return;
 						}
-						Main.prefix = newPrefix;
-						sendMessage(":white_check_mark: Prefix successfully changed to `"+Main.prefix+"`", channel);
+						Bot.setPrefix(event.getGuild(), newPrefix);
+						sendMessage(":white_check_mark: Prefix successfully changed to `"+Bot.getPrefix(event.getGuild())+"`", channel);
 						return;
 					}
 				} else {
 					sendMessage(":x: Insufficient permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(Main.prefix+"settings") && args.length == 1) {
+			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings") && args.length == 1) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 					EmbedBuilder embed = new EmbedBuilder();
 					embed.withAuthorName("XT Bot Settings");
-					embed.appendField("**Prefix**", "`"+Main.prefix+"settings prefix [new prefix]`", true);
+					embed.appendField("**Prefix**", "`"+Bot.getPrefix(event.getGuild())+"settings prefix [new prefix]`", true);
 					sendEmbed(embed, channel);
 					return;
 				} else {
@@ -152,7 +153,12 @@ public class EventListener {
 
 	@EventSubscriber
 	public void onReady(ReadyEvent event) {
-		RequestBuffer.request(() -> Main.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
+		RequestBuffer.request(() -> Bot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
+	}
+	
+	@EventSubscriber
+	public void onGuildCreate(GuildCreateEvent event) {
+		Bot.setPrefix(event.getGuild(), ",");
 	}
 
 	public static void sendMessage(String message, IChannel channel) {
@@ -164,7 +170,7 @@ public class EventListener {
 	}
 
 	private String getUptime() {
-		Long uptime = System.currentTimeMillis()-Main.firstOnline;
+		Long uptime = System.currentTimeMillis()-Bot.firstOnline;
 		Long days = TimeUnit.MILLISECONDS.toDays(uptime);
 		Long hours = TimeUnit.MILLISECONDS.toHours(uptime) - TimeUnit.DAYS.toHours(days);
 		Long minutes = TimeUnit.MILLISECONDS.toMinutes(uptime) - TimeUnit.HOURS.toMinutes(hours) - TimeUnit.DAYS.toMinutes(days);
