@@ -61,7 +61,7 @@ public class TrackScheduler extends AudioEventAdapter {
 	@Override
 	public void onTrackStart(AudioPlayer player, AudioTrack track) {
 		if (guild.getConnectedVoiceChannel() == null) {
-			System.out.println("Error: Track was trying to play while bot is not connected to a voice channel. Stopping track.");
+			System.out.println("Music track is trying to play while bot is not connected to a voice channel. Stopping track.");
 			player.stopTrack();
 			return;
 		}
