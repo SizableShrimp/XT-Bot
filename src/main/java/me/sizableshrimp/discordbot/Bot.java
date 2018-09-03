@@ -28,6 +28,7 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
 import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
 
 @SpringBootApplication
@@ -45,6 +46,10 @@ public class Bot {
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 		dispatcher.registerListener(new MusicEvents());
+		IMessage[] messages = client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray();
+		for (IMessage message : messages) {
+			if (message.getContent().contains(latestStreamId)) return;
+		}
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
@@ -81,9 +86,14 @@ public class Bot {
 						if (json.getJSONObject("pageInfo").getInt("totalResults") == 0 && isLive) {
 							isLive = false;
 							return;
-						}
-						if (json.getJSONObject("pageInfo").getInt("totalResults") == 1 && !isLive) {
+						} else if (json.getJSONObject("pageInfo").getInt("totalResults") == 1 && !isLive) {
 							JSONObject stream = json.getJSONArray("items").getJSONObject(0);
+							for (IMessage message : client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray()) {
+								if (message.getContent().contains(stream.getJSONObject("id").getString("videoId"))) {
+									isLive = true;
+									return;
+								}
+							}
 							EventListener.sendMessage("@everyone **"+stream.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+stream.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
 							latestStreamId = stream.getJSONObject("id").getString("videoId");
 							isLive = true;
@@ -163,11 +173,11 @@ public class Bot {
 			return null;
 		}
 	}
-	
+
 	public static String getPrefix(IGuild guild) {
 		return (prefixes.get(guild.getLongID()));
 	}
-	
+
 	public static void setPrefix(IGuild guild, String prefix) {
 		prefixes.put(guild.getLongID(), prefix);
 	}
