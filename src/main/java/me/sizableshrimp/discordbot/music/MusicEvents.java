@@ -521,10 +521,7 @@ public class MusicEvents {
 	}
 	
 	private boolean hasManageChannels(IUser user, IChannel channel) {
-		RequestBuffer.request(() -> {
-			return (channel.getModifiedPermissions(user).contains(Permissions.MANAGE_CHANNELS));
-		});
-		return false;
+		return (channel.getModifiedPermissions(user).contains(Permissions.MANAGE_CHANNELS));
 	}
 
 	private String getLength(Long length) {
