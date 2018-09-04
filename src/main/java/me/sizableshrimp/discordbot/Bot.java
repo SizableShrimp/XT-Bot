@@ -46,17 +46,18 @@ public class Bot {
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 		dispatcher.registerListener(new MusicEvents());
-		IMessage[] messages = client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray();
-		for (IMessage message : messages) {
-			if (message.getContent().contains(latestStreamId)) return;
-		}
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				EventListener.sendMessage("Happy 420!", client.getChannelByID(332985255151665152L));
 			}
 		}, dailyMeme(), 24*60*60, TimeUnit.SECONDS);
-		if (System.getenv("HEROKU") != null) {
+		boolean heroku = false;
+		try {
+			String s = System.getenv("HEROKU");
+			if (s != null) heroku = true;
+		} catch (NullPointerException e) {}
+		if (heroku) {
 			scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					try {
