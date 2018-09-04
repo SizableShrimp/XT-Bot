@@ -56,7 +56,7 @@ public class Bot {
 				EventListener.sendMessage("Happy 420!", client.getChannelByID(332985255151665152L));
 			}
 		}, dailyMeme(), 24*60*60, TimeUnit.SECONDS);
-		if (System.getenv("HEROKU").equals("true")) {
+		if (System.getenv("HEROKU") != null) {
 			scheduler.scheduleAtFixedRate(new Runnable() {
 				public void run() {
 					try {
