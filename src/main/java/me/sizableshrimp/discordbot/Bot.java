@@ -38,7 +38,6 @@ public class Bot {
 	public static final long firstOnline = System.currentTimeMillis();
 	private static boolean isLive = false;
 	private static long latestVideo;
-	private static String latestStreamId;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Bot.class, args);
@@ -96,7 +95,6 @@ public class Bot {
 								}
 							}
 							EventListener.sendMessage("@everyone **"+stream.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+stream.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
-							latestStreamId = stream.getJSONObject("id").getString("videoId");
 							isLive = true;
 						}
 						return;
@@ -122,9 +120,13 @@ public class Bot {
 						JSONObject json = new JSONObject(response.toString());
 						if (json.getJSONObject("pageInfo").getInt("totalResults") >= 1) {
 							JSONObject video = json.getJSONArray("items").getJSONObject(0);
-							if (latestStreamId.equals(video.getJSONObject("id").getString("videoId"))) return;
 							ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
 							if (publishDate.toInstant().toEpochMilli() > firstOnline && latestVideo != publishDate.toInstant().toEpochMilli()) {
+								for (IMessage message : client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray()) {
+									if (message.getContent().contains(video.getJSONObject("id").getString("videoId"))) {
+										return;
+									}
+								}
 								EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** on "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
 								latestVideo = publishDate.toInstant().toEpochMilli();
 							}
