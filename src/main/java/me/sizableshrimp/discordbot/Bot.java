@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -183,5 +187,75 @@ public class Bot {
 
 	public static void setPrefix(IGuild guild, String prefix) {
 		prefixes.put(guild.getLongID(), prefix);
+		updateGuild(guild.getLongID(), prefix);
+	}
+	
+	public static void removePrefix(IGuild guild) {
+		prefixes.remove(guild.getLongID());
+		removeGuild(guild.getLongID());
+	}
+	
+	public static void insertGuild(Long id, String prefix) {
+		String url = System.getenv("SQL_URL");
+		String user = System.getenv("SQL_USER");
+		String password = System.getenv("SQL_PASSWORD");
+		try {
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+			Connection con = DriverManager.getConnection(url, user, password);
+			PreparedStatement pst = con.prepareStatement("INSERT INTO prefixes(guild_id, prefix) VALUES(?, ?)");
+			pst.setLong(1, id);
+			pst.setString(2, prefix);
+			pst.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateGuild(Long id, String prefix) {
+		String url = System.getenv("SQL_URL");
+		String user = System.getenv("SQL_USER");
+		String password = System.getenv("SQL_PASSWORD");
+		try {
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+			Connection con = DriverManager.getConnection(url, user, password);
+			PreparedStatement pst = con.prepareStatement("UPDATE prefixes SET prefix = ? WHERE guild_id = ?");
+			pst.setString(1, prefix);
+			pst.setLong(2, id);
+			pst.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void removeGuild(Long id) {
+		String url = System.getenv("SQL_URL");
+		String user = System.getenv("SQL_USER");
+		String password = System.getenv("SQL_PASSWORD");
+		try {
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+			Connection con = DriverManager.getConnection(url, user, password);
+			PreparedStatement pst = con.prepareStatement("DELETE FROM prefixes WHERE guild_id=?");
+			pst.setLong(1, id);
+			pst.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static String retrieveSQLPrefix(Long id) {
+		String url = System.getenv("SQL_URL");
+		String user = System.getenv("SQL_USER");
+		String password = System.getenv("SQL_PASSWORD");
+		try {
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+			Connection con = DriverManager.getConnection(url, user, password);
+			PreparedStatement pst = con.prepareStatement("SELECT * FROM prefixes WHERE guild_id=?");
+			pst.setLong(1, id);
+			ResultSet set = pst.executeQuery();
+			if (set.next()) return set.getString(2);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

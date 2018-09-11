@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
+import sx.blah.discord.handle.impl.events.guild.GuildLeaveEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IChannel;
@@ -31,7 +32,7 @@ import sx.blah.discord.util.RequestBuffer;
 
 public class EventListener {
 	@EventSubscriber
-	public void onMessageEvent(MessageReceivedEvent event) {
+	public void onMessageReceived(MessageReceivedEvent event) {
 		RequestBuffer.request(() -> {
 			if (event.getAuthor().isBot()) return;
 			String message = event.getMessage().getContent();
@@ -158,7 +159,18 @@ public class EventListener {
 	
 	@EventSubscriber
 	public void onGuildCreate(GuildCreateEvent event) {
-		Bot.setPrefix(event.getGuild(), ",");
+		String prefix = Bot.retrieveSQLPrefix(event.getGuild().getLongID());
+		if (prefix != null) {
+			Bot.setPrefix(event.getGuild(), prefix);
+		} else {
+			Bot.setPrefix(event.getGuild(), ",");
+			Bot.insertGuild(event.getGuild().getLongID(), ",");
+		}
+	}
+	
+	@EventSubscriber
+	public void onGuildLeave(GuildLeaveEvent event) {
+		Bot.removePrefix(event.getGuild());
 	}
 
 	public static void sendMessage(String message, IChannel channel) {
