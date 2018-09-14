@@ -71,7 +71,7 @@ public class Bot {
 						connection.disconnect();
 					} catch (IOException e) {e.printStackTrace();}
 				}
-			}, 0, 5*60, TimeUnit.SECONDS);
+			}, 0, 10*60, TimeUnit.SECONDS);
 		}
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
