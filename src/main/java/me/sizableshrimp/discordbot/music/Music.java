@@ -75,6 +75,35 @@ public class Music {
 			}
 		});
 	}
+	
+	public void loadAndPlay(final IChannel channel, final IVoiceChannel voiceChannel, final String trackUrl, boolean validURL) {
+		GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+		playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
+			@Override
+			public void trackLoaded(AudioTrack track) {
+				play(channel, musicManager, track, validURL);
+			}
+
+			@Override
+			public void playlistLoaded(AudioPlaylist playlist) {
+				AudioTrack firstTrack = playlist.getSelectedTrack();
+				if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
+				play(channel, musicManager, firstTrack, validURL);
+			}
+
+			@Override
+			public void noMatches() {
+				EventListener.sendMessage("I could not find a song that contained: " + trackUrl, channel);
+			}
+
+			@Override
+			public void loadFailed(FriendlyException exception) {
+				EventListener.sendMessage("An error occured while trying to play the song. Please try again later.", channel);
+				voiceChannel.leave();
+				exception.printStackTrace();
+			}
+		});
+	}
 
 	private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track) {
 		if (TimeUnit.MILLISECONDS.toSeconds(track.getDuration()) > TimeUnit.HOURS.toSeconds(10)) {
@@ -82,6 +111,14 @@ public class Music {
 			return;
 		}
 		musicManager.scheduler.queue(track, channel);
+	}
+	
+	private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track, boolean validURL) {
+		if (TimeUnit.MILLISECONDS.toSeconds(track.getDuration()) > TimeUnit.HOURS.toSeconds(10)) {
+			EventListener.sendMessage(":x: Cannot play a song over 10 hours in length.", channel);
+			return;
+		}
+		musicManager.scheduler.queue(track, channel, validURL);
 	}
 
 	void skipTrack(IChannel channel) {

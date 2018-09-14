@@ -41,6 +41,29 @@ public class TrackScheduler extends AudioEventAdapter {
 		}
 	}
 
+	public void queue(AudioTrack track, IChannel channel, boolean validURL) {
+		// Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
+		// something is playing, it returns false and does nothing. In that case the player was already playing so this
+		// track goes to the queue instead.
+		boolean isPlaying = player.startTrack(track, true);
+		if (!isPlaying) {
+			queue.offer(track);
+			if (validURL) {
+				EventListener.sendMessage("`"+track.getInfo().title+"` added to queue.\n<"+track.getInfo().uri+">", channel);
+			} else {
+				EventListener.sendMessage("`"+track.getInfo().title+"` added to queue.\n"+track.getInfo().uri+"", channel);
+			}
+			return;
+		} else {
+			if (validURL) {
+				EventListener.sendMessage("Now playing `"+track.getInfo().title+"`\n<"+track.getInfo().uri+">", channel);
+			} else {
+				EventListener.sendMessage("Now playing `"+track.getInfo().title+"`\n"+track.getInfo().uri, channel);
+			}
+			return;
+		}
+	}
+
 	public void nextTrack() {
 		// Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
 		// giving null to startTrack, which is a valid argument and will simply stop the player.

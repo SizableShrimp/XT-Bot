@@ -71,7 +71,7 @@ public class MusicEvents {
 					try {new URL(query).toURI();} catch (MalformedURLException | URISyntaxException exception) {isValid = false;}
 					if (!isValid) query = "ytsearch:"+query;
 					if (event.getGuild().getConnectedVoiceChannel() != null && event.getGuild().getConnectedVoiceChannel() == voiceChannel) {
-						music.loadAndPlay(channel, voiceChannel, query);
+						music.loadAndPlay(channel, voiceChannel, query, isValid);
 						return;
 					} else if (event.getGuild().getConnectedVoiceChannel() == null && voiceChannel == null) {
 						EventListener.sendMessage("Join a voice channel if you want me to play a song!", channel);
@@ -81,7 +81,7 @@ public class MusicEvents {
 						return;
 					} else if (event.getGuild().getConnectedVoiceChannel() == null & voiceChannel != null) {
 						voiceChannel.join();
-						music.loadAndPlay(channel, voiceChannel, query);
+						music.loadAndPlay(channel, voiceChannel, query, isValid);
 						return;
 					}
 				} else {
