@@ -21,7 +21,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.api.internal.json.requests.MemberEditRequest;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildLeaveEvent;
@@ -33,7 +32,6 @@ import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
-import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.PermissionUtils;
 import sx.blah.discord.util.RequestBuffer;
 
@@ -125,7 +123,7 @@ public class EventListener {
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
 				IMessage temp;
 				if (event.getGuild().getOwner().equals(event.getAuthor()) 
-						|| !PermissionUtils.hasPermissions(event.getChannel(), event.getAuthor(), Permissions.MANAGE_NICKNAMES) 
+						|| !PermissionUtils.hasPermissions(event.getChannel(), Bot.client.getOurUser(), Permissions.MANAGE_NICKNAMES) 
 						|| PermissionUtils.isUserHigher(event.getGuild(), event.getAuthor(), Bot.client.getOurUser())) {
 					temp = event.getChannel().sendMessage("\u200B:x: I do not have permission to change your nickname. (This command does not work for admins.)");
 				} else {
