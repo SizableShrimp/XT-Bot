@@ -122,6 +122,7 @@ public class EventListener {
 				NameGenerator generator = new NameGenerator();
 				String name = generator.generateName(Gender.MALE).getFirstName();
 				event.getGuild().setUserNickname(event.getAuthor(), name);
+				event.getMessage().delete();
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
