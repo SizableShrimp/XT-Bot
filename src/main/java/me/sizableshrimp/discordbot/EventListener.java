@@ -9,6 +9,7 @@ import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -27,10 +28,12 @@ import sx.blah.discord.handle.impl.events.guild.GuildLeaveEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
+import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RequestBuffer;
 
 public class EventListener {
@@ -119,10 +122,20 @@ public class EventListener {
 				sendMessage("Hello! :smile:", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
-				NameGenerator generator = new NameGenerator();
-				String name = generator.generateName(Gender.MALE).getFirstName();
-				event.getGuild().setUserNickname(event.getAuthor(), name);
-				event.getMessage().delete();
+				try {
+					NameGenerator generator = new NameGenerator();
+					String name = generator.generateName(Gender.MALE).getFirstName();
+					event.getGuild().setUserNickname(event.getAuthor(), name);
+					event.getMessage().delete();
+				} catch (MissingPermissionsException e) {
+					IMessage temp = event.getChannel().sendMessage("\u200B:x: I cannot change the nickname of someone with a higher role than me!");
+					Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
+						public void run() {
+							event.getMessage().delete();
+							temp.delete();
+						}
+					}, 7, TimeUnit.SECONDS);
+				}
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
