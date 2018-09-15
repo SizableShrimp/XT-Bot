@@ -127,7 +127,7 @@ public class MusicEvents {
 					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"pause")) {
+			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"pause") || message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"p")) {
 				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
@@ -472,7 +472,7 @@ public class MusicEvents {
 					}
 					if (lockedGuilds.contains(event.getGuild())) {
 						lockedGuilds.remove(event.getGuild());
-						EventListener.sendMessage(":white_check_mark: Music unlocked.", channel);
+						EventListener.sendMessage(":unlock: Music unlocked.", channel);
 						return;
 					} else {
 						lockedGuilds.add(event.getGuild());
