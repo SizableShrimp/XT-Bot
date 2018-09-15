@@ -34,6 +34,7 @@ import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
+import sx.blah.discord.util.PermissionUtils;
 import sx.blah.discord.util.RequestBuffer;
 
 public class EventListener {
@@ -122,23 +123,24 @@ public class EventListener {
 				sendMessage("Hello! :smile:", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
-				try {
-					NameGenerator generator = new NameGenerator();
-					String name = generator.generateName(Gender.MALE).getFirstName();
-					event.getGuild().setUserNickname(event.getAuthor(), name);
-					event.getMessage().delete();
-				} catch (MissingPermissionsException e) {
-					IMessage temp = event.getChannel().sendMessage("\u200B:x: I cannot change the nickname of someone with a higher role than me!");
+				if (event.getGuild().getOwner().equals(event.getAuthor()) 
+						|| !PermissionUtils.hasPermissions(event.getChannel(), event.getAuthor(), Permissions.MANAGE_NICKNAMES) 
+						|| PermissionUtils.isUserHigher(event.getGuild(), event.getAuthor(), Bot.client.getOurUser())) {
+					IMessage temp = event.getChannel().sendMessage("\u200B:x: I do not have permission to change your nickname. (This command does not work for admins.)");
 					Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
 						public void run() {
 							event.getMessage().delete();
 							temp.delete();
 						}
 					}, 7, TimeUnit.SECONDS);
+					return;
 				}
+				String name = new NameGenerator().generateName(Gender.MALE).getFirstName();
+				event.getGuild().setUserNickname(event.getAuthor(), name);
+				event.getMessage().delete();
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
-				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
+				if (PermissionUtils.hasPermissions(event.getChannel(), event.getAuthor(), Permissions.MANAGE_SERVER)) {
 					if (args.length != 3) {
 						sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(event.getGuild())+"settings prefix [new prefix]```", channel);
 						return;
@@ -161,7 +163,7 @@ public class EventListener {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings") && args.length == 1) {
-				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
+				if (PermissionUtils.hasPermissions(event.getChannel(), event.getAuthor(), Permissions.MANAGE_SERVER)) {
 					EmbedBuilder embed = new EmbedBuilder();
 					embed.withAuthorName("XT Bot Settings");
 					embed.appendField("**Prefix**", "`"+Bot.getPrefix(event.getGuild())+"settings prefix [new prefix]`", true);
