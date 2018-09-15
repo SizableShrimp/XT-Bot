@@ -56,7 +56,13 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			</dependency>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.ajbrown</groupId>
+			<artifactId>name-machine</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>
