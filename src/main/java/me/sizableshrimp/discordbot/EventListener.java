@@ -13,11 +13,14 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.ajbrown.namemachine.Gender;
+import org.ajbrown.namemachine.NameGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import sx.blah.discord.api.events.EventSubscriber;
+import sx.blah.discord.api.internal.json.requests.MemberEditRequest;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildLeaveEvent;
@@ -115,6 +118,11 @@ public class EventListener {
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"hey")) {
 				sendMessage("Hello! :smile:", channel);
 				return;
+			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
+				NameGenerator generator = new NameGenerator();
+				String name = generator.generateName(Gender.MALE).getFirstName();
+				event.getGuild().setUserNickname(event.getAuthor(), name);
+				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
 				if (channel.getModifiedPermissions(event.getAuthor()).contains(Permissions.MANAGE_SERVER)) {
 					if (args.length != 3) {
@@ -156,7 +164,7 @@ public class EventListener {
 	public void onReady(ReadyEvent event) {
 		RequestBuffer.request(() -> Bot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
 	}
-	
+
 	@EventSubscriber
 	public void onGuildCreate(GuildCreateEvent event) {
 		String prefix = Bot.retrieveSQLPrefix(event.getGuild().getLongID());
@@ -167,7 +175,7 @@ public class EventListener {
 			Bot.insertGuild(event.getGuild().getLongID(), ",");
 		}
 	}
-	
+
 	@EventSubscriber
 	public void onGuildLeave(GuildLeaveEvent event) {
 		Bot.removePrefix(event.getGuild());
