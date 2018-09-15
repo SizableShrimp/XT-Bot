@@ -24,6 +24,7 @@ import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.IVoiceState;
 import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.EmbedBuilder;
+import sx.blah.discord.util.PermissionUtils;
 import sx.blah.discord.util.RequestBuffer;
 
 public class MusicEvents {
@@ -521,7 +522,7 @@ public class MusicEvents {
 	}
 	
 	private boolean hasManageChannels(IUser user, IChannel channel) {
-		return (channel.getModifiedPermissions(user).contains(Permissions.MANAGE_CHANNELS));
+		return (PermissionUtils.hasPermissions(channel, user, Permissions.MANAGE_CHANNELS));
 	}
 
 	private String getLength(Long length) {
