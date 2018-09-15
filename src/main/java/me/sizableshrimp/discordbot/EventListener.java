@@ -123,21 +123,22 @@ public class EventListener {
 				sendMessage("Hello! :smile:", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
+				IMessage temp;
 				if (event.getGuild().getOwner().equals(event.getAuthor()) 
 						|| !PermissionUtils.hasPermissions(event.getChannel(), event.getAuthor(), Permissions.MANAGE_NICKNAMES) 
 						|| PermissionUtils.isUserHigher(event.getGuild(), event.getAuthor(), Bot.client.getOurUser())) {
-					IMessage temp = event.getChannel().sendMessage("\u200B:x: I do not have permission to change your nickname. (This command does not work for admins.)");
-					Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
-						public void run() {
-							event.getMessage().delete();
-							temp.delete();
-						}
-					}, 7, TimeUnit.SECONDS);
-					return;
+					temp = event.getChannel().sendMessage("\u200B:x: I do not have permission to change your nickname. (This command does not work for admins.)");
+				} else {
+					String name = new NameGenerator().generateName(Gender.MALE).getFirstName();
+					event.getGuild().setUserNickname(event.getAuthor(), name);
+					temp = event.getChannel().sendMessage("\u200B:white_check_mark: Your name has been changed to `"+name+"`.");
 				}
-				String name = new NameGenerator().generateName(Gender.MALE).getFirstName();
-				event.getGuild().setUserNickname(event.getAuthor(), name);
-				event.getMessage().delete();
+				Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
+					public void run() {
+						event.getMessage().delete();
+						temp.delete();
+					}
+				}, 7, TimeUnit.SECONDS);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
 				if (PermissionUtils.hasPermissions(event.getChannel(), event.getAuthor(), Permissions.MANAGE_SERVER)) {
