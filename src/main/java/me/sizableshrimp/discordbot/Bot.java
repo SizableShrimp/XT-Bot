@@ -28,7 +28,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import me.sizableshrimp.discordbot.music.MusicEvents;
-import me.sizableshrimp.discordbot.party.PartyEvents;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
@@ -50,7 +49,6 @@ public class Bot {
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new EventListener());
 		dispatcher.registerListener(new MusicEvents());
-		dispatcher.registerListener(new PartyEvents());
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			public void run() {
