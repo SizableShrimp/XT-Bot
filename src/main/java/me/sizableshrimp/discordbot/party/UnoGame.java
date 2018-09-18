@@ -167,6 +167,16 @@ public class UnoGame {
 		turn = turn.next();
 	}
 	
+	public boolean hasFinished() {
+		return hand1.size() == 0 || hand2.size() == 0;
+	}
+	
+	public Player winner() {
+		if (hand1.size() == 0) return Player.FIRST;
+		if (hand2.size() == 0) return Player.SECOND;
+		return null;
+	}
+	
 	public void setSkipping(boolean skipping) {
 		this.skipping = skipping;
 	}

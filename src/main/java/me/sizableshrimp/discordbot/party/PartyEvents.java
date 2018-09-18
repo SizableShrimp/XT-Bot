@@ -33,8 +33,10 @@ public class PartyEvents {
 	static List<Long> waitingReactions = new ArrayList<>();
 	static List<Long> drawFourReactions = new ArrayList<>();
 	static List<Long> wildReactions = new ArrayList<>();
-	final static List<IEmoji> WILD_COLORS = Arrays.asList(Bot.client.getGuildByID(UNO_GUILD).getEmojiByName(":red_square:"), Bot.client.getGuildByID(UNO_GUILD).getEmojiByName(":green_square:"), 
-			Bot.client.getGuildByID(UNO_GUILD).getEmojiByName(":blue_square:"), Bot.client.getGuildByID(UNO_GUILD).getEmojiByName(":yellow_square:"));
+	final static List<IEmoji> WILD_COLORS = Arrays.asList(Bot.client.getGuildByID(UNO_GUILD).getEmojiByName("red_square"), 
+			Bot.client.getGuildByID(UNO_GUILD).getEmojiByName("green_square"), 
+			Bot.client.getGuildByID(UNO_GUILD).getEmojiByName("blue_square"), 
+			Bot.client.getGuildByID(UNO_GUILD).getEmojiByName("yellow_square"));
 	final static List<Card> DEFAULT_DECK = Arrays.asList(Card.WILD, Card.WILD, Card.WILD, Card.WILD, Card.DRAW_FOUR_WILD, Card.DRAW_FOUR_WILD, Card.DRAW_FOUR_WILD, Card.DRAW_FOUR_WILD, Card.YELLOW_0, Card.YELLOW_1, Card.YELLOW_2, 
 			Card.YELLOW_3, Card.YELLOW_4, Card.YELLOW_5, Card.YELLOW_6, Card.YELLOW_7, Card.
 			YELLOW_8, Card.YELLOW_9, Card.YELLOW_DRAW_TWO, Card.YELLOW_SKIP, Card.
@@ -118,9 +120,9 @@ public class PartyEvents {
 			String message = event.getMessage().getContent();
 			String[] args = Arrays.copyOfRange(message.split(" "), 1, message.split(" ").length);
 			IUser user = event.getAuthor();
-//			if (event.getChannel().isPrivate() && unos.containsKey(user)) {
-//				//TODO add stuff here
-//			}
+			//			if (event.getChannel().isPrivate() && unos.containsKey(user)) {
+			//				//TODO add stuff here
+			//			}
 			if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"uno")) {
 				if (args.length == 1 && args[0].equals("play")) {
 					if (waitingUno.containsValue(user.getLongID())) {
@@ -177,6 +179,7 @@ public class PartyEvents {
 			}
 			doAction(event, game, game.getPlayer(user));
 			waitingReactions.remove(event.getMessageID());
+			if (game.hasFinished()) displayWinner(game);
 			doNextTurn(game);
 		}
 	}
@@ -427,7 +430,30 @@ public class PartyEvents {
 			if (result.length() > 0) result.append(" ");
 			result.append(getUnoEmoji(c).toString());
 		}
+		if (result.length() == 0) return "None";
 		return result.toString();
+	}
+
+	static void displayWinner(UnoGame game) {
+		EmbedBuilder won = defaultUnoEmbed();
+		EmbedBuilder lost = defaultUnoEmbed();
+		Player winner = game.winner();
+		Player loser = game.getOtherPlayer(winner);
+		won.withColor(UNO_GOOD);
+		won.appendDesc("You won!");
+		won.withImage("upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
+		won.appendField("Discard", getUnoEmoji(game.getTopDiscard()).toString(), true);
+		won.appendField("Your Hand", displayHand(game.getHand(winner)), false);
+		won.appendField("Opponent's Hand", displayHand(game.getHand(loser)), false);
+		lost.withColor(UNO_BAD);
+		lost.appendDesc("You lost. Better luck next time!");
+		lost.withImage("upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
+		lost.appendField("Discard", getUnoEmoji(game.getTopDiscard()).toString(), true);
+		lost.appendField("Your Hand", displayHand(game.getHand(loser)), false);
+		lost.appendField("Opponent's Hand", displayHand(game.getHand(winner)), false);
+		game.getUser(winner).getOrCreatePMChannel().sendMessage("Thanks for playing!", won.build());
+		game.getUser(loser).getOrCreatePMChannel().sendMessage("Thanks for playing!", lost.build());
+		end(game);
 	}
 
 	static void end(UnoGame game) {
