@@ -39,7 +39,7 @@ public class EventListener {
 	@EventSubscriber
 	public void onMessageReceived(MessageReceivedEvent event) {
 		RequestBuffer.request(() -> {
-			if (event.getAuthor().isBot()) return;
+			if (event.getAuthor().isBot() || event.getChannel().isPrivate()) return;
 			String message = event.getMessage().getContent();
 			IChannel channel = event.getChannel();
 			String[] args = message.split(" ");
@@ -123,13 +123,13 @@ public class EventListener {
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
 				IMessage temp;
 				if (event.getGuild().getOwner().equals(event.getAuthor()) 
-						|| !PermissionUtils.hasPermissions(event.getChannel(), Bot.client.getOurUser(), Permissions.MANAGE_NICKNAMES) 
+						|| !PermissionUtils.hasPermissions(channel, Bot.client.getOurUser(), Permissions.MANAGE_NICKNAMES) 
 						|| PermissionUtils.isUserHigher(event.getGuild(), event.getAuthor(), Bot.client.getOurUser())) {
-					temp = event.getChannel().sendMessage("\u200B:x: I do not have permission to change your nickname. (This command does not work for admins.)");
+					temp = channel.sendMessage("\u200B:x: I do not have permission to change your nickname. (This command does not work for admins.)");
 				} else {
 					String name = new NameGenerator().generateName(Gender.MALE).getFirstName();
 					event.getGuild().setUserNickname(event.getAuthor(), name);
-					temp = event.getChannel().sendMessage("\u200B:white_check_mark: Your name has been changed to `"+name+"`.");
+					temp = channel.sendMessage("\u200B:white_check_mark: Your name has been changed to `"+name+"`.");
 				}
 				Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
 					public void run() {
@@ -139,7 +139,7 @@ public class EventListener {
 				}, 7, TimeUnit.SECONDS);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
-				if (PermissionUtils.hasPermissions(event.getChannel(), event.getAuthor(), Permissions.MANAGE_SERVER)) {
+				if (PermissionUtils.hasPermissions(channel, event.getAuthor(), Permissions.MANAGE_SERVER)) {
 					if (args.length != 3) {
 						sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(event.getGuild())+"settings prefix [new prefix]```", channel);
 						return;
@@ -162,7 +162,7 @@ public class EventListener {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings") && args.length == 1) {
-				if (PermissionUtils.hasPermissions(event.getChannel(), event.getAuthor(), Permissions.MANAGE_SERVER)) {
+				if (PermissionUtils.hasPermissions(channel, event.getAuthor(), Permissions.MANAGE_SERVER)) {
 					EmbedBuilder embed = new EmbedBuilder();
 					embed.withAuthorName("XT Bot Settings");
 					embed.appendField("**Prefix**", "`"+Bot.getPrefix(event.getGuild())+"settings prefix [new prefix]`", true);
@@ -196,12 +196,12 @@ public class EventListener {
 		Bot.removePrefix(event.getGuild());
 	}
 
-	public static void sendMessage(String message, IChannel channel) {
-		RequestBuffer.request(() -> channel.sendMessage("\u200B"+message));
+	public static IMessage sendMessage(String message, IChannel channel) {
+		return channel.sendMessage("\u200B"+message);
 	}
 
-	public static void sendEmbed(EmbedBuilder embed, IChannel channel) {
-		RequestBuffer.request(() -> channel.sendMessage("\u200B", embed.build()));
+	public static IMessage sendEmbed(EmbedBuilder embed, IChannel channel) {
+		return channel.sendMessage(embed.build());
 	}
 
 	private String getUptime() {
