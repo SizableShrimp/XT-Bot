@@ -250,14 +250,8 @@ public class UnoGame {
 	 * Starts the UNO game.
 	 */
 	public boolean start(IChannel original) {
-		EmbedBuilder embed1 = new EmbedBuilder();
-		EmbedBuilder embed2 = new EmbedBuilder();
-		embed1.withAuthorName("UNO");
-		embed1.withColor(PartyEvents.UNO_NEUTRAL);
-		embed1.withAuthorIcon("upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
-		embed2.withAuthorName("UNO");
-		embed2.withColor(PartyEvents.UNO_NEUTRAL);
-		embed2.withAuthorIcon("upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
+		EmbedBuilder embed1 = PartyEvents.defaultUnoEmbed();
+		EmbedBuilder embed2 = PartyEvents.defaultUnoEmbed();
 		List<String> names = new ArrayList<>();
 		IUser person1 = Bot.client.getUserByID(this.person1);
 		IUser person2 = Bot.client.getUserByID(this.person2);

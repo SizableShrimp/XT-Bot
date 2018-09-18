@@ -424,7 +424,7 @@ public class PartyEvents {
 		EmbedBuilder embed  = new EmbedBuilder();
 		embed.withAuthorName("UNO");
 		embed.withColor(UNO_NEUTRAL);
-		embed.withAuthorIcon("upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
+		embed.withAuthorIcon("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
 		return embed;
 	}
 
@@ -445,13 +445,13 @@ public class PartyEvents {
 		Player loser = game.getOtherPlayer(winner);
 		won.withColor(UNO_GOOD);
 		won.appendDesc("You won!");
-		won.withImage("upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
+		won.withImage("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
 		won.appendField("Discard", getUnoEmoji(game.getTopDiscard()).toString(), true);
 		won.appendField("Your Hand", displayHand(game.getHand(winner)), false);
 		won.appendField("Opponent's Hand", displayHand(game.getHand(loser)), false);
 		lost.withColor(UNO_BAD);
 		lost.appendDesc("You lost. Better luck next time!");
-		lost.withImage("upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
+		lost.withImage("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1280px-UNO_Logo.svg.png");
 		lost.appendField("Discard", getUnoEmoji(game.getTopDiscard()).toString(), true);
 		lost.appendField("Your Hand", displayHand(game.getHand(loser)), false);
 		lost.appendField("Opponent's Hand", displayHand(game.getHand(winner)), false);
