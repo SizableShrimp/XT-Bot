@@ -33,10 +33,10 @@ public class PartyEvents {
 	static List<Long> waitingReactions = new ArrayList<>();
 	static List<Long> drawFourReactions = new ArrayList<>();
 	static List<Long> wildReactions = new ArrayList<>();
-	final static List<IEmoji> WILD_COLORS = Arrays.asList(Bot.client.getGuildByID(UNO_GUILD).getEmojiByID(491460290941288448L), 
-			Bot.client.getGuildByID(UNO_GUILD).getEmojiByID(491460290941288448L), 
-			Bot.client.getGuildByID(UNO_GUILD).getEmojiByID(491460290941288448L), 
-			Bot.client.getGuildByID(UNO_GUILD).getEmojiByID(491460290941288448L));
+	final static List<IEmoji> WILD_COLORS = Arrays.asList(Bot.client.getGuildByID(UNO_GUILD).getEmojiByName("red_square"), 
+			Bot.client.getGuildByID(UNO_GUILD).getEmojiByName("green_square"), 
+			Bot.client.getGuildByID(UNO_GUILD).getEmojiByName("blue_square"), 
+			Bot.client.getGuildByID(UNO_GUILD).getEmojiByName("yellow_square"));
 	final static List<Card> DEFAULT_DECK = Arrays.asList(Card.WILD, Card.WILD, Card.WILD, Card.WILD, Card.DRAW_FOUR_WILD, Card.DRAW_FOUR_WILD, Card.DRAW_FOUR_WILD, Card.DRAW_FOUR_WILD, Card.YELLOW_0, Card.YELLOW_1, Card.YELLOW_2, 
 			Card.YELLOW_3, Card.YELLOW_4, Card.YELLOW_5, Card.YELLOW_6, Card.YELLOW_7, Card.
 			YELLOW_8, Card.YELLOW_9, Card.YELLOW_DRAW_TWO, Card.YELLOW_SKIP, Card.
