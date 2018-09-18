@@ -274,6 +274,7 @@ public class UnoGame {
 		try {
 			message = person1.getOrCreatePMChannel().sendMessage(embed1.build());
 		} catch (DiscordException e) {
+			e.printStackTrace();
 			PartyEvents.end(this);
 			EventListener.sendMessage("**Game canceled.** "+person1.mention()+" Please enable your private messages to play the game.", original);
 			return false;
@@ -282,6 +283,7 @@ public class UnoGame {
 		try {
 			message = person2.getOrCreatePMChannel().sendMessage(embed2.build());
 		} catch (DiscordException e) {
+			e.printStackTrace();
 			PartyEvents.end(this);
 			EventListener.sendMessage("**Game canceled.** "+person2.mention()+" Please enable your private messages to play the game.", original);
 			return false;

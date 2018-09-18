@@ -135,8 +135,12 @@ public class PartyEvents {
 					}
 					final int id = waitingUno.size()+1;
 					waitingUno.put(id, user.getLongID());
-					EventListener.sendMessage("Created a lobby. Someone else can join this UNO game by typing `"+Bot.getPrefix(event.getGuild())+"uno join "+String.valueOf(id)+"`\n**Please make sure your private messaging is enabled or you will not be able to properly play**", event.getChannel());
+					EventListener.sendMessage("Created a lobby. Someone else can join this UNO game by typing `"+Bot.getPrefix(event.getGuild())+"uno join "+String.valueOf(id)+"`\n**Please make sure your private messaging is enabled or you will not be able to play**", event.getChannel());
 				} else if (args.length == 2 && args[0].equals("join")) {
+					if (waitingUno.containsValue(user.getLongID())) {
+						EventListener.sendMessage(":x: You are already waiting to join a game.", event.getChannel());
+						return;
+					}
 					try {
 						Integer.valueOf(args[1]);
 					} catch (NumberFormatException e) {
