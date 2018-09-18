@@ -38,7 +38,7 @@ public class MusicEvents {
 	@EventSubscriber
 	public void onMessageReceived(MessageReceivedEvent event) {
 		RequestBuffer.request(() -> {
-			if (event.getAuthor().isBot()) return;
+			if (event.getAuthor().isBot() || event.getChannel().isPrivate()) return;
 			String message = event.getMessage().getContent();
 			GuildMusicManager manager = music.getGuildAudioPlayer(event.getGuild());
 			AudioPlayer player = manager.player;
@@ -48,7 +48,7 @@ public class MusicEvents {
 				EventListener.sendMessage("I can play music! My music commands are:```[] = required  () = optional\n"+
 						Bot.getPrefix(event.getGuild())+"play [song] - Plays the song that you request.\n"+
 						Bot.getPrefix(event.getGuild())+"volume (new volume) or "+Bot.getPrefix(event.getGuild())+"vol (new volume) - Changes the volume or tells the current volume.\n"+
-						Bot.getPrefix(event.getGuild())+"pause - Pauses/unpauses the song.\n"+
+						Bot.getPrefix(event.getGuild())+"pause or "+Bot.getPrefix(event.getGuild())+"p - Pauses/unpauses the song.\n"+
 						Bot.getPrefix(event.getGuild())+"queue or "+Bot.getPrefix(event.getGuild())+"q - Shows what is currently playing and what is queued up to go next.\n"+
 						Bot.getPrefix(event.getGuild())+"clear - Clears all the queued music.\n"+
 						Bot.getPrefix(event.getGuild())+"nowplaying or "+Bot.getPrefix(event.getGuild())+"np - Shows what is currently playing.\n"+
