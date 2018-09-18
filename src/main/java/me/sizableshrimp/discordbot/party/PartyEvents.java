@@ -23,9 +23,9 @@ import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.RequestBuffer;
 
 public class PartyEvents {
-	private final static Color UNO_NEUTRAL = new Color(255, 255, 0);
-	private final static Color UNO_BAD = new Color(255, 0, 0);
-	private final static Color UNO_GOOD = new Color(0, 255, 0);
+	final static Color UNO_NEUTRAL = new Color(255, 255, 0);
+	final static Color UNO_BAD = new Color(255, 0, 0);
+	final static Color UNO_GOOD = new Color(0, 255, 0);
 	private final static long UNO_GUILD = 471178200580489236L;
 	private final static long UNO_GUILD2 = 490759923240796160L;
 	static HashMap<Long, UnoGame> unos = new HashMap<>();
