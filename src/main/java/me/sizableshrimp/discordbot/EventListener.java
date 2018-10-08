@@ -8,6 +8,7 @@ import java.math.RoundingMode;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import me.sizableshrimp.discordbot.party.PartyEvents;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
@@ -42,7 +44,7 @@ public class EventListener {
 			if (event.getAuthor().isBot() || event.getChannel().isPrivate()) return;
 			String message = event.getMessage().getContent();
 			IChannel channel = event.getChannel();
-			String[] args = message.split(" ");
+			String[] args = Arrays.copyOfRange(message.split(" "), 1, message.split(" ").length);
 			if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"help") || (!message.contains("@everyone") && !message.contains("@here") && event.getMessage().getMentions().contains(Bot.client.getOurUser()))) {
 				sendMessage("Hello! I am XT Bot. My commands are:\n```"+
 						Bot.getPrefix(event.getGuild())+"hey\n"+
@@ -61,17 +63,17 @@ public class EventListener {
 				embed.appendField("Uptime", getUptime(), false);
 				new MessageBuilder(Bot.client).appendContent("To find out my commands, use `"+Bot.getPrefix(event.getGuild())+"help`").withEmbed(embed.build()).withChannel(channel).build();
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"fortnite") || message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"ftn")) {
-				if (args.length >= 3) {
-					String platform = args[1];
+				if (args.length >= 2) {
+					String platform = args[0];
 					if (platform.equalsIgnoreCase("pc") || platform.equalsIgnoreCase("ps4") || platform.equalsIgnoreCase("xbox")) {
 						platform = platform.toLowerCase();
 					} else {
-						sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(event.getGuild())+"fortnite [pc|ps4|xbox] [username]```", channel);
+						incorrectUsage("fortnite [pc|ps4|xbox] [username]```", channel);
 						return;
 					}
 					StringBuffer username = new StringBuffer();
-					username.append(args[2]);
-					for (int i = 3; i < args.length; i++) username.append(" "+args[i]);
+					username.append(args[1]);
+					for (int i = 2; i < args.length; i++) username.append(" "+args[i]);
 					try {
 						HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username.toString()).openConnection();
 						conn.setRequestMethod("GET");
@@ -114,37 +116,43 @@ public class EventListener {
 						return;
 					}
 				} else {
-					sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(event.getGuild())+"fortnite [pc|ps4|xbox] [username]```", channel);
+					incorrectUsage("fortnite [pc|ps4|xbox] [username]```", channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"hey")) {
 				sendMessage("Hello! :smile:", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
-				IMessage temp;
 				if (event.getGuild().getOwner().equals(event.getAuthor()) 
 						|| !PermissionUtils.hasPermissions(channel, Bot.client.getOurUser(), Permissions.MANAGE_NICKNAMES) 
 						|| PermissionUtils.isUserHigher(event.getGuild(), event.getAuthor(), Bot.client.getOurUser())) {
-					temp = channel.sendMessage("\u200B:x: I do not have permission to change your nickname. (This command does not work for admins.)");
+					deleteLater(7, event.getMessage(), channel.sendMessage("\u200B:x: I do not have permission to change your nickname. (This command does not work for admins.)"));
 				} else {
-					String name = new NameGenerator().generateName(Gender.MALE).getFirstName();
-					event.getGuild().setUserNickname(event.getAuthor(), name);
-					temp = channel.sendMessage("\u200B:white_check_mark: Your name has been changed to `"+name+"`.");
-				}
-				Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
-					public void run() {
-						event.getMessage().delete();
-						temp.delete();
+					if (args.length != 1) {
+						deleteLater(7, event.getMessage(), incorrectUsage("newname (male|female)", channel));
+						return;
 					}
-				}, 7, TimeUnit.SECONDS);
+					boolean isMale;
+					if (args[0].equals("male"))
+						isMale = true;
+					else if (args[0].equals("female"))
+						isMale = false;
+					else {
+						deleteLater(7, event.getMessage(), incorrectUsage("newname (male|female)", channel));
+						return;
+					}
+					String name = new NameGenerator().generateName(isMale ? Gender.MALE : Gender.FEMALE).getFirstName();
+					event.getGuild().setUserNickname(event.getAuthor(), name);
+					deleteLater(7, event.getMessage(), channel.sendMessage("\u200B:white_check_mark: Your name has been changed to `"+name+"`."));
+				}
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
 				if (PermissionUtils.hasPermissions(channel, event.getAuthor(), Permissions.MANAGE_SERVER)) {
-					if (args.length != 3) {
-						sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(event.getGuild())+"settings prefix [new prefix]```", channel);
+					if (args.length != 2) {
+						incorrectUsage("settings prefix [new prefix]```", channel);
 						return;
 					} else {
-						String newPrefix = args[2];
+						String newPrefix = args[1];
 						if (newPrefix.length() != 1) {
 							sendMessage(":x: A prefix can only be 1 character long.", channel);
 							return;
@@ -158,10 +166,10 @@ public class EventListener {
 						return;
 					}
 				} else {
-					sendMessage(":x: Insufficient permission. You can do this command if you have the **Manage Server** permission.", channel);
+					noPermission("Manage Server", channel);
 					return;
 				}
-			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings") && args.length == 1) {
+			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings") && args.length == 0) {
 				if (PermissionUtils.hasPermissions(channel, event.getAuthor(), Permissions.MANAGE_SERVER)) {
 					EmbedBuilder embed = new EmbedBuilder();
 					embed.withAuthorName("XT Bot Settings");
@@ -169,7 +177,7 @@ public class EventListener {
 					sendEmbed(embed, channel);
 					return;
 				} else {
-					sendMessage(":x: Insufficient permission. You can do this command if you have the **Manage Server** permission.", channel);
+					noPermission("Manage Server", channel);
 				}
 			}
 		});
@@ -178,10 +186,11 @@ public class EventListener {
 	@EventSubscriber
 	public void onReady(ReadyEvent event) {
 		RequestBuffer.request(() -> Bot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
+		Bot.client.getDispatcher().registerListener(new PartyEvents());
 	}
 
 	@EventSubscriber
-	public void onGuildCreate(GuildCreateEvent event) {
+	public void onGuildReceive(GuildCreateEvent event) {
 		String prefix = Bot.retrieveSQLPrefix(event.getGuild().getLongID());
 		if (prefix != null) {
 			Bot.setPrefix(event.getGuild(), prefix);
@@ -203,7 +212,23 @@ public class EventListener {
 	public static IMessage sendEmbed(EmbedBuilder embed, IChannel channel) {
 		return channel.sendMessage(embed.build());
 	}
+	
+	public static IMessage incorrectUsage(String usage, IChannel channel) {
+		return sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(channel.getGuild())+usage+"```", channel);
+	}
+	
+	public static IMessage noPermission(String permission, IChannel channel) {
+		return sendMessage(":x: Insufficient permission. You can do this command if you have the **"+permission+"** permission.", channel);
+	}
 
+	public static void deleteLater(Integer seconds, IMessage... messages) {
+		Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
+			public void run() {
+				for (IMessage m : messages) m.delete();
+			}
+		}, seconds, TimeUnit.SECONDS);
+	}
+	
 	private String getUptime() {
 		Long uptime = System.currentTimeMillis()-Bot.firstOnline;
 		Long days = TimeUnit.MILLISECONDS.toDays(uptime);
