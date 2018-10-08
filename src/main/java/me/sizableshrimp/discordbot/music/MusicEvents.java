@@ -64,7 +64,7 @@ public class MusicEvents {
 						"__**Please note:**__ Some of the commands are for administrators only. Do not expect to be able to use all of them! If you are the only person in the voice channel with me, then you may use all commands (except `"+Bot.getPrefix(event.getGuild())+"lock`).", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"play")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (message.split(" ").length >= 2) {
 					IVoiceChannel voiceChannel = event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel();
 					String query = message.substring(6);
@@ -90,7 +90,7 @@ public class MusicEvents {
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"volume") || message.startsWith(Bot.getPrefix(event.getGuild())+"vol")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -124,11 +124,11 @@ public class MusicEvents {
 						return;
 					}
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"pause") || message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"p")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -153,11 +153,11 @@ public class MusicEvents {
 						return;
 					}
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"clear")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -171,11 +171,11 @@ public class MusicEvents {
 					EventListener.sendMessage("Queue cleared.", channel);
 					return;
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"remove")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -219,11 +219,11 @@ public class MusicEvents {
 						return;
 					}
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"goto")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -274,11 +274,11 @@ public class MusicEvents {
 						return;
 					}
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"skip")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (event.getGuild().getConnectedVoiceChannel() == null) {
 					EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
 					return;
@@ -308,7 +308,7 @@ public class MusicEvents {
 				EventListener.sendMessage(wants.toString()+"/"+needed.toString()+" people have requested to skip this song.", channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"forceskip")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -326,7 +326,7 @@ public class MusicEvents {
 					EventListener.sendMessage("Skipped song.", channel);
 					return;
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"queue") || message.startsWith(Bot.getPrefix(event.getGuild())+"q")) {
@@ -370,7 +370,7 @@ public class MusicEvents {
 				EventListener.sendEmbed(embed, channel);
 				return;
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"rewind")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -388,11 +388,11 @@ public class MusicEvents {
 					EventListener.sendMessage(":rewind: Skipped 10 seconds backwards.", channel);
 					return;
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"fastforward") || message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"ff")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -410,11 +410,11 @@ public class MusicEvents {
 					EventListener.sendMessage(":fast_forward: Skipped 10 seconds forwards.", channel);
 					return;
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"disconnect") || message.startsWith(Bot.getPrefix(event.getGuild())+"leave")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -437,11 +437,11 @@ public class MusicEvents {
 					EventListener.sendMessage("Left `"+voiceChannel.getName()+"`", channel);
 					return;
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"loop")) {
-				if (!hasManageChannels(event.getAuthor(), channel) && isLocked(event.getGuild(), channel)) return;
+				if (locked(event.getAuthor(), channel)) return;
 				if (hasManageChannels(event.getAuthor(), channel) || isAlone(event)) {
 					if (event.getGuild().getConnectedVoiceChannel() == null) {
 						EventListener.sendMessage(":x: I am not connected to a voice channel. Make me play music to use this command.", channel);
@@ -461,7 +461,7 @@ public class MusicEvents {
 						return;
 					}
 				} else {
-					EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
+					notDJ(channel);
 					return;
 				}
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"lock")) {
@@ -539,11 +539,15 @@ public class MusicEvents {
 		return (event.getGuild().getConnectedVoiceChannel() != null && event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel() == event.getGuild().getConnectedVoiceChannel());
 	}
 	
-	private boolean isLocked(IGuild guild, IChannel channel) {
-		if (lockedGuilds.contains(guild)) {
+	private boolean locked(IUser user, IChannel channel) {
+		if (lockedGuilds.contains(channel.getGuild()) && !hasManageChannels(user, channel)) {
 			EventListener.sendMessage(":lock: Music is currently locked for normal members. Please try again later.", channel);
 			return true;
 		}
 		return false;
+	}
+	
+	private void notDJ(IChannel channel) {
+		EventListener.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or have the **Manage Channels** permission.", channel);
 	}
 }
