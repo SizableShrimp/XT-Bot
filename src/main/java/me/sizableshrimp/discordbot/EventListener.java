@@ -58,7 +58,7 @@ public class EventListener {
 				embed.withAuthorName("Information");
 				embed.appendDesc("This bot is built with [Spring Boot](https://spring.io/projects/spring-boot). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
 				embed.appendField("Author", "SizableShrimp", true);
-				embed.appendField("Discord4J Version", "2.10.1", true);
+				embed.appendField("Discord4J Version", "2.10.2-SNAPSHOT", true);
 				embed.appendField("Prefix", Bot.getPrefix(event.getGuild()), false);
 				embed.appendField("Uptime", getUptime(), false);
 				new MessageBuilder(Bot.client).appendContent("To find out my commands, use `"+Bot.getPrefix(event.getGuild())+"help`").withEmbed(embed.build()).withChannel(channel).build();
@@ -191,13 +191,14 @@ public class EventListener {
 
 	@EventSubscriber
 	public void onGuildReceive(GuildCreateEvent event) {
-		String prefix = Bot.retrieveSQLPrefix(event.getGuild().getLongID());
-		if (prefix != null) {
-			Bot.setPrefix(event.getGuild(), prefix);
-		} else {
-			Bot.setPrefix(event.getGuild(), ",");
-			Bot.insertGuild(event.getGuild().getLongID(), ",");
-		}
+//		String prefix = Bot.retrieveSQLPrefix(event.getGuild().getLongID());
+//		if (prefix != null) {
+//			Bot.setPrefix(event.getGuild(), prefix);
+//		} else {
+//			Bot.setPrefix(event.getGuild(), ",");
+//			Bot.insertGuild(event.getGuild().getLongID(), ",");
+//		}
+		Bot.setPrefix(event.getGuild(), ",");
 	}
 
 	@EventSubscriber
