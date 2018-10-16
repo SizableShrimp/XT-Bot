@@ -149,7 +149,7 @@ public class EventListener {
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
 				if (PermissionUtils.hasPermissions(channel, event.getAuthor(), Permissions.MANAGE_SERVER)) {
 					if (args.length != 2) {
-						incorrectUsage("settings prefix [new prefix]```", channel);
+						incorrectUsage("settings prefix [new prefix]", channel);
 						return;
 					} else {
 						String newPrefix = args[1];
