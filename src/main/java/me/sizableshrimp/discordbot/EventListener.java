@@ -21,7 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import me.sizableshrimp.discordbot.party.PartyEvents;
+//import me.sizableshrimp.discordbot.party.PartyEvents;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
@@ -186,7 +186,7 @@ public class EventListener {
 	@EventSubscriber
 	public void onReady(ReadyEvent event) {
 		RequestBuffer.request(() -> Bot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
-		Bot.client.getDispatcher().registerListener(new PartyEvents());
+		//Bot.client.getDispatcher().registerListener(new PartyEvents());
 	}
 
 	@EventSubscriber
