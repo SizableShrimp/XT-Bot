@@ -1,5 +1,23 @@
 package me.sizableshrimp.discordbot;
 
+import me.sizableshrimp.discordbot.party.PartyEvents;
+import org.ajbrown.namemachine.Gender;
+import org.ajbrown.namemachine.NameGenerator;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import sx.blah.discord.api.events.EventSubscriber;
+import sx.blah.discord.handle.impl.events.ReadyEvent;
+import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
+import sx.blah.discord.handle.impl.events.guild.GuildLeaveEvent;
+import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.util.EmbedBuilder;
+import sx.blah.discord.util.MessageBuilder;
+import sx.blah.discord.util.PermissionUtils;
+import sx.blah.discord.util.RequestBuffer;
+
+import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,30 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import org.ajbrown.namemachine.Gender;
-import org.ajbrown.namemachine.NameGenerator;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-//import me.sizableshrimp.discordbot.party.PartyEvents;
-import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.impl.events.ReadyEvent;
-import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
-import sx.blah.discord.handle.impl.events.guild.GuildLeaveEvent;
-import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.ActivityType;
-import sx.blah.discord.handle.obj.IChannel;
-import sx.blah.discord.handle.obj.IMessage;
-import sx.blah.discord.handle.obj.Permissions;
-import sx.blah.discord.handle.obj.StatusType;
-import sx.blah.discord.util.EmbedBuilder;
-import sx.blah.discord.util.MessageBuilder;
-import sx.blah.discord.util.PermissionUtils;
-import sx.blah.discord.util.RequestBuffer;
 
 public class EventListener {
 	@EventSubscriber
@@ -52,8 +46,7 @@ public class EventListener {
 						Bot.getPrefix(event.getGuild())+"music\n"+
 						Bot.getPrefix(event.getGuild())+"fortnite or "+Bot.getPrefix(event.getGuild())+"ftn\n"+
 						Bot.getPrefix(event.getGuild())+"settings```", channel);
-				return;
-			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"info")) {
+            } else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"info")) {
 				EmbedBuilder embed = new EmbedBuilder();
 				embed.withAuthorName("Information");
 				embed.appendDesc("This bot is built with [Spring Boot](https://spring.io/projects/spring-boot). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
@@ -71,9 +64,9 @@ public class EventListener {
 						incorrectUsage("fortnite [pc|ps4|xbox] [username]```", channel);
 						return;
 					}
-					StringBuffer username = new StringBuffer();
+					StringBuilder username = new StringBuilder();
 					username.append(args[1]);
-					for (int i = 2; i < args.length; i++) username.append(" "+args[i]);
+					for (int i = 2; i < args.length; i++) username.append(" ").append(args[i]);
 					try {
 						HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/"+platform+"/"+username.toString()).openConnection();
 						conn.setRequestMethod("GET");
@@ -83,7 +76,7 @@ public class EventListener {
 						if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
 							BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 							String inputLine;
-							StringBuffer response = new StringBuffer();
+							StringBuilder response = new StringBuilder();
 							while ((inputLine = reader.readLine()) != null) response.append(inputLine);
 							reader.close();
 							JSONObject json = new JSONObject(response.toString());
@@ -92,7 +85,7 @@ public class EventListener {
 									sendMessage("The user specified could not be found. Please try a different name or platform.", channel);
 									return;
 								}
-							} catch (JSONException e) {}
+							} catch (JSONException ignored) {}
 							EmbedBuilder embed = new EmbedBuilder();
 							embed.withAuthorName(json.getString("epicUserHandle")+" | "+json.getString("platformNameLong"));
 							embed.appendField("Solos", getSolos(json), true);
@@ -105,24 +98,19 @@ public class EventListener {
 							return;
 						}
 						sendMessage("A good connection was not established. Please try again later.", channel);
-						return;
-					} catch (IOException e) {
+                    } catch (IOException e) {
 						e.printStackTrace();
 						sendMessage("An error occured when trying to fetch the stats. Please try again later.", channel);
-						return;
-					} catch (JSONException e) {
+                    } catch (JSONException e) {
 						e.printStackTrace();
 						sendMessage("An error occured when trying to parse the stats. Please try again later.", channel);
-						return;
-					}
+                    }
 				} else {
 					incorrectUsage("fortnite [pc|ps4|xbox] [username]```", channel);
-					return;
-				}
+                }
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"hey")) {
 				sendMessage("Hello! :smile:", channel);
-				return;
-			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
+            } else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"newname")) {
 				if (event.getGuild().getOwner().equals(event.getAuthor()) 
 						|| !PermissionUtils.hasPermissions(channel, Bot.client.getOurUser(), Permissions.MANAGE_NICKNAMES) 
 						|| PermissionUtils.isUserHigher(event.getGuild(), event.getAuthor(), Bot.client.getOurUser())) {
@@ -133,25 +121,26 @@ public class EventListener {
 						return;
 					}
 					boolean isMale;
-					if (args[0].equals("male"))
-						isMale = true;
-					else if (args[0].equals("female"))
-						isMale = false;
-					else {
-						deleteLater(7, event.getMessage(), incorrectUsage("newname (male|female)", channel));
-						return;
-					}
+                    switch (args[0]) {
+                        case "male":
+                            isMale = true;
+                            break;
+                        case "female":
+                            isMale = false;
+                            break;
+                        default:
+                            deleteLater(7, event.getMessage(), incorrectUsage("newname (male|female)", channel));
+                            return;
+                    }
 					String name = new NameGenerator().generateName(isMale ? Gender.MALE : Gender.FEMALE).getFirstName();
 					event.getGuild().setUserNickname(event.getAuthor(), name);
 					deleteLater(7, event.getMessage(), channel.sendMessage("\u200B:white_check_mark: Your name has been changed to `"+name+"`."));
 				}
-				return;
-			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
+            } else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings prefix")) {
 				if (PermissionUtils.hasPermissions(channel, event.getAuthor(), Permissions.MANAGE_SERVER)) {
 					if (args.length != 2) {
 						incorrectUsage("settings prefix [new prefix]", channel);
-						return;
-					} else {
+                    } else {
 						String newPrefix = args[1];
 						if (newPrefix.length() != 1) {
 							sendMessage(":x: A prefix can only be 1 character long.", channel);
@@ -163,20 +152,17 @@ public class EventListener {
 						}
 						Bot.setPrefix(event.getGuild(), newPrefix);
 						sendMessage(":white_check_mark: Prefix successfully changed to `"+Bot.getPrefix(event.getGuild())+"`", channel);
-						return;
-					}
+                    }
 				} else {
 					noPermission("Manage Server", channel);
-					return;
-				}
+                }
 			} else if (message.toLowerCase().startsWith(Bot.getPrefix(event.getGuild())+"settings") && args.length == 0) {
 				if (PermissionUtils.hasPermissions(channel, event.getAuthor(), Permissions.MANAGE_SERVER)) {
 					EmbedBuilder embed = new EmbedBuilder();
 					embed.withAuthorName("XT Bot Settings");
 					embed.appendField("**Prefix**", "`"+Bot.getPrefix(event.getGuild())+"settings prefix [new prefix]`", true);
 					sendEmbed(embed, channel);
-					return;
-				} else {
+                } else {
 					noPermission("Manage Server", channel);
 				}
 			}
@@ -186,7 +172,7 @@ public class EventListener {
 	@EventSubscriber
 	public void onReady(ReadyEvent event) {
 		RequestBuffer.request(() -> Bot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
-		//Bot.client.getDispatcher().registerListener(new PartyEvents());
+		Bot.client.getDispatcher().registerListener(new PartyEvents());
 	}
 
 	@EventSubscriber
@@ -214,15 +200,15 @@ public class EventListener {
 		return channel.sendMessage(embed.build());
 	}
 	
-	public static IMessage incorrectUsage(String usage, IChannel channel) {
+	private static IMessage incorrectUsage(String usage, IChannel channel) {
 		return sendMessage("Incorrect usage. Please use: ```"+Bot.getPrefix(channel.getGuild())+usage+"```", channel);
 	}
 	
-	public static IMessage noPermission(String permission, IChannel channel) {
+	private static IMessage noPermission(String permission, IChannel channel) {
 		return sendMessage(":x: Insufficient permission. You can do this command if you have the **"+permission+"** permission.", channel);
 	}
 
-	public static void deleteLater(Integer seconds, IMessage... messages) {
+	private static void deleteLater(Integer seconds, IMessage... messages) {
 		Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
 			public void run() {
 				for (IMessage m : messages) m.delete();
@@ -231,16 +217,16 @@ public class EventListener {
 	}
 	
 	private String getUptime() {
-		Long uptime = System.currentTimeMillis()-Bot.firstOnline;
-		Long days = TimeUnit.MILLISECONDS.toDays(uptime);
-		Long hours = TimeUnit.MILLISECONDS.toHours(uptime) - TimeUnit.DAYS.toHours(days);
-		Long minutes = TimeUnit.MILLISECONDS.toMinutes(uptime) - TimeUnit.HOURS.toMinutes(hours) - TimeUnit.DAYS.toMinutes(days);
-		Long seconds = TimeUnit.MILLISECONDS.toSeconds(uptime) - TimeUnit.MINUTES.toSeconds(minutes) - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.DAYS.toSeconds(days);
-		List<String> formats = new ArrayList<String>();
-		if (days > 0) formats.add(days == 1 ? days.toString()+" day" : days.toString()+" days");
-		if (hours > 0) formats.add(hours == 1 ? hours.toString()+" hour" : hours.toString()+" hours");
-		if (minutes > 0) formats.add(minutes == 1 ? minutes.toString()+" minute" : minutes.toString()+" minutes");
-		if (seconds > 0) formats.add(seconds == 1 ? seconds.toString()+" second" : seconds.toString()+" seconds");
+		long uptime = System.currentTimeMillis()-Bot.firstOnline;
+		long days = TimeUnit.MILLISECONDS.toDays(uptime);
+		long hours = TimeUnit.MILLISECONDS.toHours(uptime) - TimeUnit.DAYS.toHours(days);
+		long minutes = TimeUnit.MILLISECONDS.toMinutes(uptime) - TimeUnit.HOURS.toMinutes(hours) - TimeUnit.DAYS.toMinutes(days);
+		long seconds = TimeUnit.MILLISECONDS.toSeconds(uptime) - TimeUnit.MINUTES.toSeconds(minutes) - TimeUnit.HOURS.toSeconds(hours) - TimeUnit.DAYS.toSeconds(days);
+		List<String> formats = new ArrayList<>();
+		if (days > 0) formats.add(days == 1 ? Long.toString(days) +" day" : Long.toString(days) +" days");
+		if (hours > 0) formats.add(hours == 1 ? Long.toString(hours) +" hour" : Long.toString(hours) +" hours");
+		if (minutes > 0) formats.add(minutes == 1 ? Long.toString(minutes)+" minute" : Long.toString(minutes) +" minutes");
+		if (seconds > 0) formats.add(seconds == 1 ? Long.toString(seconds) +" second" : Long.toString(seconds) +" seconds");
 		if (formats.size() == 0) return "Less than a second";
 		if (formats.size() == 2) return formats.get(0)+" and "+formats.get(1);
 		if (formats.size() == 3) return formats.get(0)+", "+formats.get(1)+", and "+formats.get(2);
@@ -250,15 +236,15 @@ public class EventListener {
 
 	private String getSolos(JSONObject json) {
 		try {
-			StringBuffer main = new StringBuffer();
+			StringBuilder main = new StringBuilder();
 			if (json.getJSONObject("stats").optJSONObject("p2") == null) return "No stats found for Solos.";
-			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("matches").getString("displayValue"));
-			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top1").getString("displayValue"));
-			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("winRatio").getString("displayValue")+"%");
-			main.append("\n**Top 10:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top10").getString("displayValue"));
-			main.append("\n**Top 25:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top25").getString("displayValue"));
-			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("kills").getString("displayValue"));
-			main.append("\n**K/D:** "+json.getJSONObject("stats").getJSONObject("p2").getJSONObject("kd").getString("displayValue"));
+			main.append("**Matches:** ").append(json.getJSONObject("stats").getJSONObject("p2").getJSONObject("matches").getString("displayValue"));
+			main.append("\n**Wins:** ").append(json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top1").getString("displayValue"));
+			main.append("\n**Win Percentage:** ").append(json.getJSONObject("stats").getJSONObject("p2").getJSONObject("winRatio").getString("displayValue")).append("%");
+			main.append("\n**Top 10:** ").append(json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top10").getString("displayValue"));
+			main.append("\n**Top 25:** ").append(json.getJSONObject("stats").getJSONObject("p2").getJSONObject("top25").getString("displayValue"));
+			main.append("\n**Kills:** ").append(json.getJSONObject("stats").getJSONObject("p2").getJSONObject("kills").getString("displayValue"));
+			main.append("\n**K/D:** ").append(json.getJSONObject("stats").getJSONObject("p2").getJSONObject("kd").getString("displayValue"));
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -268,15 +254,15 @@ public class EventListener {
 
 	private String getDuos(JSONObject json) {
 		try {
-			StringBuffer main = new StringBuffer();
+			StringBuilder main = new StringBuilder();
 			if (json.getJSONObject("stats").optJSONObject("p10") == null) return "No stats found for Duos.";
-			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("matches").getString("displayValue"));
-			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top1").getString("displayValue"));
-			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("winRatio").getString("displayValue")+"%");
-			main.append("\n**Top 5:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top5").getString("displayValue"));
-			main.append("\n**Top 12:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top12").getString("displayValue"));
-			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("kills").getString("displayValue"));
-			main.append("\n**K/D:** "+json.getJSONObject("stats").getJSONObject("p10").getJSONObject("kd").getString("displayValue"));
+			main.append("**Matches:** ").append(json.getJSONObject("stats").getJSONObject("p10").getJSONObject("matches").getString("displayValue"));
+			main.append("\n**Wins:** ").append(json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top1").getString("displayValue"));
+			main.append("\n**Win Percentage:** ").append(json.getJSONObject("stats").getJSONObject("p10").getJSONObject("winRatio").getString("displayValue")).append("%");
+			main.append("\n**Top 5:** ").append(json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top5").getString("displayValue"));
+			main.append("\n**Top 12:** ").append(json.getJSONObject("stats").getJSONObject("p10").getJSONObject("top12").getString("displayValue"));
+			main.append("\n**Kills:** ").append(json.getJSONObject("stats").getJSONObject("p10").getJSONObject("kills").getString("displayValue"));
+			main.append("\n**K/D:** ").append(json.getJSONObject("stats").getJSONObject("p10").getJSONObject("kd").getString("displayValue"));
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -286,15 +272,15 @@ public class EventListener {
 
 	private String getSquads(JSONObject json) {
 		try {
-			StringBuffer main = new StringBuffer();
+			StringBuilder main = new StringBuilder();
 			if (json.getJSONObject("stats").optJSONObject("p9") == null) return "No stats found for Squads.";
-			main.append("**Matches:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("matches").getString("displayValue"));
-			main.append("\n**Wins:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top1").getString("displayValue"));
-			main.append("\n**Win Percentage:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("winRatio").getString("displayValue")+"%");
-			main.append("\n**Top 3:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top3").getString("displayValue"));
-			main.append("\n**Top 6:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top6").getString("displayValue"));
-			main.append("\n**Kills:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("kills").getString("displayValue"));
-			main.append("\n**K/D:** "+json.getJSONObject("stats").getJSONObject("p9").getJSONObject("kd").getString("displayValue"));
+			main.append("**Matches:** ").append(json.getJSONObject("stats").getJSONObject("p9").getJSONObject("matches").getString("displayValue"));
+			main.append("\n**Wins:** ").append(json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top1").getString("displayValue"));
+			main.append("\n**Win Percentage:** ").append(json.getJSONObject("stats").getJSONObject("p9").getJSONObject("winRatio").getString("displayValue")).append("%");
+			main.append("\n**Top 3:** ").append(json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top3").getString("displayValue"));
+			main.append("\n**Top 6:** ").append(json.getJSONObject("stats").getJSONObject("p9").getJSONObject("top6").getString("displayValue"));
+			main.append("\n**Kills:** ").append(json.getJSONObject("stats").getJSONObject("p9").getJSONObject("kills").getString("displayValue"));
+			main.append("\n**K/D:** ").append(json.getJSONObject("stats").getJSONObject("p9").getJSONObject("kd").getString("displayValue"));
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -304,18 +290,18 @@ public class EventListener {
 
 	private String getLifetime(JSONObject json) {
 		try {
-			StringBuffer main = new StringBuffer();
+			StringBuilder main = new StringBuilder();
 			JSONArray stats = json.getJSONArray("lifeTimeStats");
 			Double matches = (Double.valueOf(stats.getJSONObject(7).getString("value")));
 			Double wins = (Double.valueOf(stats.getJSONObject(8).getString("value")));
 			String percent = matches == 0 ? "" : new BigDecimal((Double.valueOf(stats.getJSONObject(8).getString("value")))/matches*100).setScale(1, RoundingMode.HALF_UP).toString();
-			main.append("**Matches:** "+NumberFormat.getInstance().format(matches));
-			main.append("\n**Wins:** "+NumberFormat.getInstance().format(wins));
-			main.append("\n**Win Percentage:** "+percent+"0%");
-			main.append("\n**Top 10:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(3).getString("value"))));
-			main.append("\n**Top 25:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(5).getString("value"))));
-			main.append("\n**Kills:** "+NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(10).getString("value"))));
-			main.append("\n**K/D:** "+stats.getJSONObject(11).getString("value"));
+			main.append("**Matches:** ").append(NumberFormat.getInstance().format(matches));
+			main.append("\n**Wins:** ").append(NumberFormat.getInstance().format(wins));
+			main.append("\n**Win Percentage:** ").append(percent).append("0%");
+			main.append("\n**Top 10:** ").append(NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(3).getString("value"))));
+			main.append("\n**Top 25:** ").append(NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(5).getString("value"))));
+			main.append("\n**Kills:** ").append(NumberFormat.getInstance().format(Double.valueOf(stats.getJSONObject(10).getString("value"))));
+			main.append("\n**K/D:** ").append(stats.getJSONObject(11).getString("value"));
 			return main.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
