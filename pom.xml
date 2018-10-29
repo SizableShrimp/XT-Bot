@@ -41,11 +41,11 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>com.github.discord4j</groupId>
-			<artifactId>discord4j</artifactId>
-			<version>8aa9db4</version>
-		</dependency>
+        <dependency>
+            <groupId>com.github.discord4j</groupId>
+            <artifactId>Discord4J</artifactId>
+            <version>8bbe8c8077b322a0a411ce1f7f32becb673609d1</version>
+        </dependency>
 
 		<dependency>
 			<groupId>com.sedmelluq</groupId>
