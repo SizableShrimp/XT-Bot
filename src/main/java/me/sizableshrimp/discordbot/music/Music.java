@@ -1,9 +1,5 @@
 package me.sizableshrimp.discordbot.music;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
@@ -14,18 +10,21 @@ import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-
 import me.sizableshrimp.discordbot.EventListener;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 
-public class Music {
-	private final AudioPlayerManager playerManager;
-	final Map<Long, GuildMusicManager> musicManagers;
-	public final int DEFAULT_VOLUME = 35;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-	public Music() {
+class Music {
+	private final AudioPlayerManager playerManager;
+    private final Map<Long, GuildMusicManager> musicManagers;
+    final int DEFAULT_VOLUME = 35;
+
+    Music() {
 		this.musicManagers = new HashMap<>();
 		this.playerManager = new DefaultAudioPlayerManager();
 		playerManager.registerSourceManager(new YoutubeAudioSourceManager());
@@ -35,7 +34,7 @@ public class Music {
 		AudioSourceManagers.registerLocalSource(playerManager);
 	}
 
-	public synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
+    synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
 		long guildId = guild.getLongID();
 		GuildMusicManager musicManager = musicManagers.get(guildId);
 		if (musicManager == null) {
@@ -47,36 +46,7 @@ public class Music {
 		return musicManager;
 	}
 
-	public void loadAndPlay(final IChannel channel, final IVoiceChannel voiceChannel, final String trackUrl) {
-		GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-		playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
-			@Override
-			public void trackLoaded(AudioTrack track) {
-				play(channel, musicManager, track);
-			}
-
-			@Override
-			public void playlistLoaded(AudioPlaylist playlist) {
-				AudioTrack firstTrack = playlist.getSelectedTrack();
-				if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
-				play(channel, musicManager, firstTrack);
-			}
-
-			@Override
-			public void noMatches() {
-				EventListener.sendMessage("I could not find a song that contained: " + trackUrl, channel);
-			}
-
-			@Override
-			public void loadFailed(FriendlyException exception) {
-				EventListener.sendMessage("An error occured while trying to play the song. Please try again later.", channel);
-				voiceChannel.leave();
-				exception.printStackTrace();
-			}
-		});
-	}
-	
-	public void loadAndPlay(final IChannel channel, final IVoiceChannel voiceChannel, final String trackUrl, boolean validURL) {
+    void loadAndPlay(final IChannel channel, final IVoiceChannel voiceChannel, final String trackUrl, boolean validURL) {
 		GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
 		playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
 			@Override
@@ -105,15 +75,7 @@ public class Music {
 		});
 	}
 
-	private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track) {
-		if (TimeUnit.MILLISECONDS.toSeconds(track.getDuration()) > TimeUnit.HOURS.toSeconds(10)) {
-			EventListener.sendMessage(":x: Cannot play a song over 10 hours in length.", channel);
-			return;
-		}
-		musicManager.scheduler.queue(track, channel);
-	}
-	
-	private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track, boolean validURL) {
+    private void play(IChannel channel, GuildMusicManager musicManager, AudioTrack track, boolean validURL) {
 		if (TimeUnit.MILLISECONDS.toSeconds(track.getDuration()) > TimeUnit.HOURS.toSeconds(10)) {
 			EventListener.sendMessage(":x: Cannot play a song over 10 hours in length.", channel);
 			return;

@@ -1,32 +1,31 @@
 package me.sizableshrimp.discordbot.music;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
-
 import me.sizableshrimp.discordbot.EventListener;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 public class TrackScheduler extends AudioEventAdapter {
 	private boolean repeating = false;
-	final AudioPlayer player;
-	public final BlockingQueue<AudioTrack> queue;
+    private final AudioPlayer player;
+    final BlockingQueue<AudioTrack> queue;
 	private final IGuild guild;
 	private Music music;
 
-	public TrackScheduler(AudioPlayer player, IGuild guild, Music music) {
+    TrackScheduler(AudioPlayer player, IGuild guild, Music music) {
 		this.player = player;
 		this.guild = guild;
 		this.queue = new LinkedBlockingQueue<>();
 		this.music = music;
 	}
 
-	public void queue(AudioTrack track, IChannel channel) {
+    void queue(AudioTrack track, IChannel channel) {
 		// Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
 		// something is playing, it returns false and does nothing. In that case the player was already playing so this
 		// track goes to the queue instead.
@@ -34,14 +33,12 @@ public class TrackScheduler extends AudioEventAdapter {
 		if (!isPlaying) {
 			queue.offer(track);
 			EventListener.sendMessage("`"+track.getInfo().title+"` added to queue.", channel);
-			return;
-		} else {
+        } else {
 			EventListener.sendMessage("Now playing `"+track.getInfo().title+"`\n"+track.getInfo().uri, channel);
-			return;
-		}
-	}
+        }
+    }
 
-	public void queue(AudioTrack track, IChannel channel, boolean validURL) {
+    void queue(AudioTrack track, IChannel channel, boolean validURL) {
 		// Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
 		// something is playing, it returns false and does nothing. In that case the player was already playing so this
 		// track goes to the queue instead.
@@ -53,18 +50,16 @@ public class TrackScheduler extends AudioEventAdapter {
 			} else {
 				EventListener.sendMessage("`"+track.getInfo().title+"` added to queue.\n"+track.getInfo().uri+"", channel);
 			}
-			return;
-		} else {
+        } else {
 			if (validURL) {
 				EventListener.sendMessage("Now playing `"+track.getInfo().title+"`\n<"+track.getInfo().uri+">", channel);
 			} else {
 				EventListener.sendMessage("Now playing `"+track.getInfo().title+"`\n"+track.getInfo().uri, channel);
 			}
-			return;
-		}
-	}
+        }
+    }
 
-	public void nextTrack() {
+    void nextTrack() {
 		// Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
 		// giving null to startTrack, which is a valid argument and will simply stop the player.
 		player.startTrack(queue.poll(), false);
@@ -109,11 +104,11 @@ public class TrackScheduler extends AudioEventAdapter {
 
 	}
 
-	public void setRepeating(boolean isRepeating) {
+    void setRepeating(boolean isRepeating) {
 		repeating = isRepeating;
 	}
 
-	public boolean isRepeating() {
+    boolean isRepeating() {
 		return repeating;
 	}
 }

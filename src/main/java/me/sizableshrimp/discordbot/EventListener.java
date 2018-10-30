@@ -1,17 +1,19 @@
 package me.sizableshrimp.discordbot;
 
-import me.sizableshrimp.discordbot.party.PartyEvents;
+//import me.sizableshrimp.discordbot.party.PartyEvents;
+
 import org.ajbrown.namemachine.Gender;
 import org.ajbrown.namemachine.NameGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import sx.blah.discord.api.events.EventSubscriber;
-import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildCreateEvent;
 import sx.blah.discord.handle.impl.events.guild.GuildLeaveEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
-import sx.blah.discord.handle.obj.*;
+import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IMessage;
+import sx.blah.discord.handle.obj.Permissions;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.PermissionUtils;
@@ -30,6 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+//import sx.blah.discord.handle.impl.events.ReadyEvent;
 
 public class EventListener {
 	@EventSubscriber
@@ -146,7 +150,7 @@ public class EventListener {
 							sendMessage(":x: A prefix can only be 1 character long.", channel);
 							return;
 						}
-						if (newPrefix.toUpperCase() != newPrefix) {
+                        if (!newPrefix.toUpperCase().equals(newPrefix)) {
 							sendMessage(":x: A prefix cannot be a letter.", channel);
 							return;
 						}
@@ -169,11 +173,11 @@ public class EventListener {
 		});
 	}
 
-	@EventSubscriber
-	public void onReady(ReadyEvent event) {
-		RequestBuffer.request(() -> Bot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
-		Bot.client.getDispatcher().registerListener(new PartyEvents());
-	}
+//	@EventSubscriber
+//	public void onReady(ReadyEvent event) {
+//		RequestBuffer.request(() -> Bot.client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "a random thing"));
+//		Bot.client.getDispatcher().registerListener(new PartyEvents());
+//	}
 
 	@EventSubscriber
 	public void onGuildReceive(GuildCreateEvent event) {
@@ -209,11 +213,9 @@ public class EventListener {
 	}
 
 	private static void deleteLater(Integer seconds, IMessage... messages) {
-		Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
-			public void run() {
-				for (IMessage m : messages) m.delete();
-			}
-		}, seconds, TimeUnit.SECONDS);
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+            for (IMessage m : messages) m.delete();
+        }, seconds, TimeUnit.SECONDS);
 	}
 	
 	private String getUptime() {
