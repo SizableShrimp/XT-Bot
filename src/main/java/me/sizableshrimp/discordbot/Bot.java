@@ -8,8 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
-import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IMessage;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -36,21 +36,22 @@ public class Bot {
 	private static boolean isLive = false;
 	private static long latestVideo;
 
-	public static void main(String[] args) {
-		SpringApplication.run(Bot.class, args);
-		client = new ClientBuilder().withToken(System.getenv("TOKEN")).login();
-		EventDispatcher dispatcher = client.getDispatcher();
-		dispatcher.registerListener(new EventListener());
-		dispatcher.registerListener(new MusicEvents());
-		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
-		scheduler.scheduleAtFixedRate(() -> EventListener.sendMessage("Happy 420!", client.getChannelByID(332985255151665152L)), dailyMeme(), 24*60*60, TimeUnit.SECONDS);
+    //test
+    public static void main(String[] args) {
+        SpringApplication.run(Bot.class, args);
+        client = new ClientBuilder().withToken(System.getenv("TOKEN")).login();
+        EventDispatcher dispatcher = client.getDispatcher();
+        dispatcher.registerListener(new EventListener());
+        dispatcher.registerListener(new MusicEvents());
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+        scheduler.scheduleAtFixedRate(() -> EventListener.sendMessage("Happy 420!", client.getChannelByID(332985255151665152L)), dailyMeme(), 24*60*60, TimeUnit.SECONDS);
         boolean heroku = false;
         try {
             String s = System.getenv("HEROKU");
             if (s != null) heroku = true;
         } catch (NullPointerException ignored) {}
         if (heroku) {
-			scheduler.scheduleAtFixedRate(() -> {
+            scheduler.scheduleAtFixedRate(() -> {
                 try {
                     HttpsURLConnection connection = (HttpsURLConnection) new URL(System.getenv("URL")).openConnection();
                     connection.setRequestMethod("GET");
@@ -59,8 +60,8 @@ public class Bot {
                     connection.disconnect();
                 } catch (IOException e) {e.printStackTrace();}
             }, 0, 10*60, TimeUnit.SECONDS);
-		}
-		scheduler.scheduleAtFixedRate(() -> {
+        }
+        scheduler.scheduleAtFixedRate(() -> {
             try {
                 HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&eventType=live&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
                 connection.setRequestMethod("GET");
@@ -92,7 +93,7 @@ public class Bot {
                 connection.disconnect();
             } catch (IOException | JSONException e) {e.printStackTrace();}
         }, 0, 60, TimeUnit.SECONDS);
-		scheduler.scheduleAtFixedRate(() -> {
+        scheduler.scheduleAtFixedRate(() -> {
             try {
                 HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
                 connection.setRequestMethod("GET");
@@ -123,7 +124,7 @@ public class Bot {
                 connection.disconnect();
             } catch (IOException | JSONException e) {e.printStackTrace();}
         }, 0, 3*60, TimeUnit.SECONDS);
-	}
+    }
 
 	private static long dailyMeme() {
 		ZonedDateTime time = ZonedDateTime.now(ZoneId.of("US/Eastern"));
