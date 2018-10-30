@@ -36,7 +36,6 @@ public class Bot {
 	private static boolean isLive = false;
 	private static long latestVideo;
 
-    //test
     public static void main(String[] args) {
         SpringApplication.run(Bot.class, args);
         client = new ClientBuilder().withToken(System.getenv("TOKEN")).login();
