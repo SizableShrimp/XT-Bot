@@ -32,7 +32,8 @@ public class MusicEvents {
 
     @EventSubscriber
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot() || event.getChannel().isPrivate()) return;
+        if (event.getAuthor() == null /*webhook*/ || event.getAuthor().isBot() || event.getChannel().isPrivate())
+            return;
         String prefix = Bot.getPrefix(event.getGuild());
         String message = event.getMessage().getContent();
         GuildMusicManager manager = music.getGuildMusicManager(event.getGuild());
