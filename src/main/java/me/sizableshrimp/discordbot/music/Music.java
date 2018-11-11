@@ -13,7 +13,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import me.sizableshrimp.discordbot.EventListener;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IVoiceChannel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +33,7 @@ class Music {
 		AudioSourceManagers.registerLocalSource(playerManager);
 	}
 
-    synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
+    synchronized GuildMusicManager getGuildMusicManager(IGuild guild) {
 		long guildId = guild.getLongID();
 		GuildMusicManager musicManager = musicManagers.get(guildId);
 		if (musicManager == null) {
@@ -46,8 +45,8 @@ class Music {
 		return musicManager;
 	}
 
-    void loadAndPlay(final IChannel channel, final IVoiceChannel voiceChannel, final String trackUrl, boolean validURL) {
-		GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+    void loadAndPlay(final IChannel channel, final String trackUrl, boolean validURL) {
+        GuildMusicManager musicManager = getGuildMusicManager(channel.getGuild());
 		playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
 			@Override
 			public void trackLoaded(AudioTrack track) {
@@ -68,9 +67,8 @@ class Music {
 
 			@Override
 			public void loadFailed(FriendlyException exception) {
-				EventListener.sendMessage("An error occured while trying to play the song. Please try again later.", channel);
-				voiceChannel.leave();
 				exception.printStackTrace();
+                EventListener.sendMessage("An error occurred while trying to play the song. Please try again later.", channel);
 			}
 		});
 	}
@@ -81,10 +79,5 @@ class Music {
 			return;
 		}
 		musicManager.scheduler.queue(track, channel, validURL);
-	}
-
-	void skipTrack(IChannel channel) {
-		GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-		musicManager.scheduler.nextTrack();
 	}
 }

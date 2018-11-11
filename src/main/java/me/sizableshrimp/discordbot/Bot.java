@@ -27,14 +27,15 @@ import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @SpringBootApplication
 public class Bot {
-	public static IDiscordClient client;
-	private final static HashMap<Long, String> prefixes = new HashMap<>();
-	static final long firstOnline = System.currentTimeMillis();
-	private static boolean isLive = false;
-	private static long latestVideo;
+    public static IDiscordClient client;
+    private final static HashMap<Long, String> prefixes = new HashMap<>();
+    static final long firstOnline = System.currentTimeMillis();
+    private static boolean isLive = false;
+    private static long latestVideo;
 
     public static void main(String[] args) {
         SpringApplication.run(Bot.class, args);
@@ -43,12 +44,13 @@ public class Bot {
         dispatcher.registerListener(new EventListener());
         dispatcher.registerListener(new MusicEvents());
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
-        scheduler.scheduleAtFixedRate(() -> EventListener.sendMessage("Happy 420!", client.getChannelByID(332985255151665152L)), dailyMeme(), 24*60*60, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> EventListener.sendMessage("Happy 420!", client.getChannelByID(332985255151665152L)), dailyMeme(), 24 * 60 * 60, TimeUnit.SECONDS);
         boolean heroku = false;
         try {
             String s = System.getenv("HEROKU");
             if (s != null) heroku = true;
-        } catch (NullPointerException ignored) {}
+        } catch (NullPointerException ignored) {
+        }
         if (heroku) {
             scheduler.scheduleAtFixedRate(() -> {
                 try {
@@ -57,114 +59,108 @@ public class Bot {
                     connection.connect();
                     connection.getResponseCode();
                     connection.disconnect();
-                } catch (IOException e) {e.printStackTrace();}
-            }, 0, 10*60, TimeUnit.SECONDS);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }, 0, 10, TimeUnit.MINUTES);
         }
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&eventType=live&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
+                HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&eventType=live&type=video&key=" + System.getenv("GOOGLE_KEY")).openConnection();
                 connection.setRequestMethod("GET");
                 connection.connect();
-                if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String inputLine;
-                    while ((inputLine = reader.readLine()) != null) response.append(inputLine);
-                    reader.close();
-                    connection.disconnect();
-                    JSONObject json = new JSONObject(response.toString());
-                    if (json.getJSONObject("pageInfo").getInt("totalResults") == 0 && isLive) {
-                        isLive = false;
-                        return;
-                    } else if (json.getJSONObject("pageInfo").getInt("totalResults") == 1 && !isLive) {
-                        JSONObject stream = json.getJSONArray("items").getJSONObject(0);
-                        for (IMessage message : client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray()) {
-                            if (message.getContent().contains(stream.getJSONObject("id").getString("videoId"))) {
-                                isLive = true;
-                                return;
-                            }
+                if (connection.getResponseCode() != HttpsURLConnection.HTTP_OK) return;
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                JSONObject json = new JSONObject(reader.lines().collect(Collectors.joining("\n")));
+                reader.close();
+                if (json.getJSONObject("pageInfo").getInt("totalResults") == 0 && isLive) {
+                    isLive = false;
+                } else if (json.getJSONObject("pageInfo").getInt("totalResults") == 1 && !isLive) {
+                    JSONObject stream = json.getJSONArray("items").getJSONObject(0);
+                    for (IMessage message : client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray()) {
+                        if (message.getContent().contains(stream.getJSONObject("id").getString("videoId"))) {
+                            isLive = true;
+                            return;
                         }
-                        EventListener.sendMessage("@everyone **"+stream.getJSONObject("snippet").getString("channelTitle")+"** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v="+stream.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
-                        isLive = true;
                     }
-                    return;
+                    isLive = true;
+                    EventListener.sendMessage("@everyone **" + stream.getJSONObject("snippet").getString("channelTitle") + "** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v=" + stream.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
                 }
-                connection.disconnect();
-            } catch (IOException | JSONException e) {e.printStackTrace();}
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
         }, 0, 60, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&maxResults=1&order=date&type=video&key="+System.getenv("GOOGLE_KEY")).openConnection();
+                HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&maxResults=1&order=date&type=video&key=" + System.getenv("GOOGLE_KEY")).openConnection();
                 connection.setRequestMethod("GET");
                 connection.connect();
-                if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String inputLine;
-                    while ((inputLine = reader.readLine()) != null) response.append(inputLine);
-                    reader.close();
-                    connection.disconnect();
-                    JSONObject json = new JSONObject(response.toString());
-                    if (json.getJSONObject("pageInfo").getInt("totalResults") >= 1) {
-                        JSONObject video = json.getJSONArray("items").getJSONObject(0);
-                        ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
-                        if (publishDate.toInstant().toEpochMilli() > firstOnline && latestVideo != publishDate.toInstant().toEpochMilli()) {
-                            for (IMessage message : client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray()) {
-                                if (message.getContent().contains(video.getJSONObject("id").getString("videoId"))) {
-                                    return;
-                                }
-                            }
-                            EventListener.sendMessage("@everyone **"+video.getJSONObject("snippet").getString("channelTitle")+"** uploaded **"+video.getJSONObject("snippet").getString("title")+"** on "+getTime(publishDate)+"\nhttps://www.youtube.com/watch?v="+video.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
-                            latestVideo = publishDate.toInstant().toEpochMilli();
+                if (connection.getResponseCode() != HttpsURLConnection.HTTP_OK) return;
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                JSONObject json = new JSONObject(reader.lines().collect(Collectors.joining("\n")));
+                reader.close();
+                if (json.getJSONObject("pageInfo").getInt("totalResults") >= 1) {
+                    JSONObject video = json.getJSONArray("items").getJSONObject(0);
+                    ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
+                    if (/*publishDate.toInstant().toEpochMilli() > firstOnline &&*/ latestVideo != publishDate.toInstant().toEpochMilli()) {
+                        for (IMessage message : client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray()) {
+                            if (message.getContent().contains(video.getJSONObject("id").getString("videoId"))) return;
                         }
+                        latestVideo = publishDate.toInstant().toEpochMilli();
+                        EventListener.sendMessage("@everyone **" + video.getJSONObject("snippet").getString("channelTitle") + "** uploaded **" + video.getJSONObject("snippet").getString("title") + "** on " + getTime(publishDate) + "\nhttps://www.youtube.com/watch?v=" + video.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
                     }
-                    return;
                 }
                 connection.disconnect();
-            } catch (IOException | JSONException e) {e.printStackTrace();}
-        }, 0, 3*60, TimeUnit.SECONDS);
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
+        }, 0, 3, TimeUnit.MINUTES);
     }
 
-	private static long dailyMeme() {
-		ZonedDateTime time = ZonedDateTime.now(ZoneId.of("US/Eastern"));
-		ZonedDateTime tomorrow = time.withHour(16).withMinute(20).withSecond(0);
-		if (time.compareTo(tomorrow) > 0) tomorrow = tomorrow.plusDays(1);
-		return Duration.between(time, tomorrow).getSeconds();
-	}
+    private static long dailyMeme() {
+        ZonedDateTime time = ZonedDateTime.now(ZoneId.of("US/Eastern"));
+        ZonedDateTime tomorrow = time.withHour(16).withMinute(20).withSecond(0);
+        if (time.compareTo(tomorrow) > 0) tomorrow = tomorrow.plusDays(1);
+        return Duration.between(time, tomorrow).getSeconds();
+    }
 
-	private static String getTime(ZonedDateTime time) {
-		String ordinal;
-		switch (time.getDayOfMonth()) {
-		case 1: case 21: case 31:
-			ordinal = "st";
-			break;
-		case 2: case 22:
-			ordinal = "nd";
-			break;
-		case 3: case 23:
-			ordinal = "rd";
-			break;
-		default:
-			ordinal = "th";
-		}
-		DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'"+ordinal+"', yyyy h:mm a '"+time.getZone().getDisplayName(TextStyle.FULL, Locale.US)+"'");
-		return format.format(time);
-	}
+    private static String getTime(ZonedDateTime time) {
+        String ordinal;
+        switch (time.getDayOfMonth()) {
+            case 1:
+            case 21:
+            case 31:
+                ordinal = "st";
+                break;
+            case 2:
+            case 22:
+                ordinal = "nd";
+                break;
+            case 3:
+            case 23:
+                ordinal = "rd";
+                break;
+            default:
+                ordinal = "th";
+        }
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'" + ordinal + "', yyyy h:mm a '" + time.getZone().getDisplayName(TextStyle.FULL, Locale.US) + "'");
+        return format.format(time);
+    }
 
-	public static String getPrefix(IGuild guild) {
-		return prefixes.get(guild.getLongID());
-	}
+    public static String getPrefix(IGuild guild) {
+        return prefixes.get(guild.getLongID());
+    }
 
-	static void setPrefix(IGuild guild, String prefix) {
-		prefixes.put(guild.getLongID(), prefix);
-		//updateGuild(guild.getLongID(), prefix);
-	}
-	
-	static void removePrefix(IGuild guild) {
-		prefixes.remove(guild.getLongID());
-		//removeGuild(guild.getLongID());
-	}
-	
+    static void setPrefix(IGuild guild, String prefix) {
+        prefixes.put(guild.getLongID(), prefix);
+        //updateGuild(guild.getLongID(), prefix);
+    }
+
+    static void removePrefix(IGuild guild) {
+        prefixes.remove(guild.getLongID());
+        //removeGuild(guild.getLongID());
+    }
+
 //	public static void insertGuild(Long id, String prefix) {
 //		String url = System.getenv("SQL_URL");
 //		String user = System.getenv("SQL_USER");

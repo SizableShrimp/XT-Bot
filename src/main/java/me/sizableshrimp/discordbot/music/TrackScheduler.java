@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import me.sizableshrimp.discordbot.EventListener;
+import sx.blah.discord.Discord4J;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 
@@ -25,18 +26,18 @@ public class TrackScheduler extends AudioEventAdapter {
 		this.music = music;
 	}
 
-    void queue(AudioTrack track, IChannel channel) {
-		// Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
-		// something is playing, it returns false and does nothing. In that case the player was already playing so this
-		// track goes to the queue instead.
-		boolean isPlaying = player.startTrack(track, true);
-		if (!isPlaying) {
-			queue.offer(track);
-			EventListener.sendMessage("`"+track.getInfo().title+"` added to queue.", channel);
-        } else {
-			EventListener.sendMessage("Now playing `"+track.getInfo().title+"`\n"+track.getInfo().uri, channel);
-        }
-    }
+//    void queue(AudioTrack track, IChannel channel) {
+//		// Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
+//		// something is playing, it returns false and does nothing. In that case the player was already playing so this
+//		// track goes to the queue instead.
+//		boolean isPlaying = player.startTrack(track, true);
+//		if (!isPlaying) {
+//			queue.offer(track);
+//			EventListener.sendMessage("`"+track.getInfo().title+"` added to queue.", channel);
+//        } else {
+//			EventListener.sendMessage("Now playing `"+track.getInfo().title+"`\n"+track.getInfo().uri, channel);
+//        }
+//    }
 
     void queue(AudioTrack track, IChannel channel, boolean validURL) {
 		// Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
@@ -79,13 +80,12 @@ public class TrackScheduler extends AudioEventAdapter {
 	@Override
 	public void onTrackStart(AudioPlayer player, AudioTrack track) {
 		if (guild.getConnectedVoiceChannel() == null) {
-			System.out.println("Music track is trying to play while bot is not connected to a voice channel. Stopping track.");
+            Discord4J.LOGGER.warn("Music track is trying to play while bot is not connected to a voice channel.");
 			player.stopTrack();
 			return;
 		}
-		GuildMusicManager manager = music.getGuildAudioPlayer(guild);
-		manager.wantsToSkip = 0;
-		manager.neededToSkip = (int) Math.round((guild.getConnectedVoiceChannel().getConnectedUsers().size()-1)/2D);
+        GuildMusicManager manager = music.getGuildMusicManager(guild);
+        manager.neededToSkip = (int) Math.ceil((guild.getConnectedVoiceChannel().getConnectedUsers().size() - 1) / 2D);
 		manager.usersSkipping.clear();
 	}
 
