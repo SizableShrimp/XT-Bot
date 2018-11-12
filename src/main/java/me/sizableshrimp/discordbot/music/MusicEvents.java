@@ -10,6 +10,7 @@ import sx.blah.discord.handle.impl.events.guild.voice.VoiceDisconnectedEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
+import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.handle.obj.IVoiceState;
@@ -44,7 +45,7 @@ public class MusicEvents {
         GuildMusicManager manager = music.getGuildMusicManager(event.getGuild());
         String[] args = Arrays.copyOfRange(message.split(" "), 1, message.split(" ").length);
         if (message.toLowerCase().startsWith(prefix + "music")) {
-            EventListener.sendMessage("I can play music! My music commands are:```[] - required   () - optional  * - admins or people alone with bot only  ** - admins only\n" +
+            EventListener.sendMessage("I can play music! My music commands are:```[] - required   () - optional  * - DJs or people alone with bot only  ** - DJs only\n" +
                     prefix + "play [song] - Plays the song that you request.\n" +
                     "* " + prefix + "volume (new volume) or " + prefix + "vol (new volume) - Changes the volume or tells the current volume.\n" +
                     "* " + prefix + "pause or " + prefix + "p - Pauses/resumes the song.\n" +
@@ -59,8 +60,8 @@ public class MusicEvents {
                     "* " + prefix + "forceskip - Forcefully skips to the next song.\n" +
                     "* " + prefix + "disconnect or " + prefix + "leave - Disconnects from the voice channel and stops playing music.\n" +
                     "* " + prefix + "loop - Puts the song currently playing on/off repeat.\n" +
-                    "** " + prefix + "lock - Locks the bot to admins only.```" +
-                    "If you are the only person in a voice channel with XT Bot, you may use normal commands and commands that have a * at the beginning. If you are an admin (have the **Manage Channels** permission), you may use all commands on this list.", event.getChannel());
+                    "** " + prefix + "lock - Locks the bot to DJs only.```" +
+                    "If you are the only person in a voice channel with XT Bot, you may use normal commands and commands that have a * at the beginning. If you are a DJ (have the **Manage Channels** permission or a role called \"DJ\"), you may use all commands on this list.", event.getChannel());
         } else if (message.toLowerCase().startsWith(prefix + "play")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
             if (args.length == 0) {
@@ -92,7 +93,7 @@ public class MusicEvents {
             }
         } else if (message.toLowerCase().startsWith(prefix + "volume") || message.startsWith(prefix + "vol")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to change/look at the volume.", event.getChannel());
@@ -123,7 +124,7 @@ public class MusicEvents {
             }
         } else if (message.toLowerCase().startsWith(prefix + "pause") || message.toLowerCase().startsWith(prefix + "p")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to pause/resume the music.", event.getChannel());
@@ -145,7 +146,7 @@ public class MusicEvents {
             }
         } else if (message.toLowerCase().startsWith(prefix + "clear")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to clear the queue.", event.getChannel());
@@ -158,7 +159,7 @@ public class MusicEvents {
             }
         } else if (message.toLowerCase().startsWith(prefix + "remove")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to remove a song from the queue.", event.getChannel());
@@ -200,7 +201,7 @@ public class MusicEvents {
             }
         } else if (message.toLowerCase().startsWith(prefix + "goto")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to change the time of the current song.", event.getChannel());
@@ -269,7 +270,7 @@ public class MusicEvents {
             EventListener.sendMessage(Integer.toString(manager.usersSkipping.size()) + "/" + Integer.toString(manager.neededToSkip) + " people have requested to skip this song.", event.getChannel());
         } else if (message.toLowerCase().startsWith(prefix + "forceskip")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to forceskip the current song.", event.getChannel());
@@ -322,7 +323,7 @@ public class MusicEvents {
             EventListener.sendEmbed(embed, event.getChannel());
         } else if (message.toLowerCase().startsWith(prefix + "rewind")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to rewind.", event.getChannel());
@@ -339,7 +340,7 @@ public class MusicEvents {
             }
         } else if (message.toLowerCase().startsWith(prefix + "fastforward") || message.toLowerCase().startsWith(prefix + "ff")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to fast forward.", event.getChannel());
@@ -356,7 +357,7 @@ public class MusicEvents {
             }
         } else if (message.toLowerCase().startsWith(prefix + "disconnect") || message.startsWith(prefix + "leave")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to make me disconnect.", event.getChannel());
@@ -377,7 +378,7 @@ public class MusicEvents {
             }
         } else if (message.toLowerCase().startsWith(prefix + "loop")) {
             if (locked(event.getAuthor(), event.getChannel())) return;
-            if (hasManageChannels(event.getAuthor(), event.getGuild()) || isAlone(event)) {
+            if (isDJ(event.getAuthor(), event.getGuild()) || isAlone(event)) {
                 if (notConnected(event.getChannel())) return;
                 if (connectedToDifferent(event)) {
                     EventListener.sendMessage("Join `" + (PermissionUtils.hasPermissions(event.getGuild().getConnectedVoiceChannel(), event.getAuthor(), Permissions.READ_MESSAGES/*READ_MESSAGES includes being able to view a voice channel*/) ? event.getGuild().getConnectedVoiceChannel().getName() : "HIDDEN CHANNEL") + "` to loop the song.", event.getChannel());
@@ -394,7 +395,7 @@ public class MusicEvents {
                 notDJ(event.getChannel());
             }
         } else if (message.toLowerCase().startsWith(prefix + "lock")) {
-            if (hasManageChannels(event.getAuthor(), event.getGuild())) {
+            if (isDJ(event.getAuthor(), event.getGuild())) {
                 if (notConnected(event.getChannel())) return;
                 if (lockedGuilds.contains(event.getGuild().getLongID())) {
                     lockedGuilds.remove(event.getGuild().getLongID());
@@ -445,7 +446,10 @@ public class MusicEvents {
         return false;
     }
 
-    private boolean hasManageChannels(IUser user, IGuild guild) {
+    private boolean isDJ(IUser user, IGuild guild) {
+        for (IRole role : user.getRolesForGuild(guild)) {
+            if (role.getName().toLowerCase().equals("dj")) return true;
+        }
         return PermissionUtils.hasPermissions(guild, user, Permissions.MANAGE_CHANNELS);
     }
 
@@ -460,11 +464,11 @@ public class MusicEvents {
     }
 
     private boolean connectedToDifferent(MessageReceivedEvent event) {
-        return (event.getGuild().getConnectedVoiceChannel() == null || event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel() != event.getGuild().getConnectedVoiceChannel());
+        return (event.getGuild().getConnectedVoiceChannel() != null && event.getAuthor().getVoiceStateForGuild(event.getGuild()).getChannel() != event.getGuild().getConnectedVoiceChannel());
     }
 
     private boolean locked(IUser user, IChannel channel) {
-        if (lockedGuilds.contains(channel.getGuild().getLongID()) && !hasManageChannels(user, channel.getGuild())) {
+        if (lockedGuilds.contains(channel.getGuild().getLongID()) && !isDJ(user, channel.getGuild())) {
             EventListener.sendMessage(":lock: Music is currently locked for normal members. Please try again later.", channel);
             return true;
         }
