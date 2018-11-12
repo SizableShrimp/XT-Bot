@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MusicEvents {
     private Music music;
-    private List<IGuild> lockedGuilds = new ArrayList<>();
+    private List<Long> lockedGuilds = new ArrayList<>();
 
     public MusicEvents() {
         music = new Music();
@@ -391,11 +391,11 @@ public class MusicEvents {
         } else if (message.toLowerCase().startsWith(prefix + "lock")) {
             if (hasManageChannels(event.getAuthor(), event.getGuild())) {
                 if (notConnected(event.getChannel())) return;
-                if (lockedGuilds.contains(event.getGuild())) {
-                    lockedGuilds.remove(event.getGuild());
+                if (lockedGuilds.contains(event.getGuild().getLongID())) {
+                    lockedGuilds.remove(event.getGuild().getLongID());
                     EventListener.sendMessage(":unlock: Music unlocked.", event.getChannel());
                 } else {
-                    lockedGuilds.add(event.getGuild());
+                    lockedGuilds.add(event.getGuild().getLongID());
                     EventListener.sendMessage(":lock: Music locked.", event.getChannel());
                 }
             } else {
@@ -412,7 +412,7 @@ public class MusicEvents {
         manager.player.setVolume(music.DEFAULT_VOLUME);
         manager.player.setPaused(false);
         manager.scheduler.setRepeating(false);
-        lockedGuilds.remove(event.getGuild());
+        lockedGuilds.remove(event.getGuild().getLongID());
     }
 
     @EventSubscriber
@@ -459,7 +459,7 @@ public class MusicEvents {
     }
 
     private boolean locked(IUser user, IChannel channel) {
-        if (lockedGuilds.contains(channel.getGuild()) && !hasManageChannels(user, channel.getGuild())) {
+        if (lockedGuilds.contains(channel.getGuild().getLongID()) && !hasManageChannels(user, channel.getGuild())) {
             EventListener.sendMessage(":lock: Music is currently locked for normal members. Please try again later.", channel);
             return true;
         }
