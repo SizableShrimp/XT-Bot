@@ -204,7 +204,7 @@ public class EventListener {
     private static void deleteLater(Integer seconds, IMessage... messages) {
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
             for (IMessage m : messages) {
-                if (m.getAuthor().getLongID() == Bot.client.getOurUser().getLongID() || PermissionUtils.hasPermissions(m.getGuild(), Bot.client.getOurUser(), Permissions.MANAGE_MESSAGES))
+                if (PermissionUtils.hasPermissions(m.getGuild(), Bot.client.getOurUser(), Permissions.MANAGE_MESSAGES))
                     RequestBuffer.request(m::delete);
             }
         }, seconds, TimeUnit.SECONDS);
