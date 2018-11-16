@@ -60,12 +60,12 @@ public class EventListener {
             new MessageBuilder(Bot.client).appendContent("To find out my commands, use `" + prefix + "help`").withEmbed(embed.build()).withChannel(channel).build();
         } else if (message.toLowerCase().startsWith(prefix + "fortnite") || message.toLowerCase().startsWith(prefix + "ftn")) {
             if (args.length < 2) {
-                incorrectUsage("fortnite [pc|ps4|xbox] [username]```", channel);
+                incorrectUsage("fortnite [pc|ps4|xbox] [username]", channel);
                 return;
             }
             String platform = args[0].toLowerCase();
             if (!platform.equals("pc") && !platform.equals("ps4") && !platform.equals("xbox")) {
-                incorrectUsage("fortnite [pc|ps4|xbox] [username]```", channel);
+                incorrectUsage("fortnite [pc|ps4|xbox] [username]", channel);
                 return;
             }
             String username = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
