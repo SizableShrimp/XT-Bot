@@ -81,7 +81,6 @@ public class TrackScheduler extends AudioEventAdapter {
 	public void onTrackStart(AudioPlayer player, AudioTrack track) {
 		if (guild.getConnectedVoiceChannel() == null) {
             Discord4J.LOGGER.warn("Music track is trying to play while bot is not connected to a voice channel.");
-			player.stopTrack();
 			return;
 		}
         GuildMusicManager manager = music.getGuildMusicManager(guild);
