@@ -2,24 +2,22 @@ package me.sizableshrimp.discordbot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import sx.blah.discord.handle.obj.IGuild;
+import discord4j.core.object.util.Snowflake;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class GuildMusicManager {
-    AudioPlayer player;
-    TrackScheduler scheduler;
-    int neededToSkip;
-    final List<Long> usersSkipping = new ArrayList<>();
+public class GuildMusicManager {
+  public final AudioPlayer player;
+  public final TrackScheduler scheduler;
+  Mono<Integer> neededToSkip;
+  int wantsToSkip;
+  final List<Snowflake> usersSkipping = new ArrayList<>();
 
-    GuildMusicManager(AudioPlayerManager manager, IGuild guild, Music music) {
+  public GuildMusicManager(AudioPlayerManager manager, Snowflake guildId) {
     player = manager.createPlayer();
-    scheduler = new TrackScheduler(player, guild, music);
+    scheduler = new TrackScheduler(player, guildId);
     player.addListener(scheduler);
-  }
-
-    AudioProvider getAudioProvider() {
-    return new AudioProvider(player);
   }
 }

@@ -1,56 +1,89 @@
 package me.sizableshrimp.discordbot;
 
-import me.sizableshrimp.discordbot.music.MusicEvents;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import discord4j.core.DiscordClient;
+import discord4j.core.DiscordClientBuilder;
+import discord4j.core.event.EventDispatcher;
+import discord4j.core.event.domain.VoiceStateUpdateEvent;
+import discord4j.core.event.domain.lifecycle.ReadyEvent;
+import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Channel;
+import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.MessageChannel;
+import discord4j.core.object.entity.TextChannel;
+import discord4j.core.object.util.Snowflake;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.rest.http.client.ClientException;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import sx.blah.discord.api.ClientBuilder;
-import sx.blah.discord.api.IDiscordClient;
-import sx.blah.discord.api.events.EventDispatcher;
-import sx.blah.discord.handle.obj.IGuild;
-import sx.blah.discord.handle.obj.IMessage;
+import reactor.core.publisher.Mono;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.HashMap;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @SpringBootApplication
 public class Bot {
-    public static IDiscordClient client;
-    private final static HashMap<Long, String> prefixes = new HashMap<>();
-    static final long firstOnline = System.currentTimeMillis();
+    public static DiscordClient client;
+    public static final String prefix = "/";
+    public static final long FIRST_ONLINE = System.currentTimeMillis();
+
+    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final String CHANNEL_ID = "UCKrMGLGMhxIuMHQdHOf1YIw";
+    private static final long YOUTUBE_CHANNEL = 341028279584817163L;
+    private static final long GREETING_CHANNEL = 332985255151665152L;
     private static boolean isLive = false;
-    private static long latestVideo;
+    private static String latestVideo;
 
     public static void main(String[] args) {
         SpringApplication.run(Bot.class, args);
-        client = new ClientBuilder().withToken(System.getenv("TOKEN")).login();
-        EventDispatcher dispatcher = client.getDispatcher();
-        dispatcher.registerListener(new EventListener());
-        dispatcher.registerListener(new MusicEvents());
+        client = new DiscordClientBuilder(System.getenv("TOKEN")).build();
+        EventDispatcher dispatcher = client.getEventDispatcher();
+        EventListener listener = new EventListener();
+        dispatcher.on(MessageCreateEvent.class)
+                .filterWhen(e -> e.getMessage().getChannel().map(c -> c.getType() == Channel.Type.GUILD_TEXT)) //don't want DM commands
+                .filterWhen(e -> e.getMessage().getAuthor().filter(u -> !u.isBot()).hasElement()) //don't want webhooks
+                .flatMap(listener::onMessageCreate)
+                .onErrorContinue((error, event) -> LoggerFactory.getLogger(Bot.class).error("Event listener had an uncaught exception!", error))
+                .subscribe();
+        dispatcher.on(ReadyEvent.class)
+                .take(1)
+                .flatMap(listener::onReady)
+                .subscribe();
+        dispatcher.on(VoiceStateUpdateEvent.class)
+                .flatMap(listener::onVoiceStateUpdate)
+                .subscribe();
+        client.login().block();
+    }
+
+    public static Mono<Message> sendMessage(String string, MessageChannel channel) {
+        return channel.createMessage("\u200B" + string);
+    }
+
+    public static Mono<Message> sendEmbed(EmbedCreateSpec embed, MessageChannel channel) {
+        return channel.createMessage(message -> message.setEmbed(embed));
+    }
+
+
+    public static synchronized void schedule(DiscordClient client) {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
-        scheduler.scheduleAtFixedRate(() -> EventListener.sendMessage("Happy 420!", client.getChannelByID(332985255151665152L)), dailyMeme(), 24 * 60 * 60, TimeUnit.SECONDS);
-        boolean heroku = false;
-        try {
-            String s = System.getenv("HEROKU");
-            if (s != null) heroku = true;
-        } catch (NullPointerException ignored) {
-        }
+        scheduler.scheduleAtFixedRate(() -> client.getChannelById(Snowflake.of(GREETING_CHANNEL))
+                .ofType(TextChannel.class)
+                .flatMap(c -> sendMessage("Happy 420!", c))
+                .subscribe(), dailyMeme(), TimeUnit.DAYS.toSeconds(1), TimeUnit.SECONDS /*dailyMeme() returns seconds*/);
+        boolean heroku = System.getenv().containsKey("HEROKU");
         if (heroku) {
             scheduler.scheduleAtFixedRate(() -> {
                 try {
@@ -64,57 +97,76 @@ public class Bot {
                 }
             }, 0, 10, TimeUnit.MINUTES);
         }
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&eventType=live&type=video&key=" + System.getenv("GOOGLE_KEY")).openConnection();
-                connection.setRequestMethod("GET");
-                connection.connect();
-                if (connection.getResponseCode() != HttpsURLConnection.HTTP_OK) return;
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                JSONObject json = new JSONObject(reader.lines().collect(Collectors.joining("\n")));
-                reader.close();
-                if (json.getJSONObject("pageInfo").getInt("totalResults") == 0 && isLive) {
+        scheduler.scheduleAtFixedRate(() -> checkStreaming().and(checkNewVideo())
+                .onErrorResume(throwable -> {
+                    //TODO remove if statement after testing is over
+                    if (throwable instanceof ClientException) {
+                        int code = ((ClientException) throwable).getStatus().code();
+                        if (code == 403 || code == 404) return Mono.empty();
+                    }
+                    LoggerFactory.getLogger(Bot.class).error("YouTube listener had an uncaught exception!", throwable);
+                    return Mono.empty();
+                }).subscribe(), 0, 60, TimeUnit.SECONDS);
+    }
+
+    private static Mono<Message> checkStreaming() {
+        return Mono.fromCallable(() -> {
+            HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=" + CHANNEL_ID + "&eventType=live&type=video&key=" + System.getenv("GOOGLE_KEY")).openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            try (InputStream stream = connection.getInputStream()) {
+                JsonNode json = mapper.readTree(stream);
+                int totalResults = json.get("pageInfo").get("totalResults").intValue();
+                if (totalResults == 0 && isLive) {
                     isLive = false;
-                } else if (json.getJSONObject("pageInfo").getInt("totalResults") == 1 && !isLive) {
-                    JSONObject stream = json.getJSONArray("items").getJSONObject(0);
-                    for (IMessage message : client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray()) {
-                        if (message.getContent().contains(stream.getJSONObject("id").getString("videoId"))) {
-                            isLive = true;
-                            return;
-                        }
-                    }
+                } else if (totalResults == 1 && !isLive) {
                     isLive = true;
-                    EventListener.sendMessage("@everyone **" + stream.getJSONObject("snippet").getString("channelTitle") + "** is :red_circle:**LIVE**:red_circle:!\nhttps://www.youtube.com/watch?v=" + stream.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
+                    return json.withArray("items").get(0);
                 }
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
+                return null;
             }
-        }, 0, 60, TimeUnit.SECONDS);
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=UCKrMGLGMhxIuMHQdHOf1YIw&maxResults=1&order=date&type=video&key=" + System.getenv("GOOGLE_KEY")).openConnection();
-                connection.setRequestMethod("GET");
-                connection.connect();
-                if (connection.getResponseCode() != HttpsURLConnection.HTTP_OK) return;
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                JSONObject json = new JSONObject(reader.lines().collect(Collectors.joining("\n")));
-                reader.close();
-                if (json.getJSONObject("pageInfo").getInt("totalResults") >= 1) {
-                    JSONObject video = json.getJSONArray("items").getJSONObject(0);
-                    ZonedDateTime publishDate = Instant.parse(video.getJSONObject("snippet").getString("publishedAt")).atZone(ZoneId.of("US/Eastern"));
-                    if (/*publishDate.toInstant().toEpochMilli() > firstOnline &&*/ latestVideo != publishDate.toInstant().toEpochMilli()) {
-                        for (IMessage message : client.getChannelByID(341028279584817163L).getMessageHistory(10).asArray()) {
-                            if (message.getContent().contains(video.getJSONObject("id").getString("videoId"))) return;
-                        }
-                        latestVideo = publishDate.toInstant().toEpochMilli();
-                        EventListener.sendMessage("@everyone **" + video.getJSONObject("snippet").getString("channelTitle") + "** uploaded **" + video.getJSONObject("snippet").getString("title") + "** on " + getTime(publishDate) + "\nhttps://www.youtube.com/watch?v=" + video.getJSONObject("id").getString("videoId"), client.getChannelByID(341028279584817163L));
+        }).flatMap(json -> client.getChannelById(Snowflake.of(YOUTUBE_CHANNEL))
+                .cast(TextChannel.class)
+                .flatMap(c -> c.getMessagesBefore(Snowflake.of(Instant.now()))
+                        .take(10)
+                        .any(msg -> msg.getContent().map(content -> content.contains(json.get("id").get("videoId").textValue())).orElse(false))
+                        .filter(posted -> !posted) //only want to send message if not already posted previously
+                        .flatMap(ignored -> sendMessage(String.format("@everyone **%s** is :red_circle:**LIVE**:red_circle:! %nhttps://www.youtube.com/watch?v=%s",
+                                json.get("snippet").get("channelTitle").textValue(),
+                                json.get("id").get("videoId").textValue()), c))));
+    }
+
+    private static Mono<Message> checkNewVideo() {
+        return Mono.fromCallable(() -> {
+            HttpsURLConnection connection = (HttpsURLConnection) new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=" + CHANNEL_ID + "&maxResults=1&order=date&type=video&key=" + System.getenv("GOOGLE_KEY")).openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                try (InputStream stream = connection.getInputStream()) {
+                    JsonNode json = mapper.readTree(stream);
+                    if (json.get("pageInfo").get("totalResults").intValue() > 0) {
+                        return json.withArray("items").get(0);
                     }
                 }
-                connection.disconnect();
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
             }
-        }, 0, 3, TimeUnit.MINUTES);
+            return null;
+        }).flatMap(json -> {
+            ZonedDateTime publishDate = Instant.parse(json.get("snippet").get("publishedAt").textValue()).atZone(ZoneId.of("US/Eastern"));
+            return client.getChannelById(Snowflake.of(YOUTUBE_CHANNEL)).cast(TextChannel.class)
+                    .filter(c -> !latestVideo.equals(json.get("id").get("videoId").textValue()))
+                    .flatMap(c -> c.getMessagesBefore(Snowflake.of(Instant.now()))
+                            .take(10)
+                            .any(msg -> msg.getContent().map(content -> content.contains(json.get("id").get("videoId").textValue())).orElse(false))
+                            .doOnNext(ignored -> latestVideo = json.get("id").get("videoId").textValue())
+                            .filter(posted -> !posted) //only want to send message if not already posted previously
+                            .flatMap(ignored -> sendMessage(String.format("@everyone **%s** uploaded **%s** on %s %nhttps://www.youtube.com/watch?v=%s",
+                                    json.get("snippet").get("channelTitle").textValue(),
+                                    json.get("snippet").get("title").textValue(),
+                                    getTime(publishDate),
+                                    json.get("id").get("videoId").textValue()), c)));
+        });
     }
 
     private static long dailyMeme() {
@@ -143,85 +195,7 @@ public class Bot {
             default:
                 ordinal = "th";
         }
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'" + ordinal + "', yyyy h:mm a '" + time.getZone().getDisplayName(TextStyle.FULL, Locale.US) + "'");
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM d'" + ordinal + "', yyyy");
         return format.format(time);
     }
-
-    public static String getPrefix(IGuild guild) {
-        return prefixes.get(guild.getLongID());
-    }
-
-    static void setPrefix(IGuild guild, String prefix) {
-        prefixes.put(guild.getLongID(), prefix);
-        //updateGuild(guild.getLongID(), prefix);
-    }
-
-    static void removePrefix(IGuild guild) {
-        prefixes.remove(guild.getLongID());
-        //removeGuild(guild.getLongID());
-    }
-
-//	public static void insertGuild(Long id, String prefix) {
-//		String url = System.getenv("SQL_URL");
-//		String user = System.getenv("SQL_USER");
-//		String password = System.getenv("SQL_PASSWORD");
-//		try {
-//			Class.forName("com.mysql.jdbc.Driver").newInstance();
-//			Connection con = DriverManager.getConnection(url, user, password);
-//			PreparedStatement pst = con.prepareStatement("INSERT INTO prefixes(guild_id, prefix) VALUES(?, ?)");
-//			pst.setLong(1, id);
-//			pst.setString(2, prefix);
-//			pst.executeUpdate();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	public static void updateGuild(Long id, String prefix) {
-//		String url = System.getenv("SQL_URL");
-//		String user = System.getenv("SQL_USER");
-//		String password = System.getenv("SQL_PASSWORD");
-//		try {
-//			Class.forName("com.mysql.jdbc.Driver").newInstance();
-//			Connection con = DriverManager.getConnection(url, user, password);
-//			PreparedStatement pst = con.prepareStatement("UPDATE prefixes SET prefix = ? WHERE guild_id = ?");
-//			pst.setString(1, prefix);
-//			pst.setLong(2, id);
-//			pst.executeUpdate();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	public static void removeGuild(Long id) {
-//		String url = System.getenv("SQL_URL");
-//		String user = System.getenv("SQL_USER");
-//		String password = System.getenv("SQL_PASSWORD");
-//		try {
-//			Class.forName("com.mysql.jdbc.Driver").newInstance();
-//			Connection con = DriverManager.getConnection(url, user, password);
-//			PreparedStatement pst = con.prepareStatement("DELETE FROM prefixes WHERE guild_id=?");
-//			pst.setLong(1, id);
-//			pst.executeUpdate();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	public static String retrieveSQLPrefix(Long id) {
-//		String url = System.getenv("SQL_URL");
-//		String user = System.getenv("SQL_USER");
-//		String password = System.getenv("SQL_PASSWORD");
-//		try {
-//			Class.forName("com.mysql.jdbc.Driver").newInstance();
-//			Connection con = DriverManager.getConnection(url, user, password);
-//			PreparedStatement pst = con.prepareStatement("SELECT * FROM prefixes WHERE guild_id=?");
-//			pst.setLong(1, id);
-//			ResultSet set = pst.executeQuery();
-//			if (set.next()) return set.getString(2);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		return null;
-//	}
 }
