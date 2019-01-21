@@ -23,11 +23,12 @@ public class HelpCommand extends Command {
 
     @Override
     public Mono<Message> run(MessageCreateEvent event, String[] args) {
+        String prefix = Bot.getPrefix(event.getClient(), event.getGuildId().get());
         return event.getMessage().getChannel().flatMap(c -> sendMessage("Hello! I am XT Bot. My commands are:\n```"+
-                Bot.prefix+"hey\n"+
-                Bot.prefix+"info\n"+
-                Bot.prefix+"music\n"+
-                Bot.prefix+"newname\n"+
-                Bot.prefix+"fortnite or "+Bot.prefix+"ftn\n```", c));
+                prefix+"hey\n"+
+                prefix+"info\n"+
+                prefix+"music\n"+
+                prefix+"newname\n"+
+                prefix+"fortnite or "+prefix+"ftn\n```", c));
     }
 }

@@ -1,6 +1,7 @@
 package me.sizableshrimp.discordbot.music.commands;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import me.sizableshrimp.discordbot.Bot;
 import me.sizableshrimp.discordbot.commands.Command;
 import reactor.core.publisher.Mono;
@@ -16,8 +17,8 @@ public class MusicCommand extends Command {
     }
 
     @Override
-    protected Mono run(MessageCreateEvent event, String[] args) {
-        String prefix = Bot.prefix;
+    protected Mono<Message> run(MessageCreateEvent event, String[] args) {
+        String prefix = Bot.getPrefix(event.getClient(), event.getGuildId().get());
         return event.getMessage().getChannel().flatMap(c -> sendMessage("I can play music! My music commands are:```[] - required   () - optional  * - DJs or people alone with bot only  ** - DJs only\n" +
                 prefix + "play [song] - Plays the song that you request.\n" +
                 "* " + prefix + "volume (new volume) or " + prefix + "vol (new volume) - Changes the volume or tells the current volume.\n" +

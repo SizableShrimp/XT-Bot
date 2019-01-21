@@ -49,9 +49,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.discord4j</groupId>
-            <artifactId>Discord4J</artifactId>
-            <version>c5e36e64ab03c47d305b3a373d3a9b2493276804</version>
+            <groupId>com.discord4j.discord4j</groupId>
+            <artifactId>discord4j-core</artifactId>
+            <version>9026b531aff48904c4e28cc7fd079c5a2f9b1107</version>
         </dependency>
 
         <dependency>
@@ -61,9 +61,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>23.5-jre</version>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.11</version>
         </dependency>
 
         <dependency>

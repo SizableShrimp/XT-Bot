@@ -3,7 +3,7 @@ package me.sizableshrimp.discordbot.music;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.TextChannel;
 import discord4j.core.object.util.Permission;
-import me.sizableshrimp.discordbot.Bot;
+import me.sizableshrimp.discordbot.Util;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
@@ -16,7 +16,7 @@ public enum MusicPermissions {
         return member.getBasePermissions()
                 .filterWhen(ps -> hasDJRole(member).map(hasDjRole -> hasDjRole || ps.contains(Permission.MANAGE_CHANNELS)))
                 .map(ps -> MusicPermissions.DJ)
-                .switchIfEmpty(Music.isMemberAlone(member)
+                .switchIfEmpty(Util.isMemberAlone(member)
                         .map(b -> b ? MusicPermissions.ALONE : MusicPermissions.DEFAULT)
                 );
     }
@@ -43,9 +43,9 @@ public enum MusicPermissions {
                 .flatMap(hasPermission -> {
                     if (!hasPermission) {
                         if (perms.contains(MusicPermissions.ALONE)) {
-                            return Bot.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or are a DJ.", channel);
+                            return Util.sendMessage(":x: Insufficient permission. You can do this command if you are alone with the bot or are a DJ.", channel);
                         } else if (perms.contains(MusicPermissions.DJ)) {
-                            return Bot.sendMessage(":x: Insufficient permission. You can do this command if you are a DJ.", channel);
+                            return Util.sendMessage(":x: Insufficient permission. You can do this command if you are a DJ.", channel);
                         }
                     }
                     return Mono.empty();

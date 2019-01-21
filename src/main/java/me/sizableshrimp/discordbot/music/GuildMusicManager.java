@@ -2,6 +2,7 @@ package me.sizableshrimp.discordbot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import discord4j.core.DiscordClient;
 import discord4j.core.object.util.Snowflake;
 import reactor.core.publisher.Mono;
 
@@ -15,9 +16,9 @@ public class GuildMusicManager {
   int wantsToSkip;
   final List<Snowflake> usersSkipping = new ArrayList<>();
 
-  public GuildMusicManager(AudioPlayerManager manager, Snowflake guildId) {
+  public GuildMusicManager(AudioPlayerManager manager, Snowflake guildId, DiscordClient client) {
     player = manager.createPlayer();
-    scheduler = new TrackScheduler(player, guildId);
+    scheduler = new TrackScheduler(player, guildId, client);
     player.addListener(scheduler);
   }
 }

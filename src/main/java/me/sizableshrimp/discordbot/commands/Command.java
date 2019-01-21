@@ -6,6 +6,7 @@ import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.entity.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import me.sizableshrimp.discordbot.Bot;
+import me.sizableshrimp.discordbot.Util;
 import me.sizableshrimp.discordbot.music.Music;
 import me.sizableshrimp.discordbot.music.MusicPermissions;
 import reactor.core.publisher.Flux;
@@ -44,15 +45,15 @@ public abstract class Command {
     //helper functions
     protected Mono<Message> incorrectUsage(MessageCreateEvent event) {
         return event.getMessage().getChannel()
-                .flatMap(c -> sendMessage("Incorrect usage. Please use: ```" + Bot.prefix + getUsage() + "```", c));
+                .flatMap(c -> sendMessage("Incorrect usage. Please use: ```" + Bot.getPrefix(event.getClient(), event.getGuildId().get()) + getUsage() + "```", c));
     }
 
     protected static Mono<Message> sendMessage(String string, MessageChannel channel) {
-        return Bot.sendMessage(string, channel);
+        return Util.sendMessage(string, channel);
     }
 
     protected static Mono<Message> sendEmbed(EmbedCreateSpec embed, MessageChannel channel) {
-        return Bot.sendEmbed(embed, channel);
+        return Util.sendEmbed(embed, channel);
     }
 
     protected static Mono<Void> deleteLater(int seconds, Message... messages) {

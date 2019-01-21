@@ -25,18 +25,18 @@ public class NameCommand extends Command {
         if (args.length != 1) {
             return incorrectUsage(event).flatMap(m -> deleteLater(7, m, event.getMessage()));
         }
-        boolean isMale;
+        Gender gender;
         switch (args[0].toLowerCase()) {
             case "male":
-                isMale = true;
+                gender = Gender.MALE;
                 break;
             case "female":
-                isMale = false;
+                gender = Gender.FEMALE;
                 break;
             default:
                 return incorrectUsage(event).flatMap(m -> deleteLater(7, m, event.getMessage()));
         }
-        String name = new NameGenerator().generateName(isMale ? Gender.MALE : Gender.FEMALE).getFirstName();
+        String name = new NameGenerator().generateName(gender).getFirstName();
         return event.getMessage().getAuthorAsMember()
                 .flatMap(member -> member.edit(edit -> edit.setNickname(name)))
                 .then(event.getMessage().getChannel().flatMap(c -> sendMessage("✅ Your name has been changed to `" + name + "`.", c)))

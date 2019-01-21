@@ -1,6 +1,7 @@
 package me.sizableshrimp.discordbot.music.commands;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import me.sizableshrimp.discordbot.commands.Command;
 import me.sizableshrimp.discordbot.music.GuildMusicManager;
 import me.sizableshrimp.discordbot.music.Music;
@@ -18,11 +19,11 @@ public class LoopCommand extends Command {
     }
 
     @Override
-    protected Mono<?> run(MessageCreateEvent event, String[] args) {
+    protected Mono<Message> run(MessageCreateEvent event, String[] args) {
         if (!event.getMember().isPresent()) return Mono.empty();
         return filterLockedAndPermissions(event, MusicPermissions.DJ, MusicPermissions.ALONE)
                 .flatMap(c -> {
-                    GuildMusicManager manager = Music.getGuildManager(event.getGuildId().get());
+                    GuildMusicManager manager = Music.getGuildManager(event.getClient(), event.getGuildId().get());
                     final boolean looping = manager.scheduler.isRepeating();
                     manager.scheduler.setRepeating(!looping);
                     if (looping) {

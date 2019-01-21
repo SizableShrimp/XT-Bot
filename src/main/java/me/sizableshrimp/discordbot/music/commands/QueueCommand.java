@@ -2,6 +2,7 @@ package me.sizableshrimp.discordbot.music.commands;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import discord4j.core.spec.EmbedCreateSpec;
 import me.sizableshrimp.discordbot.commands.Command;
 import me.sizableshrimp.discordbot.music.GuildMusicManager;
@@ -20,8 +21,8 @@ public class QueueCommand extends Command {
     }
 
     @Override
-    protected Mono run(MessageCreateEvent event, String[] args) {
-        GuildMusicManager manager = Music.getGuildManager(event.getGuildId().get());
+    protected Mono<Message> run(MessageCreateEvent event, String[] args) {
+        GuildMusicManager manager = Music.getGuildManager(event.getClient(), event.getGuildId().get());
         AudioTrack playing = manager.player.getPlayingTrack();
         EmbedCreateSpec embed = new EmbedCreateSpec();
         embed.setAuthor("Queue", null, null);

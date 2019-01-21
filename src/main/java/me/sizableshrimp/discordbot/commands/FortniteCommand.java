@@ -1,9 +1,12 @@
 package me.sizableshrimp.discordbot.commands;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import discord4j.core.spec.EmbedCreateSpec;
+import me.sizableshrimp.discordbot.Bot;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -17,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,7 +37,7 @@ public class FortniteCommand extends Command {
     }
 
     @Override
-    protected Mono run(MessageCreateEvent event, String[] args) {
+    protected Mono<Message> run(MessageCreateEvent event, String[] args) {
         if (args.length < 2) {
             return incorrectUsage(event);
         }
@@ -43,21 +47,53 @@ public class FortniteCommand extends Command {
         } else {
             return incorrectUsage(event);
         }
-        StringBuilder username = new StringBuilder();
-        username.append(args[1]);
-        for (int i = 2; i < args.length; i++) {
-            username.append(" ").append(args[i]);
-        }
+        String username = String.join(" ", Arrays.copyOfRange(args, 1, args.length)); //exclude platform
 
+        return getJson(platform, username)
+                .flatMap(json -> {
+                    if (json.has("error")) {
+                        if (json.path("error").asText().equals("Player Not Found"))
+                            return event.getMessage().getChannel().flatMap(c -> sendMessage("The user specified could not be found. Please try a different name or platform.", c));
+                        try {
+                            return Mono.error(new Exception(Bot.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json)));
+                        } catch (JsonProcessingException ignored) { }
+                    }
+                    return event.getMessage().getChannel().flatMap(c -> sendEmbed(createEmbed(json, platform, username), c));
+                })
+                .switchIfEmpty(event.getMessage().getChannel().flatMap(c -> sendMessage("A good connection was not established. Please try again later.", c)))
+                .onErrorResume(throwable -> {
+                    LoggerFactory.getLogger(getClass()).error("An error occurred when fetching Fortnite stats. Attached JSON: %s%n", throwable.getMessage());
+                    return event.getMessage().getChannel().flatMap(c -> sendMessage("An error occurred when running this command. Please try again later.", c));
+                });
+    }
+
+    private EmbedCreateSpec createEmbed(JsonNode json, String platform, String username) {
+        URL url;
+        try {
+            url = new URL("https://fortnitetracker.com/profile/" + platform + "/" + URLEncoder.encode(username, "UTF-8").replace("+", "%20"));
+        } catch (MalformedURLException | UnsupportedEncodingException e) {
+            url = null;
+        }
+        EmbedCreateSpec embed = new EmbedCreateSpec();
+        embed.setAuthor(json.path("epicUserHandle").asText() + " | " + json.path("platformNameLong").asText(), url == null ? null : url.toString(), null);
+        embed.addField("Solos", getSolos(json), true);
+        embed.addField("Duos", getDuos(json), true);
+        embed.addField("Squads", getSquads(json), true);
+        embed.addField("Lifetime", getLifetime(json), false);
+        embed.setFooter("fortnitetracker.com", "https://pbs.twimg.com/profile_images/966414667596808193/dyH-Qrz8_400x400.jpg");
+        embed.setColor(new Color(74, 134, 232));
+        return embed;
+    }
+
+    private Mono<JsonNode> getJson(String platform, String username) {
         return Mono.fromCallable(() -> {
-            HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/" + platform + "/" + username.toString()).openConnection();
+            HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.fortnitetracker.com/v1/profile/" + platform + "/" + username).openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("User-Agent", "XT-Bot");
             conn.setRequestProperty("TRN-Api-Key", System.getenv("FORTNITE_KEY"));
             conn.connect();
             return conn;
-        })
-                .filter(conn -> {
+        }).filter(conn -> {
                     try {
                         return conn.getResponseCode() == HttpURLConnection.HTTP_OK;
                     } catch (IOException e) {
@@ -65,29 +101,7 @@ public class FortniteCommand extends Command {
                     }
                 })
                 .flatMap(conn -> Mono.fromCallable(conn::getInputStream))
-                .flatMap(stream -> Mono.fromCallable(() -> new ObjectMapper().readTree(stream)))
-                .flatMap(json -> {
-                    if (json.has("error") && json.path("error").asText().equals("Player Not Found")) {
-                        return event.getMessage().getChannel().flatMap(c -> sendMessage("The user specified could not be found. Please try a different name or platform.", c));
-                    }
-                    URL url;
-                    try {
-                        url = new URL("https://fortnitetracker.com/profile/" + platform + "/" + URLEncoder.encode(username.toString(), "UTF-8").replace("+", "%20"));
-                    } catch (MalformedURLException | UnsupportedEncodingException e) {
-                        url = null;
-                    }
-                    EmbedCreateSpec embed = new EmbedCreateSpec();
-                    embed.setAuthor(json.path("epicUserHandle").asText() + " | " + json.path("platformNameLong").asText(), url == null ? null : url.toString(), null);
-                    embed.addField("Solos", getSolos(json), true);
-                    embed.addField("Duos", getDuos(json), true);
-                    embed.addField("Squads", getSquads(json), true);
-                    embed.addField("Lifetime", getLifetime(json), false);
-                    embed.setFooter("fortnitetracker.com", "https://pbs.twimg.com/profile_images/966414667596808193/dyH-Qrz8_400x400.jpg");
-                    embed.setColor(new Color(74, 134, 232));
-                    return event.getMessage().getChannel().flatMap(c -> sendEmbed(embed, c));
-                })
-                .switchIfEmpty(event.getMessage().getChannel().flatMap(c -> sendMessage("A good connection was not established. Please try again later.", c)))
-                .onErrorResume(throwable -> event.getMessage().getChannel().flatMap(c -> sendMessage("An error occurred when running this command. Please try again later.", c)));
+                .flatMap(stream -> Mono.fromCallable(() -> Bot.mapper.readTree(stream)));
     }
 
     private String getSolos(JsonNode json) {

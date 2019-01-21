@@ -26,16 +26,18 @@ public class InfoCommand extends Command {
         embed.setDescription("This bot is built with [Spring Boot](https://spring.io/projects/spring-boot). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
         embed.addField("Author", "SizableShrimp", true);
         embed.addField("Discord4J Version", "v3-SNAPSHOT", true);
-        embed.addField("Prefix", Bot.prefix, false);
+        //currently broken with latest v3 commit
+        //embed.addField("Discord4J Version", VersionUtil.getProperties().getProperty(VersionUtil.APPLICATION_VERSION), true);
+        embed.addField("Prefix", Bot.getPrefix(event.getClient(), event.getGuildId().get()), false);
         embed.addField("Uptime", getUptime(), false);
         return event.getMessage().getChannel()
                 .flatMap(c -> c.createMessage(m -> m
-                        .setContent("\u200BTo find out my commands, use `"+Bot.prefix+"help`")
+                        .setContent("\u200BTo find out my commands, use `"+Bot.getPrefix(event.getClient(), event.getGuildId().get())+"help`")
                         .setEmbed(embed)));
     }
 
     private static String getUptime() {
-        Duration duration = Duration.ofMillis(System.currentTimeMillis() - Bot.FIRST_ONLINE);
+        Duration duration = Duration.ofMillis(System.currentTimeMillis() - Bot.getFirstOnline());
         List<String> list = new ArrayList<>();
 
         if (duration.toDays() > 0)
