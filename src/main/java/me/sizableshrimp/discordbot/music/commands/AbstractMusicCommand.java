@@ -41,7 +41,6 @@ public abstract class AbstractMusicCommand extends Command {
         if (!event.getMessage().getContent().isPresent() || !event.getMember().isPresent()) return Mono.empty();
         String[] temp = event.getMessage().getContent().get().split(" ");
         String[] args = Arrays.copyOfRange(temp, 1, temp.length);
-        MusicPermission.getPermission(event.getMember().get()).subscribe(System.out::println);
 
         Mono<VoiceChannel> botConnected = Music.getBotConnectedVoiceChannel(event.getClient(), event.getGuildId().get());
         Mono<VoiceChannel> userConnected = Music.getConnectedVoiceChannel(event.getMember().get());
