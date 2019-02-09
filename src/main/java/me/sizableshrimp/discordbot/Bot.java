@@ -63,6 +63,7 @@ public class Bot {
 
     public static String getPrefix(DiscordClient client, Snowflake guildId) {
         //TODO add support for changing prefix later
-        return "/";
+        if (System.getenv().containsKey("PREFIX")) return System.getenv("PREFIX");
+        return ",";
     }
 }
