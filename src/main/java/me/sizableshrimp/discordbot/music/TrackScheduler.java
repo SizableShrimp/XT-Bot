@@ -52,8 +52,10 @@ public class TrackScheduler extends AudioEventAdapter {
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         if (endReason.mayStartNext) {
             if (queueRepeating) {
-                nextTrack();
-                queue.offer(track); //add playing track back to the queue
+                AudioTrack next = queue.poll();
+                next = next == null ? track.makeClone() : next.makeClone();
+                player.startTrack(next, false);
+                if (!next.getInfo().uri.equals(track.getInfo().uri) /*make sure tracks are not the same*/) queue.offer(track); //add playing track back to the queue
             } else if (repeating) {
                 player.startTrack(track.makeClone(), false);
             } else {
