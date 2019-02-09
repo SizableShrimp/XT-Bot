@@ -8,7 +8,7 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>DiscordBot</name>
+    <name>XT-Bot</name>
     <description>Discord bot made by SizableShrimp</description>
 
     <build>
@@ -49,9 +49,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.discord4j.discord4j</groupId>
-            <artifactId>discord4j-core</artifactId>
-            <version>9026b531aff48904c4e28cc7fd079c5a2f9b1107</version>
+            <groupId>com.github.discord4j</groupId>
+            <artifactId>discord4j</artifactId>
+            <version>78ee7a9bbea66bd7be5ae2e2f8fbe82a0813d61d</version>
         </dependency>
 
         <dependency>
@@ -64,6 +64,12 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>LATEST</version>
         </dependency>
 
         <dependency>

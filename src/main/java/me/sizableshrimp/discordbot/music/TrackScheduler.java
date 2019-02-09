@@ -7,17 +7,16 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.TextChannel;
-import discord4j.core.object.entity.VoiceChannel;
 import discord4j.core.object.util.Snowflake;
 import me.sizableshrimp.discordbot.Util;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class TrackScheduler extends AudioEventAdapter {
     private boolean repeating = false;
+    private boolean queueRepeating = false;
     private final AudioPlayer player;
     public final BlockingQueue<AudioTrack> queue;
     private final Snowflake guildId;
@@ -52,7 +51,10 @@ public class TrackScheduler extends AudioEventAdapter {
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         if (endReason.mayStartNext) {
-            if (repeating) {
+            if (queueRepeating) {
+                nextTrack();
+                queue.offer(track); //add playing track back to the queue
+            } else if (repeating) {
                 player.startTrack(track.makeClone(), false);
             } else {
                 nextTrack();
@@ -66,12 +68,6 @@ public class TrackScheduler extends AudioEventAdapter {
                 .doOnNext(b -> {
                     if (b) {
                         GuildMusicManager manager = Music.getGuildManager(client, guildId);
-                        manager.wantsToSkip = 0;
-                        manager.neededToSkip = Music.getBotConnectedVoiceChannel(client, guildId)
-                                .map(Optional::get)
-                                .flatMapMany(VoiceChannel::getVoiceStates)
-                                .count()
-                                .map(number -> (int) Math.round((number - 1) / 2D));
                         manager.usersSkipping.clear();
                     } else {
                         System.out.println("Music track is trying to play while bot is not connected to a voice channel. Stopping track.");
@@ -93,6 +89,14 @@ public class TrackScheduler extends AudioEventAdapter {
     @Override
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
 
+    }
+
+    public boolean isQueueRepeating() {
+        return queueRepeating;
+    }
+
+    public void setQueueRepeating(boolean queueRepeating) {
+        this.queueRepeating = queueRepeating;
     }
 
     public void setRepeating(boolean isRepeating) {

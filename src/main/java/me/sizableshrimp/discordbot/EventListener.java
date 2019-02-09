@@ -1,6 +1,5 @@
 package me.sizableshrimp.discordbot;
 
-import discord4j.core.DiscordClient;
 import discord4j.core.event.domain.VoiceStateUpdateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.VoiceState;
@@ -11,6 +10,7 @@ import org.reflections.Reflections;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,13 +20,15 @@ public class EventListener {
     private static Map<String, Command> names = new HashMap<>();
     private static Set<Command> commands = new HashSet<>();
 
-    private EventListener() {}
+    private EventListener() {
+    }
 
     static {
         Reflections reflections = new Reflections(EventListener.class.getPackage().getName());
         Set<Class<? extends Command>> set = reflections.getSubTypesOf(Command.class);
         for (Class<? extends Command> clazz : set) {
             try {
+                if (Modifier.isAbstract(clazz.getModifiers())) continue;
                 Command command = clazz.getDeclaredConstructor().newInstance();
                 commands.add(command);
                 command.getNames().forEach(name -> names.put(name, command));
@@ -39,13 +41,13 @@ public class EventListener {
     }
 
     static Mono onMessageCreate(MessageCreateEvent event) {
-        if (!event.getMessage().getContent().isPresent() || !event.getMessage().getAuthorId().isPresent())
+        if (!event.getMessage().getContent().isPresent() || !event.getMessage().getAuthor().isPresent())
             return Mono.empty();
+
         String prefix = Bot.getPrefix(event.getClient(), event.getGuildId().get());
         Command command = null;
         if (event.getMessage().getContent().get().startsWith(prefix)) {
-            String content = event.getMessage().getContent().get();
-            String commandName = content.substring(1).split(" ")[0].toLowerCase();
+            String commandName = Util.getCommandName(event.getMessage());
             command = names.get(commandName);
         }
         if (command == null) {
@@ -58,14 +60,30 @@ public class EventListener {
     }
 
     //reset the music player if user leaves channel and bot is the only one in it
+    //OR skips to next track if a user leaving caused the num of people skipping to go over the majority
     static Mono<Snowflake> onVoiceStateUpdate(VoiceStateUpdateEvent event) {
         if (Music.connections.get(event.getCurrent().getGuildId()) == null) return Mono.empty();
-        DiscordClient client = event.getClient();
+        Snowflake guildId = event.getCurrent().getGuildId();
+        Set<Snowflake> usersSkipping = Music.getGuildManager(event.getClient(), guildId).usersSkipping;
 
+        //TODO fix
         return Mono.justOrEmpty(event.getOld().flatMap(VoiceState::getChannelId))
                 .filterWhen(old -> event.getCurrent().getChannel().hasElement().map(connected -> !connected)) //user left channel
-                .filterWhen(old -> Util.isBotInVoiceChannel(client, old))
-                .filterWhen(old -> Util.isBotAlone(client, old))
-                .doOnNext(ignored -> Music.disconnectBotFromChannel(event.getClient(), event.getCurrent().getGuildId()));
+                .doOnNext(old -> usersSkipping.remove(event.getCurrent().getUserId()))
+                .filterWhen(old -> Util.isBotInVoiceChannel(event.getClient(), old))
+                .filterWhen(old -> Util.isBotAlone(event.getClient(), guildId))
+                .doOnNext(ignored -> Music.disconnectBotFromChannel(event.getCurrent().getGuildId()))
+                .switchIfEmpty(Music.getBotVoiceChannelMajority(event.getClient(), guildId)
+                        .filter(majority -> usersSkipping.size() >= majority)
+                        .doOnNext(majority -> Music.skipTrack(event.getClient(), guildId))
+                        .thenReturn(Snowflake.of(0)));
+    }
+
+    public static Map<String, Command> getCommandNameMap() {
+        return new HashMap<>(names);
+    }
+
+    public static Set<Command> getCommands() {
+        return new HashSet<>(commands);
     }
 }

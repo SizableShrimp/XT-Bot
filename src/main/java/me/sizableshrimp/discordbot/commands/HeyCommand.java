@@ -10,8 +10,14 @@ import java.util.stream.Stream;
 
 public class HeyCommand extends Command {
     @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo("%cmdname%",
+                "A small command used to say hello to the bot.");
+    }
+
+    @Override
     public Set<String> getNames() {
-        return Stream.of("hey").collect(Collectors.toSet());
+        return Stream.of("hey", "hello").collect(Collectors.toSet());
     }
 
     @Override

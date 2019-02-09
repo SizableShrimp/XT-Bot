@@ -4,24 +4,29 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.TextChannel;
-import me.sizableshrimp.discordbot.Bot;
-import me.sizableshrimp.discordbot.commands.Command;
 import me.sizableshrimp.discordbot.music.GuildMusicManager;
 import me.sizableshrimp.discordbot.music.Music;
-import me.sizableshrimp.discordbot.music.MusicPermissions;
+import me.sizableshrimp.discordbot.music.MusicPermission;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GotoCommand extends Command {
+public class GotoCommand extends AbstractMusicCommand {
     @Override
-    public String getUsage() {
-        return "goto [time in song]";
+    public CommandInfo getInfo() {
+        return new CommandInfo("%cmdname% [time in song]",
+                "Starts playing from a certain point in the song.");
+    }
+
+    @Override
+    public Set<MusicPermission> getRequiredPermissions() {
+        return EnumSet.of(MusicPermission.DJ, MusicPermission.ALONE);
     }
 
     @Override
@@ -32,7 +37,8 @@ public class GotoCommand extends Command {
     @Override
     protected Mono<Message> run(MessageCreateEvent event, String[] args) {
         if (!event.getMember().isPresent()) return Mono.empty();
-        return filterLockedAndPermissions(event, MusicPermissions.DJ, MusicPermissions.ALONE)
+        return event.getMessage().getChannel().cast(TextChannel.class)
+                .filterWhen(c -> hasPermission(event))
                 .flatMap(channel -> goTo(channel, event, args));
     }
 
@@ -67,12 +73,5 @@ public class GotoCommand extends Command {
         }
         track.setPosition(millis);
         return sendMessage("Now playing at `" + time + "`", channel);
-    }
-
-    @Override
-    protected Mono<Message> incorrectUsage(MessageCreateEvent event) {
-        String prefix = Bot.getPrefix(event.getClient(), event.getGuildId().get());
-        return event.getMessage().getChannel()
-                .flatMap(c -> sendMessage("Incorrect usage. Please use: ```" + prefix + getUsage() + "```Example: `" + prefix + "goto 5:35`", c));
     }
 }

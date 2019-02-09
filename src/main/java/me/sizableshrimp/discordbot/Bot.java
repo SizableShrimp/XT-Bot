@@ -27,6 +27,7 @@ public class Bot {
 
     /**
      * Schedules the main events that run on a timer
+     *
      * @param client A client from any shard used to get channels by ID
      */
     public static void schedule(DiscordClient client) {

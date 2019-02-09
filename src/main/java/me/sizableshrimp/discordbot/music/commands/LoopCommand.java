@@ -2,17 +2,29 @@ package me.sizableshrimp.discordbot.music.commands;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import me.sizableshrimp.discordbot.commands.Command;
+import discord4j.core.object.entity.MessageChannel;
 import me.sizableshrimp.discordbot.music.GuildMusicManager;
 import me.sizableshrimp.discordbot.music.Music;
-import me.sizableshrimp.discordbot.music.MusicPermissions;
+import me.sizableshrimp.discordbot.music.MusicPermission;
 import reactor.core.publisher.Mono;
 
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class LoopCommand extends Command {
+public class LoopCommand extends AbstractMusicCommand {
+    @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo("%cmdname% (queue)",
+                "Toggles between loop on or off. If you add `queue`, it will loop the entire queue.");
+    }
+
+    @Override
+    public Set<MusicPermission> getRequiredPermissions() {
+        return EnumSet.of(MusicPermission.DJ, MusicPermission.ALONE);
+    }
+
     @Override
     public Set<String> getNames() {
         return Stream.of("loop").collect(Collectors.toSet());
@@ -21,16 +33,35 @@ public class LoopCommand extends Command {
     @Override
     protected Mono<Message> run(MessageCreateEvent event, String[] args) {
         if (!event.getMember().isPresent()) return Mono.empty();
-        return filterLockedAndPermissions(event, MusicPermissions.DJ, MusicPermissions.ALONE)
-                .flatMap(c -> {
-                    GuildMusicManager manager = Music.getGuildManager(event.getClient(), event.getGuildId().get());
-                    final boolean looping = manager.scheduler.isRepeating();
-                    manager.scheduler.setRepeating(!looping);
-                    if (looping) {
-                        return sendMessage("Loop disabled.", c);
-                    } else {
-                        return sendMessage(":repeat: Loop enabled.", c);
-                    }
-                });
+        return event.getMessage().getChannel()
+                .filterWhen(c -> hasPermission(event))
+                .flatMap(c -> loop(event, args, c));
+    }
+
+    private Mono<Message> loop(MessageCreateEvent event, String[] args, MessageChannel channel) {
+        GuildMusicManager manager = Music.getGuildManager(event.getClient(), event.getGuildId().get());
+        if (args.length == 1 && args[0].equalsIgnoreCase("queue")) {
+            if (manager.scheduler.isRepeating()) {
+                return sendMessage(":x: You must disable song looping first.", channel);
+            }
+            final boolean looping = manager.scheduler.isQueueRepeating();
+            manager.scheduler.setQueueRepeating(!looping);
+            if (looping) {
+                return sendMessage("Queue loop disabled.", channel);
+            } else {
+                return sendMessage(":repeat: Queue loop enabled.", channel);
+            }
+        } else {
+            if (manager.scheduler.isQueueRepeating()) {
+                return sendMessage(":x: You must disable queue looping first.", channel);
+            }
+            final boolean looping = manager.scheduler.isRepeating();
+            manager.scheduler.setRepeating(!looping);
+            if (looping) {
+                return sendMessage("Loop disabled.", channel);
+            } else {
+                return sendMessage(":repeat: Loop enabled.", channel);
+            }
+        }
     }
 }

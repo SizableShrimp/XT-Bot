@@ -22,13 +22,15 @@ import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FortniteCommand extends Command {
     @Override
-    public String getUsage() {
-        return "fortnite [pc|ps4|xbox] [username]";
+    public CommandInfo getInfo() {
+        return new CommandInfo("%cmdname% [pc|ps4|xbox] [username]",
+                "Returns Fortnite stats about the user including wins, kills, top placements, and more. Includes Solo, Duo, Squads, and Lifetime.");
     }
 
     @Override
@@ -56,7 +58,7 @@ public class FortniteCommand extends Command {
                             return event.getMessage().getChannel().flatMap(c -> sendMessage("The user specified could not be found. Please try a different name or platform.", c));
                         try {
                             return Mono.error(new Exception(Bot.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json)));
-                        } catch (JsonProcessingException ignored) { }
+                        } catch (JsonProcessingException ignored) {}
                     }
                     return event.getMessage().getChannel().flatMap(c -> sendEmbed(createEmbed(json, platform, username), c));
                 })
@@ -67,22 +69,21 @@ public class FortniteCommand extends Command {
                 });
     }
 
-    private EmbedCreateSpec createEmbed(JsonNode json, String platform, String username) {
-        URL url;
+    private Consumer<EmbedCreateSpec> createEmbed(JsonNode json, String platform, String username) {
+        String url = null;
         try {
-            url = new URL("https://fortnitetracker.com/profile/" + platform + "/" + URLEncoder.encode(username, "UTF-8").replace("+", "%20"));
-        } catch (MalformedURLException | UnsupportedEncodingException e) {
-            url = null;
-        }
-        EmbedCreateSpec embed = new EmbedCreateSpec();
-        embed.setAuthor(json.path("epicUserHandle").asText() + " | " + json.path("platformNameLong").asText(), url == null ? null : url.toString(), null);
-        embed.addField("Solos", getSolos(json), true);
-        embed.addField("Duos", getDuos(json), true);
-        embed.addField("Squads", getSquads(json), true);
-        embed.addField("Lifetime", getLifetime(json), false);
-        embed.setFooter("fortnitetracker.com", "https://pbs.twimg.com/profile_images/966414667596808193/dyH-Qrz8_400x400.jpg");
-        embed.setColor(new Color(74, 134, 232));
-        return embed;
+            url = new URL("https://fortnitetracker.com/profile/" + platform + "/" + URLEncoder.encode(username, "UTF-8").replace("+", "%20")).toString();
+        } catch (MalformedURLException | UnsupportedEncodingException ignored) { }
+        String finalUrl = url;
+        return embed -> {
+            embed.setAuthor(json.path("epicUserHandle").asText() + " | " + json.path("platformNameLong").asText(), finalUrl, null);
+            embed.addField("Solos", getSolos(json), true);
+            embed.addField("Duos", getDuos(json), true);
+            embed.addField("Squads", getSquads(json), true);
+            embed.addField("Lifetime", getLifetime(json), false);
+            embed.setFooter("fortnitetracker.com", "https://pbs.twimg.com/profile_images/966414667596808193/dyH-Qrz8_400x400.jpg");
+            embed.setColor(new Color(74, 134, 232));
+        };
     }
 
     private Mono<JsonNode> getJson(String platform, String username) {
@@ -94,12 +95,12 @@ public class FortniteCommand extends Command {
             conn.connect();
             return conn;
         }).filter(conn -> {
-                    try {
-                        return conn.getResponseCode() == HttpURLConnection.HTTP_OK;
-                    } catch (IOException e) {
-                        return false;
-                    }
-                })
+            try {
+                return conn.getResponseCode() == HttpURLConnection.HTTP_OK;
+            } catch (IOException e) {
+                return false;
+            }
+        })
                 .flatMap(conn -> Mono.fromCallable(conn::getInputStream))
                 .flatMap(stream -> Mono.fromCallable(() -> Bot.mapper.readTree(stream)));
     }

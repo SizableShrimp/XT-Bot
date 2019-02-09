@@ -11,8 +11,9 @@ import java.util.stream.Stream;
 
 public class NameCommand extends Command {
     @Override
-    public String getUsage() {
-        return "newname (male|female)";
+    public CommandInfo getInfo() {
+        return new CommandInfo("%cmdname% (male|female)",
+                "Randomly generates a name with the specified gender and nicknames the user. Does not work for admins!");
     }
 
     @Override

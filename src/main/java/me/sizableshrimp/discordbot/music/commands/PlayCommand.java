@@ -8,26 +8,33 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.TextChannel;
 import discord4j.core.object.entity.VoiceChannel;
-import discord4j.voice.AudioReceiver;
 import discord4j.voice.VoiceConnection;
 import me.sizableshrimp.discordbot.Util;
-import me.sizableshrimp.discordbot.commands.Command;
 import me.sizableshrimp.discordbot.music.GuildMusicManager;
 import me.sizableshrimp.discordbot.music.Music;
+import me.sizableshrimp.discordbot.music.MusicPermission;
 import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.EnumSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PlayCommand extends Command {
+public class PlayCommand extends AbstractMusicCommand {
     @Override
-    public String getUsage() {
-        return "play [song]";
+    public CommandInfo getInfo() {
+        return new CommandInfo("%cmdname% [song]",
+                "Adds the requested song to the queue.");
+    }
+
+    @Override
+    public Set<MusicPermission> getRequiredPermissions() {
+        return EnumSet.of(MusicPermission.NONE);
     }
 
     @Override
@@ -39,9 +46,14 @@ public class PlayCommand extends Command {
     protected Mono run(MessageCreateEvent event, String[] args) {
         if (!event.getMember().isPresent()) return Mono.empty();
         if (args.length < 1) return incorrectUsage(event);
-        return filterLocked(event)
-                .flatMap(b -> Music.getConnectedVoiceChannel(event.getMember().get()))
-                .zipWith(Music.getBotConnectedVoiceChannel(event.getClient(), event.getGuildId().get()))
+        return event.getMessage().getChannel()
+                .filterWhen(c -> hasPermission(event))
+                .flatMap(c -> Music.getConnectedVoiceChannel(event.getMember().get())
+                        .map(Optional::of)
+                        .defaultIfEmpty(Optional.empty()))
+                .zipWith(Music.getBotConnectedVoiceChannel(event.getClient(), event.getGuildId().get())
+                        .map(Optional::of)
+                        .defaultIfEmpty(Optional.empty()))
                 .flatMap(tuple -> {
                     VoiceChannel userConnected = tuple.getT1().orElse(null);
                     VoiceChannel botConnected = tuple.getT2().orElse(null);
@@ -70,7 +82,7 @@ public class PlayCommand extends Command {
 
     private static Mono<VoiceConnection> join(MessageCreateEvent event, VoiceChannel userConnected) {
         GuildMusicManager manager = Music.getGuildManager(event.getClient(), event.getGuildId().get());
-        Mono<VoiceConnection> connection = userConnected.join(new Music.LavaplayerAudioProvider(manager.player), AudioReceiver.NO_OP);
+        Mono<VoiceConnection> connection = userConnected.join(voiceSpec -> voiceSpec.setProvider(new Music.LavaplayerAudioProvider(manager.player)));
         return connection.doOnNext(vc -> Music.connections.put(event.getGuildId().get(), vc));
     }
 

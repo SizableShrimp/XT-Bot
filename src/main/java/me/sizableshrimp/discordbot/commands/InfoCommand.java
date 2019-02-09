@@ -10,10 +10,17 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class InfoCommand extends Command {
+    @Override
+    public CommandInfo getInfo() {
+        return new CommandInfo("%cmdname%",
+                "Display information about the bot including uptime, author, and how the bot was made.");
+    }
+
     @Override
     public Set<String> getNames() {
         return Stream.of("info").collect(Collectors.toSet());
@@ -21,19 +28,20 @@ public class InfoCommand extends Command {
 
     @Override
     protected Mono<Message> run(MessageCreateEvent event, String[] args) {
-        EmbedCreateSpec embed = new EmbedCreateSpec();
-        embed.setAuthor("Information", null, null);
-        embed.setDescription("This bot is built with [Spring Boot](https://spring.io/projects/spring-boot). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
-        embed.addField("Author", "SizableShrimp", true);
-        embed.addField("Discord4J Version", "v3-SNAPSHOT", true);
-        //currently broken with latest v3 commit
-        //embed.addField("Discord4J Version", VersionUtil.getProperties().getProperty(VersionUtil.APPLICATION_VERSION), true);
-        embed.addField("Prefix", Bot.getPrefix(event.getClient(), event.getGuildId().get()), false);
-        embed.addField("Uptime", getUptime(), false);
+        Consumer<EmbedCreateSpec> spec = embed -> {
+            embed.setAuthor("Information", null, null);
+            embed.setDescription("This bot is built with [Spring Boot](https://spring.io/projects/spring-boot). It is coded in Java using the [Discord4J](https://github.com/Discord4J/Discord4J) library.");
+            embed.addField("Author", "SizableShrimp", true);
+            embed.addField("Discord4J Version", "v3-SNAPSHOT", true);
+            //currently broken with latest v3 commit
+            //embed.addField("Discord4J Version", VersionUtil.getProperties().getProperty(VersionUtil.APPLICATION_VERSION), true);
+            embed.addField("Prefix", Bot.getPrefix(event.getClient(), event.getGuildId().get()), false);
+            embed.addField("Uptime", getUptime(), false);
+        };
         return event.getMessage().getChannel()
                 .flatMap(c -> c.createMessage(m -> m
-                        .setContent("\u200BTo find out my commands, use `"+Bot.getPrefix(event.getClient(), event.getGuildId().get())+"help`")
-                        .setEmbed(embed)));
+                        .setContent("\u200BTo find out my commands, use `" + Bot.getPrefix(event.getClient(), event.getGuildId().get()) + "help`")
+                        .setEmbed(spec)));
     }
 
     private static String getUptime() {

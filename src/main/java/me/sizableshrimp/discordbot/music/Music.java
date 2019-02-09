@@ -14,6 +14,7 @@ import discord4j.core.DiscordClient;
 import discord4j.core.object.VoiceState;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.TextChannel;
 import discord4j.core.object.entity.VoiceChannel;
 import discord4j.core.object.util.Snowflake;
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 
 public class Music {
     private static final List<Snowflake> lockedGuilds = new ArrayList<>();
@@ -66,17 +67,43 @@ public class Music {
         musicManager.scheduler.nextTrack();
     }
 
-    public static Mono<Optional<VoiceChannel>> getBotConnectedVoiceChannel(DiscordClient client, Snowflake guildId) {
+    public static Mono<Message> voteSkip(Member member, TextChannel channel) {
+        GuildMusicManager musicManager = getGuildManager(member.getClient(), channel.getGuildId());
+        Set<Snowflake> usersSkipping = musicManager.usersSkipping;
+        if (usersSkipping.contains(member.getId())) {
+            return Util.sendMessage(":x: You have already voted to skip.", channel);
+        }
+
+        Mono<Integer> majority = getBotVoiceChannelMajority(member.getClient(), channel.getGuildId());
+        usersSkipping.add(member.getId());
+        Mono<Message> added = majority
+                .flatMap(num -> Util.sendMessage(musicManager.usersSkipping.size() + "/" + num + " users requesting to skip.", channel));
+
+        return majority
+                .filter(num -> num >= musicManager.usersSkipping.size())
+                .doOnNext(ignored -> skipTrack(member.getClient(), channel.getGuildId()))
+                .flatMap(ignored -> Util.sendMessage(":white_check_mark: Song skipped.", channel))
+                .switchIfEmpty(added);
+    }
+
+    public static Mono<Integer> getBotVoiceChannelMajority(DiscordClient client, Snowflake guildId) {
+        return getBotConnectedVoiceChannel(client, guildId)
+                .flatMapMany(VoiceChannel::getVoiceStates)
+                .count()
+                .map(num -> (int) Math.ceil(num / 2d)); //want to ceil number if decimal
+    }
+
+    public static Mono<VoiceChannel> getBotConnectedVoiceChannel(DiscordClient client, Snowflake guildId) {
         return client.getSelf()
                 .flatMap(u -> u.asMember(guildId))
                 .flatMap(Music::getConnectedVoiceChannel);
     }
 
-    public static Mono<Optional<VoiceChannel>> getConnectedVoiceChannel(Member member) {
-        return member.getVoiceState().flatMap(VoiceState::getChannel).map(Optional::of).defaultIfEmpty(Optional.empty());
+    public static Mono<VoiceChannel> getConnectedVoiceChannel(Member member) {
+        return member.getVoiceState().flatMap(VoiceState::getChannel);
     }
 
-    public static String getTime(long millis) {
+    public static String getTrackTime(long millis) {
         StringBuilder builder = new StringBuilder();
         Duration duration = Duration.ofMillis(millis);
 
@@ -92,19 +119,15 @@ public class Music {
     public static Mono<Boolean> locked(Member member, TextChannel channel) {
         return channel.getGuild().map(Guild::getId)
                 .filter(lockedGuilds::contains) //only want locked guilds
-                .filterWhen(snowflake -> MusicPermissions.isDJ(member))
+                .filterWhen(snowflake -> MusicPermission.isDJ(member))
                 .flatMap(snowflake -> Util.sendMessage(":lock: Music is currently locked for normal members. Please try again later.", channel))
                 .hasElement();
     }
 
-    public static void disconnectBotFromChannel(DiscordClient client, Snowflake guildId) {
+    public static void disconnectBotFromChannel(Snowflake guildId) {
         connections.get(guildId).disconnect();
         connections.remove(guildId);
-        GuildMusicManager manager = getGuildManager(client, guildId);
-        manager.scheduler.queue.clear();
-        manager.player.startTrack(null, false);
-        manager.player.setVolume(DEFAULT_VOLUME);
-        manager.player.setPaused(false);
+        musicManagers.remove(guildId);
         lockedGuilds.remove(guildId);
     }
 

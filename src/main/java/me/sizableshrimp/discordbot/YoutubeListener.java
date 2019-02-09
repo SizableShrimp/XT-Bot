@@ -22,14 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 class YoutubeListener {
     private static final String YOUTUBE_CHANNEL_ID = "UCKrMGLGMhxIuMHQdHOf1YIw";
-    private static final long NOTIFICATION_CHANNEL = 490759923735592989L;
+    private static final long NOTIFICATION_CHANNEL = 341028279584817163L;
 
     private static final String BASE_URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=" + YOUTUBE_CHANNEL_ID;
     private static final String VIDEO_URL = BASE_URL + "&maxResults=1&order=date&type=video&key=" + System.getenv("GOOGLE_KEY");
     private static final String STREAMING_URL = BASE_URL + "&eventType=live&type=video&key=" + System.getenv("GOOGLE_KEY");
 
-    private YoutubeListener() {
-    }
+    private YoutubeListener() {}
 
     static void schedule(DiscordClient client) {
         Executors.newSingleThreadScheduledExecutor()

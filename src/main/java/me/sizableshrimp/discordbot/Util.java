@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.function.Consumer;
 
 public class Util {
     private Util() {}
@@ -22,8 +23,21 @@ public class Util {
         return channel.createMessage("\u200B" + string);
     }
 
-    public static Mono<Message> sendEmbed(EmbedCreateSpec embed, MessageChannel channel) {
-        return channel.createMessage(message -> message.setEmbed(embed));
+    public static Mono<Message> sendEmbed(Consumer<? super EmbedCreateSpec> spec, MessageChannel channel) {
+        return channel.createMessage(message -> message.setEmbed(spec));
+    }
+
+    /**
+     * Returns a lowercase String representation of the command in the specified message, if present.
+     * This method assumes that there is a one-letter prefix before the command.
+     *
+     * @param message The Message used to find the command name
+     * @return A lowercase String representation of the command in the specified message, if present
+     */
+    public static String getCommandName(Message message) {
+        String content = message.getContent().orElse("");
+        if (content.isEmpty()) return "";
+        return content.substring(1).split(" ")[0].toLowerCase();
     }
 
     public static Mono<Boolean> isBotInVoiceChannel(DiscordClient client, Snowflake voiceChannelId) {
@@ -33,17 +47,23 @@ public class Util {
                 .any(vs -> client.getSelfId().map(vs.getUserId()::equals).orElse(false));
     }
 
+    public static Mono<Boolean> isBotInVoiceChannel(VoiceChannel voiceChannel) {
+        return voiceChannel.getVoiceStates()
+                .any(vs -> voiceChannel.getClient().getSelfId().map(vs.getUserId()::equals).orElse(false));
+    }
+
     public static Mono<Boolean> isBotAlone(DiscordClient client, Snowflake guildId) {
         return client.getSelf()
                 .flatMap(u -> u.asMember(guildId))
-                .flatMap(Util::isMemberAlone);
+                .flatMap(Util::isMemberAloneWithBot);
     }
 
-    public static Mono<Boolean> isMemberAlone(Member member) {
+    public static Mono<Boolean> isMemberAloneWithBot(Member member) {
         return member.getVoiceState()
                 .flatMap(VoiceState::getChannel)
+                .filterWhen(voiceChannel -> isBotInVoiceChannel(voiceChannel).map(in -> !in)) //bot is in voice channel
                 .flatMapMany(VoiceChannel::getVoiceStates)
-                .filter(state -> state.getUserId().equals(member.getId()))
+                .filter(state -> member.getClient().getSelfId().map(id -> !state.getUserId().equals(id)).orElse(false)) //filter out bot
                 .count()
                 .map(it -> it == 1)
                 .defaultIfEmpty(false);
@@ -51,6 +71,7 @@ public class Util {
 
     /**
      * Gets the Duration until 4:20 Eastern Time
+     *
      * @return Duration until 4:20 Eastern Time
      */
     static Duration happy420() {
@@ -62,6 +83,7 @@ public class Util {
 
     /**
      * Converts the given time to a String representation
+     *
      * @param time The time to convert
      * @return A String representation which includes the day, month, and year
      */

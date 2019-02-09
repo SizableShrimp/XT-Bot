@@ -32,10 +32,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 class DiscordConfiguration {
-    private DiscordConfiguration() {}
+    private DiscordConfiguration() {
+    }
 
     /**
      * Logs into all shards from 0 to the recommended shard count and registers events.
+     *
      * @see <a href="https://discordapp.com/developers/docs/topics/gateway#get-gateway-bot">Recommended Shard Count</a>
      */
     static void login() {
@@ -56,7 +58,7 @@ class DiscordConfiguration {
         Mono.when(
                 dispatcher.on(MessageCreateEvent.class)
                         .filterWhen(e -> e.getMessage().getChannel().map(c -> c.getType() == Channel.Type.GUILD_TEXT))
-                        .filterWhen(e -> e.getMessage().getAuthor().map(u -> !u.isBot()))
+                        .filter(e -> e.getMessage().getAuthor().map(u -> !u.isBot()).orElse(false))
                         .flatMap(EventListener::onMessageCreate)
                         .onErrorContinue((error, event) -> LoggerFactory.getLogger(Bot.class).error("Event listener had an uncaught exception!", error)),
                 dispatcher.on(ReadyEvent.class)
@@ -65,6 +67,9 @@ class DiscordConfiguration {
                         .doOnNext(ignored -> Bot.setFirstOnline(System.currentTimeMillis())) //set the first online time on ready event of shard 0
                         .doOnNext(ignored -> Bot.schedule(client)),
                 dispatcher.on(VoiceStateUpdateEvent.class)
+                        .filter(event -> event.getClient().getSelfId()
+                                .map(id -> !id.equals(event.getCurrent().getUserId()))
+                                .orElse(false)) //don't want bot user
                         .flatMap(EventListener::onVoiceStateUpdate)).subscribe();
     }
 
