@@ -43,8 +43,7 @@ public class Util {
     public static Mono<Boolean> isBotInVoiceChannel(DiscordClient client, Snowflake voiceChannelId) {
         return client.getChannelById(voiceChannelId)
                 .ofType(VoiceChannel.class)
-                .flatMapMany(VoiceChannel::getVoiceStates)
-                .any(vs -> client.getSelfId().map(vs.getUserId()::equals).orElse(false));
+                .flatMap(Util::isBotInVoiceChannel);
     }
 
     public static Mono<Boolean> isBotInVoiceChannel(VoiceChannel voiceChannel) {
@@ -55,17 +54,20 @@ public class Util {
     public static Mono<Boolean> isBotAlone(DiscordClient client, Snowflake guildId) {
         return client.getSelf()
                 .flatMap(u -> u.asMember(guildId))
-                .flatMap(Util::isMemberAloneWithBot);
+                .flatMap(Member::getVoiceState)
+                .flatMap(VoiceState::getChannel)
+                .flatMapMany(VoiceChannel::getVoiceStates)
+                .count()
+                .map(count -> count == 1);
     }
 
     public static Mono<Boolean> isMemberAloneWithBot(Member member) {
         return member.getVoiceState()
                 .flatMap(VoiceState::getChannel)
-                .filterWhen(voiceChannel -> isBotInVoiceChannel(voiceChannel).map(in -> !in)) //bot is in voice channel
+                .filterWhen(Util::isBotInVoiceChannel) //bot is in voice channel
                 .flatMapMany(VoiceChannel::getVoiceStates)
-                .filter(state -> member.getClient().getSelfId().map(id -> !state.getUserId().equals(id)).orElse(false)) //filter out bot
                 .count()
-                .map(it -> it == 1)
+                .map(it -> it == 2) //includes bot
                 .defaultIfEmpty(false);
     }
 

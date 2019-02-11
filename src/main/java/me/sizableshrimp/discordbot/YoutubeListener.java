@@ -1,39 +1,49 @@
 package me.sizableshrimp.discordbot;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import discord4j.core.DiscordClient;
+import discord4j.core.object.PermissionOverwrite;
+import discord4j.core.object.entity.Category;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.entity.TextChannel;
+import discord4j.core.object.entity.VoiceChannel;
+import discord4j.core.object.util.Permission;
+import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
 import discord4j.rest.http.client.ClientException;
+import lombok.Data;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class YoutubeListener {
     private static final String YOUTUBE_CHANNEL_ID = "UCKrMGLGMhxIuMHQdHOf1YIw";
-    private static final long NOTIFICATION_CHANNEL = 341028279584817163L;
+    private static final long NOTIFICATION_CHANNEL = 490759923735592989L; // 341028279584817163L;
 
-    private static final String BASE_URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=" + YOUTUBE_CHANNEL_ID;
-    private static final String VIDEO_URL = BASE_URL + "&maxResults=1&order=date&type=video&key=" + System.getenv("GOOGLE_KEY");
-    private static final String STREAMING_URL = BASE_URL + "&eventType=live&type=video&key=" + System.getenv("GOOGLE_KEY");
+    private static final String BASE_URL = "https://www.googleapis.com/youtube/v3/";
+    private static final String PARAMS = "&channelId=" + YOUTUBE_CHANNEL_ID + "&key=" + System.getenv("GOOGLE_KEY");
+    private static final String VIDEO_URL = BASE_URL + "search?part=snippet&maxResults=1&order=date&type=video" + PARAMS;
+    private static final String STREAMING_URL = BASE_URL + "search?part=snippet&eventType=live&type=video" + PARAMS;
+    private static final String STATISTICS_URL = BASE_URL + "channels?part=statistics%2Csnippet" + PARAMS.replace("channelId", "id");
 
     private YoutubeListener() {}
 
     static void schedule(DiscordClient client) {
-        Executors.newSingleThreadScheduledExecutor()
-                .scheduleAtFixedRate(() -> checkStreaming(client)
+        Flux.interval(Duration.ofMinutes(5))
+                .flatMap(l -> checkStreaming(client)
                         .then(checkNewVideo(client))
+                        .then(updateStatistics(client))
                         .onErrorResume(throwable -> {
                             if (throwable instanceof ClientException) {
                                 int code = ((ClientException) throwable).getStatus().code();
@@ -41,7 +51,8 @@ class YoutubeListener {
                             }
                             LoggerFactory.getLogger(Bot.class).error("YouTube listener had an uncaught exception!", throwable);
                             return Mono.empty();
-                        }).subscribe(), 0, 60, TimeUnit.SECONDS);
+                        }))
+                .subscribe();
     }
 
     private static Mono<Message> checkStreaming(DiscordClient client) {
@@ -63,19 +74,78 @@ class YoutubeListener {
                 });
     }
 
+    private static Mono<Void> updateStatistics(DiscordClient client) {
+        return getYoutubeJson(STATISTICS_URL)
+                .zipWith(client.getChannelById(Snowflake.of(NOTIFICATION_CHANNEL))
+                        .cast(TextChannel.class)
+                        .flatMap(TextChannel::getGuild)
+                        .flatMap(YoutubeListener::getStatisticsCategory))
+                .flatMap(tuple -> {
+                    JsonNode json = tuple.getT1();
+                    Statistics stats;
+                    try {
+                        stats = Bot.mapper.treeToValue(json.path("statistics"), Statistics.class);
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(e);
+                    }
+                    Category category = tuple.getT2();
+                    return getStatsChannel(category, "Channel Name")
+                            .flatMap(channel -> setStats(channel, json.path("snippet").path("title").textValue()))
+                            .then(getStatsChannel(category, "Subscribers")
+                                    .flatMap(channel -> setStats(channel, stats.subscriberCount)))
+                            .then(getStatsChannel(category, "Views")
+                                    .flatMap(channel -> setStats(channel, stats.viewCount)))
+                            .then(getStatsChannel(category, "Posted Videos")
+                                    .flatMap(channel -> setStats(channel, stats.videoCount)))
+                            .then();
+                });
+    }
+
+    private static Mono<VoiceChannel> setStats(VoiceChannel voiceChannel, int stat) {
+        return setStats(voiceChannel, String.format("%,d", stat));
+    }
+
+    private static Mono<VoiceChannel> setStats(VoiceChannel voiceChannel, String str) {
+        String name = voiceChannel.getName();
+        int index = name.lastIndexOf(':');
+        if (index == -1) index = name.length();
+        String prefix = voiceChannel.getName().substring(0, index);
+        String newName = prefix + ": " + str;
+        if (newName.equals(name)) return Mono.empty();
+        return voiceChannel.edit(edit -> edit.setName(newName));
+    }
+
+    private static Mono<VoiceChannel> getStatsChannel(Category category, String startsWith) {
+        return category.getChannels()
+                .ofType(VoiceChannel.class)
+                .skipUntil(channel -> channel.getName().startsWith(startsWith))
+                .next()
+                .switchIfEmpty(category.getGuild().flatMap(guild -> guild.createVoiceChannel(createVoiceChannel -> {
+                    createVoiceChannel.setParentId(category.getId());
+                    createVoiceChannel.setName(startsWith);
+                    createVoiceChannel.setPosition(0);
+                    PermissionOverwrite overwrite =
+                            PermissionOverwrite.forRole(category.getGuildId() /*@everyone role*/, PermissionSet.none(), PermissionSet.of(Permission.CONNECT));
+                    createVoiceChannel.setPermissionOverwrites(Stream.of(overwrite).collect(Collectors.toSet()));
+                })));
+    }
+
+    private static Mono<Category> getStatisticsCategory(Guild guild) {
+        return guild.getChannels()
+                .ofType(Category.class)
+                .skipUntil(category -> category.getName().equals("Youtube Statistics"))
+                .next()
+                .switchIfEmpty(guild.createCategory(createCategory -> {
+                    createCategory.setName("Youtube Statistics");
+                    createCategory.setPosition(-1); //discord is weird
+                }));
+    }
+
     private static Mono<JsonNode> getYoutubeJson(String url) {
         return Mono.fromCallable(() -> {
-            HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-
-            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                try (InputStream stream = connection.getInputStream()) {
-                    JsonNode json = Bot.mapper.readTree(stream);
-                    if (json.get("pageInfo").get("totalResults").intValue() > 0) {
-                        return json.withArray("items").get(0);
-                    }
-                }
+            JsonNode json = Bot.mapper.readTree(new URL(url));
+            if (json.get("pageInfo").get("totalResults").intValue() > 0) {
+                return json.withArray("items").get(0);
             }
             return null;
         });
@@ -108,5 +178,14 @@ class YoutubeListener {
                 .take(10)
                 .any(msg -> msg.getContent().map(content -> content.contains(json.get("id").get("videoId").textValue())).orElse(false))
                 .map(posted -> !posted);
+    }
+
+    @Data
+    private static class Statistics {
+        int viewCount;
+        int commentCount;
+        int subscriberCount;
+        boolean hiddenSubscriberCount;
+        int videoCount;
     }
 }

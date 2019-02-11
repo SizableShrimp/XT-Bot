@@ -7,8 +7,8 @@ import discord4j.core.spec.EmbedCreateSpec;
 import me.sizableshrimp.discordbot.Bot;
 import me.sizableshrimp.discordbot.EventListener;
 import me.sizableshrimp.discordbot.Util;
-import me.sizableshrimp.discordbot.music.commands.AbstractMusicCommand;
-import me.sizableshrimp.discordbot.music.commands.MusicCommand;
+import me.sizableshrimp.discordbot.commands.music.AbstractMusicCommand;
+import me.sizableshrimp.discordbot.commands.music.MusicCommand;
 import reactor.core.publisher.Mono;
 
 import java.awt.Color;

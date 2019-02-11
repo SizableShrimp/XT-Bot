@@ -29,14 +29,14 @@ public abstract class Command {
         return false;
     }
 
-    public Mono run(MessageCreateEvent event) {
+    public Mono<?> run(MessageCreateEvent event) {
         if (!event.getMessage().getContent().isPresent()) return Mono.empty();
         String[] args = event.getMessage().getContent().get().split(" ");
         args = Arrays.copyOfRange(args, 1, args.length);
         return run(event, args);
     }
 
-    protected abstract Mono run(MessageCreateEvent event, String[] args);
+    protected abstract Mono<?> run(MessageCreateEvent event, String[] args);
 
 
     //helper functions
@@ -52,7 +52,7 @@ public abstract class Command {
         return Util.sendEmbed(spec, channel);
     }
 
-    protected static Mono<Void> deleteLater(int seconds, Message... messages) {
+    static Mono<Void> deleteLater(int seconds, Message... messages) {
         Mono<Void> delete = Flux.just(messages).flatMap(Message::delete).then();
         return Mono.delay(Duration.ofSeconds(seconds)).then(delete);
     }

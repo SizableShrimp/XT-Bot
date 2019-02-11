@@ -1,4 +1,4 @@
-package me.sizableshrimp.discordbot.music.commands;
+package me.sizableshrimp.discordbot.commands.music;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;

@@ -1,4 +1,4 @@
-package me.sizableshrimp.discordbot.music.commands;
+package me.sizableshrimp.discordbot.commands.music;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;

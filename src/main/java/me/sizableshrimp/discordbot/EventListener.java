@@ -60,23 +60,17 @@ public class EventListener {
     }
 
     //reset the music player if user leaves channel and bot is the only one in it
-    //OR skips to next track if a user leaving caused the num of people skipping to go over the majority
-    static Mono<Snowflake> onVoiceStateUpdate(VoiceStateUpdateEvent event) {
+    static Mono<Snowflake> onVoiceChannelLeave(VoiceStateUpdateEvent event) {
         if (Music.connections.get(event.getCurrent().getGuildId()) == null) return Mono.empty();
+        if (!event.getOld().isPresent()) return Mono.empty(); //not possible for user to have left channel
         Snowflake guildId = event.getCurrent().getGuildId();
-        Set<Snowflake> usersSkipping = Music.getGuildManager(event.getClient(), guildId).usersSkipping;
 
-        //TODO fix
         return Mono.justOrEmpty(event.getOld().flatMap(VoiceState::getChannelId))
                 .filterWhen(old -> event.getCurrent().getChannel().hasElement().map(connected -> !connected)) //user left channel
-                .doOnNext(old -> usersSkipping.remove(event.getCurrent().getUserId()))
+                .doOnNext(old -> Music.getGuildManager(event.getClient(), guildId).usersSkipping.remove(event.getCurrent().getUserId()))
                 .filterWhen(old -> Util.isBotInVoiceChannel(event.getClient(), old))
                 .filterWhen(old -> Util.isBotAlone(event.getClient(), guildId))
-                .doOnNext(ignored -> Music.disconnectBotFromChannel(event.getCurrent().getGuildId()))
-                .switchIfEmpty(Music.getBotVoiceChannelMajority(event.getClient(), guildId)
-                        .filter(majority -> usersSkipping.size() >= majority)
-                        .doOnNext(majority -> Music.skipTrack(event.getClient(), guildId))
-                        .thenReturn(Snowflake.of(0)));
+                .doOnNext(ignored -> Music.disconnectBotFromChannel(event.getCurrent().getGuildId()));
     }
 
     public static Map<String, Command> getCommandNameMap() {

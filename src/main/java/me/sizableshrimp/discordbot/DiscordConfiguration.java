@@ -25,32 +25,40 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 class DiscordConfiguration {
-    private DiscordConfiguration() {
-    }
+    private DiscordConfiguration() {}
 
     /**
-     * Logs into all shards from 0 to the recommended shard count and registers events.
+     * Returns a Mono which logs into all shards from 0 to the recommended shard count and registers events.
      *
      * @see <a href="https://discordapp.com/developers/docs/topics/gateway#get-gateway-bot">Recommended Shard Count</a>
      */
-    static void login() {
+    static Mono<Void> login() {
+        return login(true)
+                .flatMap(DiscordClient::login)
+                .then();
+    }
+
+    /**
+     * Returns a Mono which logs into all shards from 0 to the recommended shard count.
+     *
+     * @param registerEvents If true, events will be registered and {@code Bot.schedule} will be called. Otherwise, nothing will be scheduled or registered. This is meant for debugging.
+     * @see <a href="https://discordapp.com/developers/docs/topics/gateway#get-gateway-bot">Recommended Shard Count</a>
+     */
+    static Flux<DiscordClient> login(boolean registerEvents) {
         DiscordClientBuilder builder = new DiscordClientBuilder(System.getenv("TOKEN"))
                 .setInitialPresence(Presence.online(Activity.playing("a random thing")));
-        getShardCount(builder.getToken())
-                .map(shardCount -> IntStream.range(0, shardCount)
-                        .mapToObj(i -> builder.setShardIndex(i).build())
-                        .peek(DiscordConfiguration::registerEvents)
-                        .map(DiscordClient::login)
-                        .collect(Collectors.toList())
-                ).flatMap(Mono::when)
-                .block();
+        return getShardCount(builder.getToken())
+                .flatMapMany(shardCount -> Flux.range(0, shardCount)
+                        .map(i -> builder.setShardIndex(i).build())
+                        .doOnNext(client -> {
+                            if (registerEvents) registerEvents(client);
+                        })
+                );
     }
 
     private static void registerEvents(DiscordClient client) {
@@ -70,7 +78,7 @@ class DiscordConfiguration {
                         .filter(event -> event.getClient().getSelfId()
                                 .map(id -> !id.equals(event.getCurrent().getUserId()))
                                 .orElse(false)) //don't want bot user
-                        .flatMap(EventListener::onVoiceStateUpdate)).subscribe();
+                        .flatMap(EventListener::onVoiceChannelLeave)).subscribe();
     }
 
     private static Mono<Integer> getShardCount(String token) {

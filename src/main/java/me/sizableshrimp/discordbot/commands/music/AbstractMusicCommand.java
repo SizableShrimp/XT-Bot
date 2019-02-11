@@ -1,4 +1,4 @@
-package me.sizableshrimp.discordbot.music.commands;
+package me.sizableshrimp.discordbot.commands.music;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
@@ -37,7 +37,7 @@ public abstract class AbstractMusicCommand extends Command {
     }
 
     @Override
-    public Mono run(MessageCreateEvent event) {
+    public Mono<?> run(MessageCreateEvent event) {
         if (!event.getMessage().getContent().isPresent() || !event.getMember().isPresent()) return Mono.empty();
         String[] temp = event.getMessage().getContent().get().split(" ");
         String[] args = Arrays.copyOfRange(temp, 1, temp.length);
@@ -55,6 +55,7 @@ public abstract class AbstractMusicCommand extends Command {
                 .flatMap(ignored -> sameChannel
                         .filter(same -> this instanceof MusicCommand || this instanceof PlayCommand || same)
                         .flatMap(same -> run(event, args).thenReturn(same)) //don't let empty monos from run trigger empty fallback
+                        .cast(Object.class)
                         .switchIfEmpty(fallback));
     }
 
