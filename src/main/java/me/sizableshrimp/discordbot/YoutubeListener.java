@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 
 class YoutubeListener {
     private static final String YOUTUBE_CHANNEL_ID = "UCKrMGLGMhxIuMHQdHOf1YIw";
-    private static final long NOTIFICATION_CHANNEL = 490759923735592989L; // 341028279584817163L;
+    private static final long NOTIFICATION_CHANNEL = 341028279584817163L;
 
     private static final String BASE_URL = "https://www.googleapis.com/youtube/v3/";
     private static final String PARAMS = "&channelId=" + YOUTUBE_CHANNEL_ID + "&key=" + System.getenv("GOOGLE_KEY");
