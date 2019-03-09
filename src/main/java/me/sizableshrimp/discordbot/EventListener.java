@@ -20,8 +20,7 @@ public class EventListener {
     private static Map<String, Command> names = new HashMap<>();
     private static Set<Command> commands = new HashSet<>();
 
-    private EventListener() {
-    }
+    private EventListener() {}
 
     static {
         Reflections reflections = new Reflections(EventListener.class.getPackage().getName());
@@ -41,15 +40,10 @@ public class EventListener {
     }
 
     static Mono onMessageCreate(MessageCreateEvent event) {
-        if (!event.getMessage().getContent().isPresent() || !event.getMessage().getAuthor().isPresent())
-            return Mono.empty();
-
         String prefix = Bot.getPrefix(event.getClient(), event.getGuildId().get());
-        Command command = null;
-        if (event.getMessage().getContent().get().startsWith(prefix)) {
-            String commandName = Util.getCommandName(event.getMessage());
-            command = names.get(commandName);
-        }
+        String commandName = Util.getCommandName(event.getMessage(), prefix);
+        Command command = names.get(commandName);
+
         if (command == null) {
             command = commands.stream()
                     .filter(cmd -> cmd.isCommand(event.getMessage()))

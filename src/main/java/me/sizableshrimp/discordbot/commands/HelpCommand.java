@@ -46,7 +46,7 @@ public class HelpCommand extends Command {
     }
 
     public static Consumer<EmbedCreateSpec> display(MessageCreateEvent event, Command command) {
-        return display(event, Util.getCommandName(event.getMessage()), command);
+        return display(event, Util.getCommandName(event.getMessage(), event.getGuildId().get()), command);
     }
 
     public static Consumer<EmbedCreateSpec> display(MessageCreateEvent event, String inputCmd, Command command) {

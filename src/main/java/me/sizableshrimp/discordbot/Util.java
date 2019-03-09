@@ -28,16 +28,30 @@ public class Util {
     }
 
     /**
-     * Returns a lowercase String representation of the command in the specified message, if present.
-     * This method assumes that there is a one-letter prefix before the command.
+     * Returns a lowercase {@code String} representation of the command in the specified message, if present.
+     * The returned {@code String} is empty if the message content is empty or the message does not start with the prefix of the guild.
      *
-     * @param message The Message used to find the command name
-     * @return A lowercase String representation of the command in the specified message, if present
+     * @param message The {@link Message} used to find the command name.
+     * @return The command, if present.
      */
-    public static String getCommandName(Message message) {
-        String content = message.getContent().orElse("");
-        if (content.isEmpty()) return "";
-        return content.substring(1).split(" ")[0].toLowerCase();
+    public static String getCommandName(Message message, Snowflake guildId) {
+        String prefix = Bot.getPrefix(message.getClient(), guildId);
+        return getCommandName(message, prefix);
+    }
+
+    /**
+     * Returns a lowercase {@code String} representation of the command in the specified message, if present.
+     * The returned {@code String} is empty if the message content is empty or the message does not start with the prefix.
+     *
+     * @param message The {@link Message} used to find the command name.
+     * @param prefix The prefix.
+     * @return The command, if present.
+     */
+    public static String getCommandName(Message message, String prefix) {
+        return message.getContent()
+                .filter(content -> content.startsWith(prefix))
+                .map(content -> content.substring(prefix.length()).split(" ")[0].toLowerCase())
+                .orElse("");
     }
 
     public static Mono<Boolean> isBotInVoiceChannel(DiscordClient client, Snowflake voiceChannelId) {

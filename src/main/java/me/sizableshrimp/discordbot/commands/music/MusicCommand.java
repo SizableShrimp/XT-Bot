@@ -49,7 +49,7 @@ public class MusicCommand extends AbstractMusicCommand {
     }
 
     static Consumer<EmbedCreateSpec> displayMusic(MessageCreateEvent event, AbstractMusicCommand command) {
-        return displayMusic(event, Util.getCommandName(event.getMessage()), command);
+        return displayMusic(event, Util.getCommandName(event.getMessage(), event.getGuildId().get()), command);
     }
 
     private static Consumer<EmbedCreateSpec> displayMusic(MessageCreateEvent event, String inputCmd, AbstractMusicCommand command) {
