@@ -2,14 +2,22 @@ package me.sizableshrimp.discordbot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import discord4j.core.DiscordClient;
+import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.entity.TextChannel;
 import discord4j.core.object.util.Snowflake;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -32,13 +40,18 @@ public class Bot {
      */
     public static void schedule(DiscordClient client) {
         YoutubeListener.schedule(client);
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
-        scheduler.scheduleAtFixedRate(() -> client.getChannelById(Snowflake.of(GREETING_CHANNEL))
+
+        Mono<Message> message420 = client.getChannelById(Snowflake.of(GREETING_CHANNEL))
                 .ofType(TextChannel.class)
-                .flatMap(c -> Util.sendMessage("Happy 420!", c))
-                .subscribe(), Util.happy420().toMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
+                .flatMap(Bot::create420Message);
+        Flux.interval(Util.happy420(), Duration.ofDays(1))
+                .flatMap(l -> message420)
+                .subscribe();
+
         boolean heroku = System.getenv().containsKey("HEROKU");
+
         if (heroku && System.getenv("HEROKU").equalsIgnoreCase("true")) {
+            ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
             scheduler.scheduleAtFixedRate(() -> {
                 try {
                     HttpsURLConnection connection = (HttpsURLConnection) new URL(System.getenv("URL")).openConnection();
@@ -51,6 +64,13 @@ public class Bot {
                 }
             }, 0, 10, TimeUnit.MINUTES);
         }
+    }
+
+    private static Mono<Message> create420Message(MessageChannel channel) {
+        ZonedDateTime time = ZonedDateTime.now(ZoneId.of("US/Eastern"));
+        boolean ultimate420 = time.getMonth() == Month.APRIL && time.getDayOfMonth() == 20;
+        String message = ultimate420 ? "@everyone Happy ULTIMATE 420!!!" : "Happy 420!";
+        return Util.sendMessage(message, channel);
     }
 
     public static long getFirstOnline() {
