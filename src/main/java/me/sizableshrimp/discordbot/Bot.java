@@ -30,7 +30,7 @@ public class Bot {
 
     public static void main(String[] args) {
         SpringApplication.run(Bot.class, args);
-        DiscordConfiguration.login().block();
+        DiscordConfiguration.login().subscribe();
     }
 
     /**

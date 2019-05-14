@@ -51,7 +51,7 @@
         <dependency>
             <groupId>com.github.discord4j</groupId>
             <artifactId>discord4j</artifactId>
-            <version>ff71ca38abfec9c3d459db132b8c7892df6393f7</version>
+            <version>8fd3c2aa5afeda70fa88831050c4134ec28437fd</version>
         </dependency>
 
         <dependency>
