@@ -49,9 +49,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.discord4j</groupId>
-            <artifactId>discord4j</artifactId>
-            <version>8fd3c2aa5afeda70fa88831050c4134ec28437fd</version>
+            <groupId>com.discord4j</groupId>
+            <artifactId>discord4j-core</artifactId>
+            <version>3.0.7</version>
         </dependency>
 
         <dependency>
@@ -83,10 +83,6 @@
         <repository>
             <id>jcenter</id>
             <url>http://jcenter.bintray.com</url>
-        </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
         </repository>
         <repository>
             <id>Pivotal Milestones</id>

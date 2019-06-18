@@ -52,7 +52,7 @@ class YoutubeListener {
 
     private static Mono<Message> checkStreaming(DiscordClient client) {
         return getYoutubeJson(STREAMING_URL)
-                .flatMap(json -> sendNotification(client, json, String.format("@everyone **%s** is :red_circle:**LIVE**:red_circle:! %nhttps://www.youtube.com/watch?v=%s",
+                .flatMap(json -> sendNotification(client, json, String.format("**%s** is :red_circle:**LIVE**:red_circle:! %nhttps://www.youtube.com/watch?v=%s",
                         json.get("snippet").get("channelTitle").textValue(),
                         json.get("id").get("videoId").textValue())));
     }
@@ -61,7 +61,7 @@ class YoutubeListener {
         return getYoutubeJson(VIDEO_URL)
                 .flatMap(json -> {
                     ZonedDateTime publishDate = Instant.parse(json.get("snippet").get("publishedAt").textValue()).atZone(ZoneId.of("US/Eastern"));
-                    return sendNotification(client, json, String.format("@everyone **%s** uploaded **%s** on %s %nhttps://www.youtube.com/watch?v=%s",
+                    return sendNotification(client, json, String.format("**%s** uploaded **%s** on %s %nhttps://www.youtube.com/watch?v=%s",
                             json.get("snippet").get("channelTitle").textValue(),
                             json.get("snippet").get("title").textValue(),
                             Util.getTime(publishDate),
