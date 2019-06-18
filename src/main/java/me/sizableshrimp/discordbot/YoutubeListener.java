@@ -4,12 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.PermissionOverwrite;
-import discord4j.core.object.entity.Category;
-import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.MessageChannel;
-import discord4j.core.object.entity.TextChannel;
-import discord4j.core.object.entity.VoiceChannel;
+import discord4j.core.object.entity.*;
 import discord4j.core.object.util.Permission;
 import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
@@ -77,8 +72,8 @@ class YoutubeListener {
     private static Mono<Void> updateStatistics(DiscordClient client) {
         return getYoutubeJson(STATISTICS_URL)
                 .zipWith(client.getChannelById(Snowflake.of(NOTIFICATION_CHANNEL))
-                        .cast(TextChannel.class)
-                        .flatMap(TextChannel::getGuild)
+                        .cast(GuildMessageChannel.class)
+                        .flatMap(GuildMessageChannel::getGuild)
                         .flatMap(YoutubeListener::getStatisticsCategory))
                 .flatMap(tuple -> {
                     JsonNode json = tuple.getT1();
@@ -161,7 +156,7 @@ class YoutubeListener {
      */
     private static Mono<Message> sendNotification(DiscordClient client, JsonNode json, String message) {
         return client.getChannelById(Snowflake.of(NOTIFICATION_CHANNEL))
-                .cast(TextChannel.class)
+                .cast(GuildMessageChannel.class)
                 .filterWhen(c -> notPosted(c, json))
                 .flatMap(c -> Util.sendMessage(message, c));
     }
