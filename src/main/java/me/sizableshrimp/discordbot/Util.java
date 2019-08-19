@@ -19,45 +19,32 @@ import java.util.function.Consumer;
 public class Util {
     private Util() {}
 
-    public static Mono<Message> sendMessage(String string, MessageChannel channel) {
-        return channel.createMessage("\u200B" + string);
+    public static Mono<Message> sendMessage(String message, MessageChannel channel) {
+        return channel.createMessage("\u200B" + message);
     }
 
-    public static Mono<Message> sendEmbed(Consumer<? super EmbedCreateSpec> spec, MessageChannel channel) {
-        return channel.createMessage(message -> message.setEmbed(spec));
+    public static Mono<Message> sendEmbed(Consumer<? super EmbedCreateSpec> embed, MessageChannel channel) {
+        return channel.createMessage(message -> message.setEmbed(embed));
     }
 
-    /**
-     * Returns a lowercase {@code String} representation of the command in the specified message, if present.
-     * The returned {@code String} is empty if the message content is empty or the message does not start with the prefix of the guild.
-     *
-     * @param message The {@link Message} used to find the command name.
-     * @return The command, if present.
-     */
-    public static String getCommandName(Message message, Snowflake guildId) {
-        String prefix = Bot.getPrefix(message.getClient(), guildId);
-        return getCommandName(message, prefix);
+    public static Mono<Message> sendEmbed(String message, Consumer<? super EmbedCreateSpec> embed, MessageChannel channel) {
+        return channel.createMessage(m -> m.setContent("\u200B" + message).setEmbed(embed));
     }
 
     /**
      * Returns a lowercase {@code String} representation of the command in the specified message, if present.
-     * The returned {@code String} is empty if the message content is empty or the message does not start with the prefix.
+     * The returned {@code String} is empty if the message content is empty or the message does not start with the
+     * prefix of the guild.
      *
      * @param message The {@link Message} used to find the command name.
-     * @param prefix The prefix.
      * @return The command, if present.
      */
-    public static String getCommandName(Message message, String prefix) {
+    public static String getCommandName(Message message) {
+        String prefix = Bot.getPrefix();
         return message.getContent()
                 .filter(content -> content.startsWith(prefix))
                 .map(content -> content.substring(prefix.length()).split(" ")[0].toLowerCase())
                 .orElse("");
-    }
-
-    public static Mono<Boolean> isBotInVoiceChannel(DiscordClient client, Snowflake voiceChannelId) {
-        return client.getChannelById(voiceChannelId)
-                .ofType(VoiceChannel.class)
-                .flatMap(Util::isBotInVoiceChannel);
     }
 
     public static Mono<Boolean> isBotInVoiceChannel(VoiceChannel voiceChannel) {
@@ -103,7 +90,7 @@ public class Util {
      * @param time The time to convert
      * @return A String representation which includes the day, month, and year
      */
-    static String getTime(ZonedDateTime time) {
+    public static String getTime(ZonedDateTime time) {
         String ordinal;
         switch (time.getDayOfMonth()) {
             case 1:

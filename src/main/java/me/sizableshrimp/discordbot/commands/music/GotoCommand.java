@@ -14,10 +14,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class GotoCommand extends AbstractMusicCommand {
+public class GotoCommand extends MusicCommand {
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("%cmdname% [time in song]",
@@ -31,12 +29,11 @@ public class GotoCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("goto").collect(Collectors.toSet());
+        return Set.of("goto");
     }
 
     @Override
     protected Mono<Message> run(MessageCreateEvent event, String[] args) {
-        if (!event.getMember().isPresent()) return Mono.empty();
         return event.getMessage().getChannel().cast(TextChannel.class)
                 .filterWhen(c -> hasPermission(event))
                 .flatMap(channel -> goTo(channel, event, args));
@@ -53,8 +50,14 @@ public class GotoCommand extends AbstractMusicCommand {
         }
         String time = args[0];
         int colons = 0;
-        for (char c : time.toCharArray()) if (c == ':') colons++;
-        if (colons != 1 && colons != 2) return incorrectUsage(event);
+        for (char c : time.toCharArray()) {
+            if (c == ':') {
+                colons++;
+            }
+        }
+        if (colons != 1 && colons != 2) {
+            return incorrectUsage(event);
+        }
         List<Integer> numbers = new ArrayList<>();
         for (String s : time.split(":")) {
             try {

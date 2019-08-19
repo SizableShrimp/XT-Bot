@@ -21,3 +21,6 @@ dependency-reduced-pom.xml
 Roadmap.md
 /modules/
 bin/
+
+#Bot config file
+*.config

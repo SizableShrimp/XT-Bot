@@ -18,7 +18,7 @@ public class TrackScheduler extends AudioEventAdapter {
     private boolean repeating = false;
     private boolean queueRepeating = false;
     private final AudioPlayer player;
-    public final BlockingQueue<AudioTrack> queue;
+    public final BlockingQueue<AudioTrack> audioQueue;
     private final Snowflake guildId;
     private final DiscordClient client;
 
@@ -26,17 +26,18 @@ public class TrackScheduler extends AudioEventAdapter {
         this.player = player;
         this.guildId = guildId;
         this.client = client;
-        this.queue = new LinkedBlockingQueue<>();
+        this.audioQueue = new LinkedBlockingQueue<>();
     }
 
     public Mono<Message> queue(AudioTrack track, TextChannel channel) {
-        // Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently playing. If
-        // something is playing, it returns false and does nothing. In that case the player was already playing so this
+        // Calling startTrack with the noInterrupt set to true will start the track only if nothing is currently
+        // playing. If something is playing, it returns false and does nothing. In that case the player was already playing so this
         // track goes to the queue instead.
         boolean isPlaying = player.startTrack(track, true);
         if (!isPlaying) {
-            queue.offer(track);
-            return Util.sendMessage("`" + track.getInfo().title + "` added to queue.\n" + track.getInfo().uri + "", channel);
+            audioQueue.offer(track);
+            return Util.sendMessage("`" + track.getInfo().title + "` added to queue.\n" + track.getInfo().uri + "",
+                    channel);
         } else {
             return Util.sendMessage("Now playing `" + track.getInfo().title + "`\n" + track.getInfo().uri, channel);
         }
@@ -45,17 +46,19 @@ public class TrackScheduler extends AudioEventAdapter {
     void nextTrack() {
         // Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
         // giving null to startTrack, which is a valid argument and will simply stop the player.
-        player.startTrack(queue.poll(), false);
+        player.startTrack(audioQueue.poll(), false);
     }
 
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         if (endReason.mayStartNext) {
             if (queueRepeating) {
-                AudioTrack next = queue.poll();
+                AudioTrack next = audioQueue.poll();
                 next = next == null ? track.makeClone() : next.makeClone();
                 player.startTrack(next, false);
-                if (!next.getInfo().uri.equals(track.getInfo().uri) /*make sure tracks are not the same*/) queue.offer(track); //add playing track back to the queue
+                if (!next.getInfo().uri.equals(track.getInfo().uri) /*make sure tracks are not the same*/) {
+                    audioQueue.offer(track); //add playing track back to the queue
+                }
             } else if (repeating) {
                 player.startTrack(track.makeClone(), false);
             } else {

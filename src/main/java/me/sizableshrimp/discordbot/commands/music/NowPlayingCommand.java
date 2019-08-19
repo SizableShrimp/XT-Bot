@@ -14,10 +14,8 @@ import java.awt.Color;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class NowPlayingCommand extends AbstractMusicCommand {
+public class NowPlayingCommand extends MusicCommand {
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("%cmdname%",
@@ -31,7 +29,7 @@ public class NowPlayingCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("nowplaying", "np").collect(Collectors.toSet());
+        return Set.of("nowplaying", "np");
     }
 
     @Override
@@ -46,10 +44,12 @@ public class NowPlayingCommand extends AbstractMusicCommand {
                         embed.setColor(new Color(242, 242, 242));
                     };
                     if (playing == null) {
-                        return sendEmbed(spec.andThen(embed -> embed.setDescription("There is currently nothing playing.")), c);
+                        spec = spec.andThen(embed -> embed.setDescription("There is currently nothing playing."));
+                        return sendEmbed(spec, c);
                     }
                     AudioTrackInfo info = playing.getInfo();
-                    String description = String.format("[%s](%s) %n%s / %s", info.title, info.uri, Music.getTrackTime(playing.getPosition()), Music.getTrackTime(info.length));
+                    String description = String.format("[%s](%s) %n%s / %s", info.title, info.uri,
+                            Music.getTrackTime(playing.getPosition()), Music.getTrackTime(info.length));
                     return sendEmbed(spec.andThen(embed -> embed.setDescription(description)), c);
                 });
 

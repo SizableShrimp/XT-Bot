@@ -78,7 +78,9 @@ public class Music {
         StringBuilder builder = new StringBuilder();
         Duration duration = Duration.ofMillis(millis);
 
-        if (duration.toHours() > 0) builder.append(String.format("%02d:", duration.toHours()));
+        if (duration.toHours() > 0) {
+            builder.append(String.format("%02d:", duration.toHours()));
+        }
         duration = duration.minusHours(duration.toHours());
         builder.append(String.format("%02d:", duration.toMinutes()));
         duration = duration.minusMinutes(duration.toMinutes());
@@ -91,13 +93,16 @@ public class Music {
         return channel.getGuild().map(Guild::getId)
                 .filter(lockedGuilds::contains) //only want locked guilds
                 .filterWhen(snowflake -> MusicPermission.getPermission(member).map(perm -> perm == MusicPermission.NONE))
-                .flatMap(snowflake -> Util.sendMessage(":lock: Music is currently locked for normal members. Please try again later.", channel))
+                .flatMap(snowflake -> Util.sendMessage(":lock: Music is currently locked for normal members. Please " +
+                        "try again later.", channel))
                 .hasElement();
     }
 
     public static void disconnectBotFromChannel(Snowflake guildId) {
         VoiceConnection connection = connections.get(guildId);
-        if (connection != null) connection.disconnect();
+        if (connection != null) {
+            connection.disconnect();
+        }
         connections.remove(guildId);
         musicManagers.remove(guildId);
         lockedGuilds.remove(guildId);
@@ -117,7 +122,9 @@ public class Music {
         @Override
         public boolean provide() {
             boolean didProvide = player.provide(frame);
-            if (didProvide) getBuffer().flip();
+            if (didProvide) {
+                getBuffer().flip();
+            }
             return didProvide;
         }
     }

@@ -9,10 +9,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class ClearCommand extends AbstractMusicCommand {
+public class ClearCommand extends MusicCommand {
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("%cmdname%",
@@ -26,17 +24,16 @@ public class ClearCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("clear").collect(Collectors.toSet());
+        return Set.of("clear");
     }
 
     @Override
     protected Mono<Message> run(MessageCreateEvent event, String[] args) {
-        if (!event.getMember().isPresent()) return Mono.empty();
         return event.getMessage().getChannel()
                 .filterWhen(c -> hasPermission(event))
                 .flatMap(c -> {
                     GuildMusicManager manager = Music.getGuildManager(event.getClient(), event.getGuildId().get());
-                    manager.scheduler.queue.clear();
+                    manager.scheduler.audioQueue.clear();
                     return sendMessage("Queue cleared.", c);
                 });
     }

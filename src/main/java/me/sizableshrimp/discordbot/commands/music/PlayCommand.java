@@ -22,10 +22,8 @@ import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class PlayCommand extends AbstractMusicCommand {
+public class PlayCommand extends MusicCommand {
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("%cmdname% [song]",
@@ -39,13 +37,14 @@ public class PlayCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("play").collect(Collectors.toSet());
+        return Set.of("play");
     }
 
     @Override
     protected Mono run(MessageCreateEvent event, String[] args) {
-        if (!event.getMember().isPresent()) return Mono.empty();
-        if (args.length < 1) return incorrectUsage(event);
+        if (args.length < 1) {
+            return incorrectUsage(event);
+        }
         return event.getMessage().getChannel()
                 .filterWhen(c -> hasPermission(event))
                 .flatMap(c -> Music.getConnectedVoiceChannel(event.getMember().get())
@@ -82,7 +81,8 @@ public class PlayCommand extends AbstractMusicCommand {
 
     private static Mono<VoiceConnection> join(MessageCreateEvent event, VoiceChannel userConnected) {
         GuildMusicManager manager = Music.getGuildManager(event.getClient(), event.getGuildId().get());
-        Mono<VoiceConnection> connection = userConnected.join(voiceSpec -> voiceSpec.setProvider(new Music.LavaplayerAudioProvider(manager.player)));
+        Mono<VoiceConnection> connection =
+                userConnected.join(voiceSpec -> voiceSpec.setProvider(new Music.LavaplayerAudioProvider(manager.player)));
         return connection.doOnNext(vc -> Music.connections.put(event.getGuildId().get(), vc));
     }
 
@@ -97,7 +97,9 @@ public class PlayCommand extends AbstractMusicCommand {
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 AudioTrack firstTrack = playlist.getSelectedTrack();
-                if (firstTrack == null) firstTrack = playlist.getTracks().get(0);
+                if (firstTrack == null) {
+                    firstTrack = playlist.getTracks().get(0);
+                }
                 playSong(channel, manager, firstTrack).subscribe();
             }
 
@@ -127,7 +129,9 @@ public class PlayCommand extends AbstractMusicCommand {
         } catch (MalformedURLException | URISyntaxException e) {
             isValid = false;
         }
-        if (!isValid) return "ytsearch:" + query;
+        if (!isValid) {
+            return "ytsearch:" + query;
+        }
         return query;
     }
 }

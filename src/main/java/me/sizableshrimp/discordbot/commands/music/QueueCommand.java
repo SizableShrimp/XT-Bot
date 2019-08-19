@@ -13,10 +13,9 @@ import java.awt.Color;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class QueueCommand extends AbstractMusicCommand {
+public class QueueCommand extends MusicCommand {
+
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("%cmdname%",
@@ -30,7 +29,7 @@ public class QueueCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("queue", "q").collect(Collectors.toSet());
+        return Set.of("queue", "q");
     }
 
     @Override
@@ -50,12 +49,12 @@ public class QueueCommand extends AbstractMusicCommand {
                     StringBuilder description = new StringBuilder();
                     description.append(String.format("__**Now Playing:**__%n[%s](%s) | `%s`", playing.getInfo().title, playing.getInfo().uri, Music.getTrackTime(playing.getInfo().length)));
                     description.append("\n\n__**Up Next:**__\n");
-                    if (manager.scheduler.queue.isEmpty()) {
+                    if (manager.scheduler.audioQueue.isEmpty()) {
                         description.append("\nThere is currently nothing up next.");
                         return sendEmbed(spec.andThen(embed -> embed.setDescription(description.toString())), c);
                     }
                     int number = 1;
-                    for (AudioTrack track : manager.scheduler.queue) {
+                    for (AudioTrack track : manager.scheduler.audioQueue) {
                         description.append(String.format("%n%d. [%s](%s) | `%s`", number, track.getInfo().title, track.getInfo().uri, Music.getTrackTime(track.getInfo().length)));
                         number++;
                     }

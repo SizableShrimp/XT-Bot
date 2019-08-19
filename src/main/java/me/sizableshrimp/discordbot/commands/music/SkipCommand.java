@@ -13,10 +13,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class SkipCommand extends AbstractMusicCommand {
+public class SkipCommand extends MusicCommand {
+
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("%cmdname%",
@@ -32,7 +31,7 @@ public class SkipCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("skip").collect(Collectors.toSet());
+        return Set.of("skip");
     }
 
     @Override
@@ -55,7 +54,8 @@ public class SkipCommand extends AbstractMusicCommand {
         Mono<Integer> majority = Music.getBotVoiceChannelMajority(member.getClient(), channel.getGuildId());
         usersSkipping.add(member.getId());
         Mono<Message> added = majority
-                .flatMap(num -> Util.sendMessage(musicManager.usersSkipping.size() + "/" + num + " users requesting to skip.", channel));
+                .flatMap(num -> Util.sendMessage(musicManager.usersSkipping.size() + "/" + num + " users requesting " +
+                        "to skip.", channel));
 
         return majority
                 .filter(maj -> musicManager.usersSkipping.size() >= maj)

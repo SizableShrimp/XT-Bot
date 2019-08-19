@@ -8,10 +8,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class DisconnectCommand extends AbstractMusicCommand {
+public class DisconnectCommand extends MusicCommand {
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("%cmdname%",
@@ -25,12 +23,11 @@ public class DisconnectCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("disconnect", "leave").collect(Collectors.toSet());
+        return Set.of("disconnect", "leave");
     }
 
     @Override
     protected Mono<Message> run(MessageCreateEvent event, String[] args) {
-        if (!event.getMember().isPresent()) return Mono.empty();
         return event.getMessage().getChannel()
                 .filterWhen(c -> hasPermission(event))
                 .flatMap(c -> Music.getBotConnectedVoiceChannel(event.getClient(), event.getGuildId().get())

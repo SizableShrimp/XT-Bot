@@ -9,10 +9,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class PauseCommand extends AbstractMusicCommand {
+public class PauseCommand extends MusicCommand {
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("%cmdname%", "Toggles between pausing/resuming the song.");
@@ -25,12 +23,11 @@ public class PauseCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("pause", "p").collect(Collectors.toSet());
+        return Set.of("pause", "p");
     }
 
     @Override
     protected Mono<Message> run(MessageCreateEvent event, String[] args) {
-        if (!event.getMember().isPresent()) return Mono.empty();
         return event.getMessage().getChannel()
                 .filterWhen(c -> hasPermission(event))
                 .flatMap(c -> {

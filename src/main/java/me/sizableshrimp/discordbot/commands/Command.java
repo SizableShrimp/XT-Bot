@@ -6,10 +6,9 @@ import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import lombok.Value;
 import me.sizableshrimp.discordbot.Util;
-import reactor.core.publisher.Flux;
+import me.sizableshrimp.discordbot.commands.utility.HelpCommand;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -25,18 +24,27 @@ public abstract class Command {
 
     public abstract Set<String> getNames();
 
+    /**
+     * Used to run a command on conditions other than name, like tagging the bot, etc.
+     *
+     * @param message The message to use as an input.
+     * @return True if the command meets a condition to run other than a matching name. False otherwise. (This should
+     * not check if the command name or aliases match.)
+     */
     public boolean isCommand(Message message) {
         return false;
     }
 
-    public Mono<?> run(MessageCreateEvent event) {
-        if (!event.getMessage().getContent().isPresent()) return Mono.empty();
+    public Mono run(MessageCreateEvent event) {
+        if (event.getMessage().getContent().isEmpty() || event.getMember().isEmpty()) {
+            return Mono.empty();
+        }
         String[] args = event.getMessage().getContent().get().split(" ");
         args = Arrays.copyOfRange(args, 1, args.length);
         return run(event, args);
     }
 
-    protected abstract Mono<?> run(MessageCreateEvent event, String[] args);
+    protected abstract Mono run(MessageCreateEvent event, String[] args);
 
 
     //helper functions
@@ -44,16 +52,15 @@ public abstract class Command {
         return event.getMessage().getChannel().flatMap(c -> sendEmbed(HelpCommand.display(event, this), c));
     }
 
-    protected static Mono<Message> sendMessage(String string, MessageChannel channel) {
-        return Util.sendMessage(string, channel);
+    protected static Mono<Message> sendMessage(String message, MessageChannel channel) {
+        return Util.sendMessage(message, channel);
     }
 
-    protected static Mono<Message> sendEmbed(Consumer<? super EmbedCreateSpec> spec, MessageChannel channel) {
-        return Util.sendEmbed(spec, channel);
+    protected static Mono<Message> sendEmbed(Consumer<? super EmbedCreateSpec> embed, MessageChannel channel) {
+        return Util.sendEmbed(embed, channel);
     }
 
-    static Mono<Void> deleteLater(int seconds, Message... messages) {
-        Mono<Void> delete = Flux.just(messages).flatMap(Message::delete).then();
-        return Mono.delay(Duration.ofSeconds(seconds)).then(delete);
+    protected static Mono<Message> sendMessage(String message, Consumer<? super EmbedCreateSpec> embed, MessageChannel channel) {
+        return Util.sendEmbed(message, embed, channel);
     }
 }

@@ -36,12 +36,17 @@ public enum MusicPermission {
 
     public static Mono<Boolean> requirePermissions(Member member, TextChannel channel,
                                                    Set<MusicPermission> permissions, boolean displayNoPermission) {
-        if (permissions.contains(MusicPermission.NONE)) return Mono.just(true);
-        if (permissions.contains(MusicPermission.ALONE))
+        if (permissions.contains(MusicPermission.NONE)) {
+            return Mono.just(true);
+        }
+        if (permissions.contains(MusicPermission.ALONE)) {
             permissions.add(MusicPermission.DJ); //DJs can do all of Alone commands + more
+        }
         Mono<MusicPermission> permission = getPermission(member);
         Mono<Boolean> contains = permission.map(permissions::contains);
-        if (!displayNoPermission) return contains;
+        if (!displayNoPermission) {
+            return contains;
+        }
         return contains
                 .flatMap(hasPermission -> {
                     if (!hasPermission) {
@@ -56,7 +61,8 @@ public enum MusicPermission {
                 .then(contains);
     }
 
-    public static Mono<Boolean> requirePermissions(Member member, TextChannel channel, Set<MusicPermission> permissions) {
+    public static Mono<Boolean> requirePermissions(Member member, TextChannel channel,
+                                                   Set<MusicPermission> permissions) {
         return requirePermissions(member, channel, permissions, true);
     }
 }

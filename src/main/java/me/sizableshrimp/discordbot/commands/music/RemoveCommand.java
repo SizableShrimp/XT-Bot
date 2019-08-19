@@ -11,10 +11,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class RemoveCommand extends AbstractMusicCommand {
+public class RemoveCommand extends MusicCommand {
     @Override
     public CommandInfo getInfo() {
         return new CommandInfo("remove [number from queue]",
@@ -28,12 +26,11 @@ public class RemoveCommand extends AbstractMusicCommand {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("remove").collect(Collectors.toSet());
+        return Set.of("remove");
     }
 
     @Override
     protected Mono<Message> run(MessageCreateEvent event, String[] args) {
-        if (!event.getMember().isPresent()) return Mono.empty();
         return event.getMessage().getChannel()
                 .filterWhen(c -> hasPermission(event))
                 .flatMap(c -> remove(c, event, args));
@@ -41,8 +38,12 @@ public class RemoveCommand extends AbstractMusicCommand {
 
     private Mono<Message> remove(MessageChannel channel, MessageCreateEvent event, String[] args) {
         GuildMusicManager manager = Music.getGuildManager(event.getClient(), event.getGuildId().get());
-        if (manager.scheduler.queue.isEmpty()) return sendMessage("There is nothing in the queue to remove.", channel);
-        if (args.length != 1) return incorrectUsage(event);
+        if (manager.scheduler.audioQueue.isEmpty()) {
+            return sendMessage("There is nothing in the queue to remove.", channel);
+        }
+        if (args.length != 1) {
+            return incorrectUsage(event);
+        }
 
         try {
             Integer.valueOf(args[0]);
@@ -51,13 +52,13 @@ public class RemoveCommand extends AbstractMusicCommand {
         }
 
         int queueNum = Integer.parseInt(args[0]);
-        if (manager.scheduler.queue.size() < queueNum || queueNum <= 0) {
+        if (manager.scheduler.audioQueue.size() < queueNum || queueNum <= 0) {
             return sendMessage("Please enter a number from the queue.", channel);
         }
 
         AudioTrack selected = null;
         int num = 0;
-        for (AudioTrack track : manager.scheduler.queue) {
+        for (AudioTrack track : manager.scheduler.audioQueue) {
             num++;
             if (queueNum == num) {
                 selected = track;
@@ -67,7 +68,7 @@ public class RemoveCommand extends AbstractMusicCommand {
         if (selected == null) {
             return sendMessage("Please enter a number from the queue.", channel);
         }
-        manager.scheduler.queue.remove(selected);
+        manager.scheduler.audioQueue.remove(selected);
         return sendMessage("Removed `" + selected.getInfo().title + "` from the queue.", channel);
     }
 }

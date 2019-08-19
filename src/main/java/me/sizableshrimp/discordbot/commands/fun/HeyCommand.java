@@ -1,12 +1,11 @@
-package me.sizableshrimp.discordbot.commands;
+package me.sizableshrimp.discordbot.commands.fun;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import me.sizableshrimp.discordbot.commands.Command;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class HeyCommand extends Command {
     @Override
@@ -17,7 +16,7 @@ public class HeyCommand extends Command {
 
     @Override
     public Set<String> getNames() {
-        return Stream.of("hey", "hello").collect(Collectors.toSet());
+        return Set.of("hey", "hello");
     }
 
     @Override
