@@ -19,8 +19,8 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>2.1.1.RELEASE</version>
                 <configuration>
-                    <mainClass>me.sizableshrimp.discordbot.Bot</mainClass>
                     <finalName>DiscordBot</finalName>
+                    <mainClass>me.sizableshrimp.discordbot.Bot</mainClass>
                 </configuration>
             </plugin>
             <plugin>
@@ -29,6 +29,18 @@
                 <version>3.8.0</version>
                 <configuration>
                     <release>12</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>me.sizableshrimp.discordbot.Bot</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
@@ -86,7 +98,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>LATEST</version>
+            <version>1.18.8</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
